@@ -1,0 +1,676 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,fit}
+
+% Color definitions
+\definecolor{mlblue}{RGB}{0,102,204}
+\definecolor{mlpurple}{RGB}{51,51,178}
+\definecolor{mlorange}{RGB}{255,127,14}
+\definecolor{mlgreen}{RGB}{44,160,44}
+
+% Key concept box
+\newtcolorbox{keybox}[1]{
+  colback=mlblue!5!white,
+  colframe=mlblue,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Example box
+\newtcolorbox{examplebox}[1]{
+  colback=mlgreen!5!white,
+  colframe=mlgreen,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Warning box
+\newtcolorbox{warningbox}[1]{
+  colback=mlorange!5!white,
+  colframe=mlorange,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Code listing style
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  captionpos=b
+}
+
+% Solidity style
+\lstdefinelanguage{Solidity}{
+  keywords={contract, function, public, private, view, pure, payable, returns, address, uint, bool, string, mapping, struct, event, modifier, require, assert, revert, if, else, for, while, return, emit, constructor, memory, storage, calldata},
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  sensitive=true
+}
+
+\title{\textbf{Lecture Notes: Lesson 3}\\Ethereum and Smart Contracts}
+\author{Cryptocurrency Course}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction to Ethereum}
+
+\subsection{Historical Background}
+
+Ethereum was proposed by Vitalik Buterin in late 2013 and launched in July 2015. It extends Bitcoin's blockchain concept to support arbitrary computation through smart contracts.
+
+\begin{keybox}{Ethereum's Vision}
+While Bitcoin is \textbf{digital gold} (store of value), Ethereum is a \textbf{world computer} enabling:
+\begin{itemize}
+  \item Decentralized applications (DApps)
+  \item Programmable money and assets
+  \item Trustless agreements (smart contracts)
+  \item Decentralized finance (DeFi)
+  \item Non-fungible tokens (NFTs)
+\end{itemize}
+\end{keybox}
+
+\subsection{Key Differences from Bitcoin}
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Feature} & \textbf{Bitcoin} & \textbf{Ethereum} \\
+\hline
+Purpose & Digital currency & World computer \\
+Scripting & Limited (Bitcoin Script) & Turing-complete (EVM) \\
+Block Time & ~10 minutes & ~12 seconds \\
+Consensus (2024) & Proof-of-Work & Proof-of-Stake \\
+Supply Cap & 21 million BTC & No fixed cap \\
+Account Model & UTXO & Account-based \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Ethereum Virtual Machine (EVM)}
+
+\subsection{Architecture Overview}
+
+The EVM is a stack-based virtual machine that executes smart contract bytecode. It provides a sandboxed execution environment where code runs deterministically across all nodes.
+
+\subsubsection{Key Characteristics}
+
+\begin{itemize}
+  \item \textbf{Turing-Complete}: Can express any computation (with gas limits)
+  \item \textbf{Deterministic}: Same input always produces same output
+  \item \textbf{Isolated}: Contracts run in sandbox, can't access file system/network
+  \item \textbf{Persistent}: State stored on blockchain between executions
+\end{itemize}
+
+\subsection{EVM Components}
+
+\subsubsection{Stack}
+
+\begin{itemize}
+  \item 1024 element maximum depth
+  \item Each element is 256 bits (32 bytes)
+  \item All operations work on stack items
+  \item LIFO (Last In, First Out) structure
+\end{itemize}
+
+\textbf{Example Operations}:
+\begin{verbatim}
+PUSH1 0x05    // Push 5 onto stack
+PUSH1 0x03    // Push 3 onto stack
+ADD           // Pop two items, push sum (8)
+PUSH1 0x02    // Push 2 onto stack
+MUL           // Pop two items, push product (16)
+\end{verbatim}
+
+\subsubsection{Memory}
+
+\begin{itemize}
+  \item Volatile (cleared between transactions)
+  \item Byte-addressable array
+  \item Expands dynamically (costs gas)
+  \item Used for temporary data during execution
+\end{itemize}
+
+\subsubsection{Storage}
+
+\begin{itemize}
+  \item Persistent key-value store
+  \item Each contract has own storage
+  \item 256-bit keys and values
+  \item Expensive to use (high gas cost)
+  \item Survives between transactions
+\end{itemize}
+
+\begin{keybox}{Storage Cost}
+Storage is the most expensive operation:
+\begin{itemize}
+  \item \textbf{SSTORE} (write): 20,000 gas (new) or 5,000 gas (update)
+  \item \textbf{SLOAD} (read): 200 gas
+  \item \textbf{Memory}: ~3 gas per word
+\end{itemize}
+
+Optimization strategy: Minimize storage writes, use events for logging.
+\end{keybox}
+
+\subsection{Account Model}
+
+Ethereum uses an account-based model (unlike Bitcoin's UTXO model).
+
+\subsubsection{Externally Owned Accounts (EOA)}
+
+Controlled by private keys:
+\begin{itemize}
+  \item Address derived from public key (last 20 bytes of Keccak-256 hash)
+  \item Balance in wei ($1$ ETH $= 10^{18}$ wei)
+  \item Nonce (transaction counter)
+  \item No code
+\end{itemize}
+
+\subsubsection{Contract Accounts}
+
+Controlled by code:
+\begin{itemize}
+  \item Address derived from creator address + nonce
+  \item Balance in wei
+  \item Nonce (creation counter)
+  \item Code hash (immutable bytecode)
+  \item Storage root (Merkle tree of state)
+\end{itemize}
+
+\subsection{State Transition Function}
+
+Ethereum's state machine transitions are deterministic:
+\[
+\sigma_{t+1} = \Upsilon(\sigma_t, T)
+\]
+
+where:
+\begin{itemize}
+  \item $\sigma_t$ is the world state at block $t$
+  \item $T$ is a transaction
+  \item $\Upsilon$ is the state transition function
+  \item $\sigma_{t+1}$ is the resulting new state
+\end{itemize}
+
+\section{Gas Mechanism}
+
+\subsection{Purpose of Gas}
+
+Gas serves three critical functions:
+
+\begin{enumerate}
+  \item \textbf{Metering}: Limits computation to prevent infinite loops
+  \item \textbf{Pricing}: Aligns costs with resource usage (computation, storage)
+  \item \textbf{Fee Market}: Prioritizes transactions during congestion
+\end{enumerate}
+
+\begin{keybox}{Gas Economics}
+\begin{align*}
+\text{Transaction Cost} &= \text{Gas Used} \times \text{Gas Price} \\
+\text{Max Fee} &= \text{Gas Limit} \times \text{Gas Price}
+\end{align*}
+
+\textbf{Refund}: If transaction uses less gas than limit, difference is refunded:
+\[
+\text{Refund} = (\text{Gas Limit} - \text{Gas Used}) \times \text{Gas Price}
+\]
+\end{keybox}
+
+\subsection{Gas Costs by Operation}
+
+\begin{center}
+\begin{tabular}{|l|r|l|}
+\hline
+\textbf{Operation} & \textbf{Gas Cost} & \textbf{Category} \\
+\hline
+Addition (ADD) & 3 & Arithmetic \\
+Multiplication (MUL) & 5 & Arithmetic \\
+Division (DIV) & 5 & Arithmetic \\
+Storage Write (SSTORE) & 20,000 / 5,000 & Storage \\
+Storage Read (SLOAD) & 200 & Storage \\
+Keccak-256 Hash & 30 + 6/word & Crypto \\
+Call to Contract & 700 & Call \\
+Create Contract & 32,000 & Create \\
+Transaction Base & 21,000 & Base \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{EIP-1559: Gas Fee Reform}
+
+Introduced in August 2021 (London hard fork):
+
+\textbf{New Fee Structure}:
+\[
+\text{Total Fee} = \text{Gas Used} \times (\text{Base Fee} + \text{Priority Fee})
+\]
+
+\begin{itemize}
+  \item \textbf{Base Fee}: Algorithmically determined, burned (not given to miners)
+  \item \textbf{Priority Fee} (Tip): User sets, goes to validators
+  \item \textbf{Max Fee}: User's maximum willingness to pay
+\end{itemize}
+
+\textbf{Base Fee Adjustment}:
+\[
+\text{New Base Fee} = \text{Old Base Fee} \times \left(1 + \frac{8(\text{Gas Used} - \text{Target})}{(\text{Target} \times 8)}\right)
+\]
+
+Increases by up to 12.5\% if block is full, decreases if empty.
+
+\begin{examplebox}{Gas Calculation Example}
+User submits transaction with:
+\begin{itemize}
+  \item Gas Limit: 100,000
+  \item Max Fee: 200 gwei
+  \item Priority Fee: 2 gwei
+\end{itemize}
+
+If base fee is 150 gwei and transaction uses 80,000 gas:
+
+\begin{align*}
+\text{Actual Fee per Gas} &= 150 + 2 = 152 \text{ gwei} \\
+\text{Total Cost} &= 80,000 \times 152 = 12,160,000 \text{ gwei} = 0.01216 \text{ ETH} \\
+\text{Burned} &= 80,000 \times 150 = 12,000,000 \text{ gwei} \\
+\text{To Validator} &= 80,000 \times 2 = 160,000 \text{ gwei}
+\end{align*}
+\end{examplebox}
+
+\section{Solidity Programming Language}
+
+\subsection{Overview}
+
+Solidity is a high-level, statically-typed language for writing smart contracts. It compiles to EVM bytecode.
+
+\textbf{Characteristics}:
+\begin{itemize}
+  \item Syntax similar to JavaScript/C++
+  \item Strongly typed
+  \item Supports inheritance, libraries, user-defined types
+  \item Version specified with pragma directive
+\end{itemize}
+
+\subsection{Basic Contract Structure}
+
+\begin{examplebox}{Minimal Contract}
+\begin{lstlisting}[language=Solidity]
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SimpleStorage {
+    // State variable stored on blockchain
+    uint256 public storedData;
+
+    // Constructor called once at deployment
+    constructor(uint256 initialValue) {
+        storedData = initialValue;
+    }
+
+    // Function to update storage
+    function set(uint256 newValue) public {
+        storedData = newValue;
+    }
+
+    // View function (read-only, no gas when called externally)
+    function get() public view returns (uint256) {
+        return storedData;
+    }
+}
+\end{lstlisting}
+\end{examplebox}
+
+\subsection{Data Types}
+
+\subsubsection{Value Types}
+
+\begin{itemize}
+  \item \textbf{Boolean}: \texttt{bool} (true/false)
+  \item \textbf{Integers}:
+    \begin{itemize}
+      \item Unsigned: \texttt{uint8} to \texttt{uint256} (steps of 8)
+      \item Signed: \texttt{int8} to \texttt{int256}
+      \item Default \texttt{uint} = \texttt{uint256}
+    \end{itemize}
+  \item \textbf{Address}: \texttt{address} (20 bytes), \texttt{address payable}
+  \item \textbf{Bytes}: \texttt{bytes1} to \texttt{bytes32}, \texttt{bytes} (dynamic)
+  \item \textbf{String}: \texttt{string} (dynamic UTF-8)
+  \item \textbf{Enums}: Custom enumerated types
+\end{itemize}
+
+\subsubsection{Reference Types}
+
+\begin{itemize}
+  \item \textbf{Arrays}: \texttt{uint[]} (dynamic), \texttt{uint[10]} (fixed)
+  \item \textbf{Structs}: Custom composite types
+  \item \textbf{Mappings}: \texttt{mapping(address => uint)}
+\end{itemize}
+
+\textbf{Data Location} (must specify for reference types):
+\begin{itemize}
+  \item \texttt{storage}: Persistent, expensive
+  \item \texttt{memory}: Temporary, cheaper
+  \item \texttt{calldata}: Read-only, function parameters
+\end{itemize}
+
+\begin{examplebox}{Advanced Types Example}
+\begin{lstlisting}[language=Solidity]
+pragma solidity ^0.8.0;
+
+contract AdvancedTypes {
+    // Struct definition
+    struct Person {
+        string name;
+        uint age;
+        address wallet;
+    }
+
+    // Mapping from address to Person
+    mapping(address => Person) public people;
+
+    // Dynamic array
+    address[] public allAddresses;
+
+    // Enum
+    enum Status { Pending, Active, Closed }
+    Status public currentStatus;
+
+    function addPerson(string memory _name, uint _age) public {
+        people[msg.sender] = Person(_name, _age, msg.sender);
+        allAddresses.push(msg.sender);
+        currentStatus = Status.Active;
+    }
+
+    function getPerson(address _addr) public view
+        returns (string memory, uint, address) {
+        Person memory p = people[_addr];
+        return (p.name, p.age, p.wallet);
+    }
+}
+\end{lstlisting}
+\end{examplebox}
+
+\subsection{Function Modifiers}
+
+\subsubsection{Visibility}
+
+\begin{itemize}
+  \item \texttt{public}: Callable internally and externally
+  \item \texttt{external}: Only callable externally (more gas efficient)
+  \item \texttt{internal}: Only within contract and derived contracts
+  \item \texttt{private}: Only within current contract
+\end{itemize}
+
+\subsubsection{State Mutability}
+
+\begin{itemize}
+  \item \texttt{view}: Reads state, doesn't modify (no gas when called externally)
+  \item \texttt{pure}: Doesn't read or modify state (no gas when called externally)
+  \item \texttt{payable}: Can receive Ether
+  \item (none): Can modify state (costs gas)
+\end{itemize}
+
+\subsection{Special Variables and Functions}
+
+\begin{center}
+\begin{tabular}{|l|p{7cm}|}
+\hline
+\textbf{Variable} & \textbf{Description} \\
+\hline
+\texttt{msg.sender} & Address of immediate caller \\
+\texttt{msg.value} & Amount of wei sent with transaction \\
+\texttt{msg.data} & Complete calldata \\
+\texttt{block.timestamp} & Current block timestamp (Unix epoch) \\
+\texttt{block.number} & Current block number \\
+\texttt{tx.origin} & Original transaction sender (EOA) \\
+\texttt{address(this)} & Current contract address \\
+\texttt{address.balance} & Balance of address in wei \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Events}
+
+Events provide logging facility for DApps to listen to state changes.
+
+\begin{examplebox}{Event Usage}
+\begin{lstlisting}[language=Solidity]
+pragma solidity ^0.8.0;
+
+contract EventExample {
+    // Event declaration (indexed parameters can be filtered)
+    event Transfer(
+        address indexed from,
+        address indexed to,
+        uint256 value
+    );
+
+    mapping(address => uint256) public balances;
+
+    function transfer(address to, uint256 amount) public {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+
+        // Emit event
+        emit Transfer(msg.sender, to, amount);
+    }
+}
+\end{lstlisting}
+
+\textbf{Event Storage}: Events are stored in transaction logs (not in contract storage), making them much cheaper for recording information.
+\end{examplebox}
+
+\section{Smart Contract Lifecycle}
+
+\subsection{Development Workflow}
+
+\begin{enumerate}
+  \item \textbf{Write}: Develop Solidity code
+  \item \textbf{Compile}: Convert to bytecode using \texttt{solc} compiler
+  \item \textbf{Test}: Unit tests on local blockchain (Hardhat, Ganache)
+  \item \textbf{Deploy}: Send creation transaction to network
+  \item \textbf{Verify}: Publish source code on Etherscan
+  \item \textbf{Interact}: Call functions via transactions
+  \item \textbf{Upgrade} (if designed): Use proxy patterns for upgradeability
+\end{enumerate}
+
+\subsection{Contract Deployment}
+
+Deployment creates a special transaction with:
+\begin{itemize}
+  \item \texttt{to} address: empty (null)
+  \item \texttt{data}: Contract bytecode + constructor parameters
+  \item \texttt{gas}: Sufficient for deployment
+\end{itemize}
+
+\textbf{Contract Address Calculation}:
+\[
+\text{Address} = \text{Keccak256}(\text{RLP}(\text{sender\_address}, \text{nonce}))[:20]
+\]
+
+\begin{examplebox}{Deployment with Hardhat}
+\begin{lstlisting}[language=JavaScript]
+// scripts/deploy.js
+const hre = require("hardhat");
+
+async function main() {
+  // Get contract factory
+  const SimpleStorage = await hre.ethers.getContractFactory(
+    "SimpleStorage"
+  );
+
+  // Deploy with constructor argument
+  const contract = await SimpleStorage.deploy(42);
+
+  await contract.deployed();
+
+  console.log("Contract deployed to:", contract.address);
+  console.log("Initial value:", await contract.get());
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+\end{lstlisting}
+\end{examplebox}
+
+\subsection{Contract Interaction}
+
+\subsubsection{Reading State (Calls)}
+
+\begin{itemize}
+  \item Execute locally on node
+  \item Don't create transactions
+  \item Free (no gas cost)
+  \item Return values immediately
+  \item Used for \texttt{view} and \texttt{pure} functions
+\end{itemize}
+
+\subsubsection{Modifying State (Transactions)}
+
+\begin{itemize}
+  \item Broadcast to network
+  \item Require gas payment
+  \item Mined into block (confirmation delay)
+  \item Generate transaction receipt
+  \item Return transaction hash, not function return value
+\end{itemize}
+
+\section{Common Design Patterns}
+
+\subsection{Access Control}
+
+\begin{examplebox}{Ownable Pattern}
+\begin{lstlisting}[language=Solidity]
+pragma solidity ^0.8.0;
+
+contract Ownable {
+    address public owner;
+
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the owner");
+        _;
+    }
+
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0), "Invalid address");
+        emit OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+    }
+}
+
+contract MyContract is Ownable {
+    uint256 public value;
+
+    // Only owner can call this
+    function setValue(uint256 _value) public onlyOwner {
+        value = _value;
+    }
+}
+\end{lstlisting}
+\end{examplebox}
+
+\subsection{Checks-Effects-Interactions}
+
+Best practice to prevent reentrancy attacks:
+
+\begin{enumerate}
+  \item \textbf{Checks}: Validate conditions
+  \item \textbf{Effects}: Update state
+  \item \textbf{Interactions}: Call external contracts
+\end{enumerate}
+
+\begin{warningbox}{Reentrancy Vulnerability}
+\textbf{Vulnerable Code}:
+\begin{lstlisting}[language=Solidity]
+function withdraw(uint amount) public {
+    require(balances[msg.sender] >= amount);
+    // BAD: External call before state update
+    msg.sender.call{value: amount}("");
+    balances[msg.sender] -= amount;
+}
+\end{lstlisting}
+
+\textbf{Secure Code}:
+\begin{lstlisting}[language=Solidity]
+function withdraw(uint amount) public {
+    require(balances[msg.sender] >= amount);
+    // GOOD: Update state first
+    balances[msg.sender] -= amount;
+    msg.sender.call{value: amount}("");
+}
+\end{lstlisting}
+
+Famous example: The DAO hack (2016) exploited reentrancy, leading to \$60M loss and Ethereum/Ethereum Classic fork.
+\end{warningbox}
+
+\section{Study Questions}
+
+\subsection{Conceptual Questions}
+
+\begin{enumerate}
+  \item Explain the difference between \texttt{memory} and \texttt{storage} in Solidity.
+  \item Why is storage more expensive than memory or calldata?
+  \item What happens if a transaction runs out of gas during execution?
+  \item How does EIP-1559 improve on the legacy gas pricing mechanism?
+  \item Describe the purpose of events and why they're cheaper than storage.
+\end{enumerate}
+
+\subsection{Design Problems}
+
+\begin{enumerate}
+  \item Design a voting contract where each address can vote once on proposals.
+  \item Implement a simple escrow contract that holds funds until both parties agree.
+  \item Create a contract that tracks employee work hours and calculates payment.
+  \item Build a crowdfunding contract with refund mechanism if goal isn't met.
+\end{enumerate}
+
+\subsection{Security Analysis}
+
+\begin{enumerate}
+  \item Identify the vulnerability in a given contract code snippet.
+  \item Explain how the checks-effects-interactions pattern prevents reentrancy.
+  \item Why should you avoid using \texttt{tx.origin} for authentication?
+  \item What are the risks of using \texttt{block.timestamp} for critical logic?
+\end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+  \item Ethereum Yellowpaper (Formal specification)
+  \item Solidity Documentation: \url{https://docs.soliditylang.org}
+  \item OpenZeppelin Contracts: Secure, audited implementations
+  \item Consensys Smart Contract Best Practices
+  \item Trail of Bits: Building Secure Contracts
+  \item Ethereum Improvement Proposals (EIPs)
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,939 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,fit,backgrounds}
+
+% Color definitions
+\definecolor{mlblue}{RGB}{0,102,204}
+\definecolor{mlpurple}{RGB}{51,51,178}
+\definecolor{mlorange}{RGB}{255,127,14}
+\definecolor{mlgreen}{RGB}{44,160,44}
+
+% Key concept box
+\newtcolorbox{keybox}[1]{
+  colback=mlblue!5!white,
+  colframe=mlblue,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Example box
+\newtcolorbox{examplebox}[1]{
+  colback=mlgreen!5!white,
+  colframe=mlgreen,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Warning box
+\newtcolorbox{warningbox}[1]{
+  colback=mlorange!5!white,
+  colframe=mlorange,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Best practice box
+\newtcolorbox{bestpracticebox}[1]{
+  colback=mlpurple!5!white,
+  colframe=mlpurple,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Code listing style
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  captionpos=b
+}
+
+% Solidity style
+\lstdefinelanguage{Solidity}{
+  keywords={contract, function, public, private, view, pure, payable, returns, address, uint, uint256, bool, string, mapping, struct, event, modifier, require, assert, revert, if, else, for, while, return, emit, constructor, memory, storage, calldata, interface, override, virtual},
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  sensitive=true
+}
+
+\title{\textbf{Lecture Notes: Lesson 4}\\ERC-20 Token Creation}
+\author{Cryptocurrency Course}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction to Token Standards}
+
+\subsection{What Are Token Standards?}
+
+Token standards define common interfaces for smart contracts, enabling interoperability across the Ethereum ecosystem.
+
+\begin{keybox}{Benefits of Standards}
+Standardization enables:
+\begin{itemize}
+  \item \textbf{Wallet Integration}: Any wallet supporting the standard works with any token
+  \item \textbf{Exchange Listing}: Exchanges implement standard once for all tokens
+  \item \textbf{DApp Compatibility}: DApps interact with tokens uniformly
+  \item \textbf{Composability}: Protocols can build on each other
+  \item \textbf{Reduced Development}: Leverage existing tools and libraries
+\end{itemize}
+\end{keybox}
+
+\subsection{Common Token Standards}
+
+\begin{center}
+\begin{tabular}{|l|p{10cm}|}
+\hline
+\textbf{Standard} & \textbf{Purpose} \\
+\hline
+ERC-20 & Fungible tokens (currencies, utility tokens) \\
+ERC-721 & Non-fungible tokens (NFTs, unique items) \\
+ERC-1155 & Multi-token (fungible + non-fungible in one contract) \\
+ERC-777 & Advanced fungible tokens with hooks \\
+ERC-4626 & Tokenized vaults (yield-bearing tokens) \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{ERC-20 Token Standard}
+
+\subsection{Historical Context}
+
+ERC-20 was proposed by Fabian Vogelsteller in November 2015 as Ethereum Request for Comments \#20. It became the de facto standard for fungible tokens.
+
+\textbf{Adoption}: Thousands of tokens use ERC-20, including:
+\begin{itemize}
+  \item USDT (Tether) - Stablecoin
+  \item LINK (Chainlink) - Oracle network token
+  \item UNI (Uniswap) - DEX governance token
+  \item DAI (MakerDAO) - Decentralized stablecoin
+\end{itemize}
+
+\subsection{Interface Specification}
+
+The ERC-20 standard defines 6 mandatory functions and 2 events.
+
+\subsubsection{Required Functions}
+
+\begin{examplebox}{ERC-20 Interface}
+\begin{lstlisting}[language=Solidity]
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IERC20 {
+    // Returns total token supply
+    function totalSupply() external view returns (uint256);
+
+    // Returns balance of an account
+    function balanceOf(address account) external view returns (uint256);
+
+    // Transfers tokens from caller to recipient
+    function transfer(address recipient, uint256 amount)
+        external returns (bool);
+
+    // Returns remaining tokens that spender can transfer
+    // on behalf of owner
+    function allowance(address owner, address spender)
+        external view returns (uint256);
+
+    // Sets amount as the allowance of spender over caller's tokens
+    function approve(address spender, uint256 amount)
+        external returns (bool);
+
+    // Transfers tokens from sender to recipient using allowance
+    function transferFrom(address sender, address recipient, uint256 amount)
+        external returns (bool);
+
+    // Emitted when tokens are transferred
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    // Emitted when allowance is set
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+\end{lstlisting}
+\end{examplebox}
+
+\subsubsection{Optional Metadata Functions}
+
+Not required but widely implemented:
+
+\begin{lstlisting}[language=Solidity]
+function name() public view returns (string memory);
+function symbol() public view returns (string memory);
+function decimals() public view returns (uint8);
+\end{lstlisting}
+
+\begin{keybox}{Decimals Explanation}
+\textbf{decimals} specifies display precision, not blockchain storage.
+
+Example: Token with 18 decimals
+\begin{itemize}
+  \item Blockchain stores: \texttt{1000000000000000000} (1 with 18 zeros)
+  \item User sees: \texttt{1.0} tokens
+  \item Formula: $\text{Display} = \text{Storage} / 10^{\text{decimals}}$
+\end{itemize}
+
+Common values: 18 (matches ETH), 6 (USDC), 8 (Bitcoin-style)
+\end{keybox}
+
+\subsection{Core Mechanics}
+
+\subsubsection{Token Transfer Flow}
+
+\textbf{Direct Transfer} (\texttt{transfer}):
+\begin{enumerate}
+  \item User calls \texttt{transfer(recipient, amount)}
+  \item Contract checks: \texttt{balanceOf[msg.sender] >= amount}
+  \item If true: \texttt{balanceOf[msg.sender] -= amount}
+  \item And: \texttt{balanceOf[recipient] += amount}
+  \item Emit \texttt{Transfer(msg.sender, recipient, amount)}
+\end{enumerate}
+
+\textbf{Delegated Transfer} (\texttt{approve} + \texttt{transferFrom}):
+\begin{enumerate}
+  \item Owner calls \texttt{approve(spender, amount)}
+  \item Sets: \texttt{allowance[owner][spender] = amount}
+  \item Emit \texttt{Approval(owner, spender, amount)}
+  \item Later, spender calls \texttt{transferFrom(owner, recipient, amount)}
+  \item Contract checks: \texttt{allowance[owner][spender] >= amount}
+  \item If true: Reduce allowance, transfer tokens
+\end{enumerate}
+
+\begin{examplebox}{Approve-TransferFrom Use Case}
+\textbf{Scenario}: Using Uniswap DEX to swap tokens
+
+\begin{enumerate}
+  \item User approves Uniswap contract: \texttt{token.approve(uniswap, 1000)}
+  \item User initiates swap on Uniswap UI
+  \item Uniswap contract calls: \texttt{token.transferFrom(user, uniswap, 1000)}
+  \item Swap executes without requiring user's private key
+\end{enumerate}
+
+This pattern enables smart contracts to interact with user tokens safely.
+\end{examplebox}
+
+\subsubsection{State Variables}
+
+Minimal ERC-20 implementation requires:
+
+\begin{lstlisting}[language=Solidity]
+mapping(address => uint256) private _balances;
+mapping(address => mapping(address => uint256)) private _allowances;
+uint256 private _totalSupply;
+\end{lstlisting}
+
+\textbf{Storage Structure}:
+\begin{itemize}
+  \item \texttt{\_balances}: Maps each address to its token balance
+  \item \texttt{\_allowances}: Nested mapping for approved spenders
+  \item \texttt{\_totalSupply}: Sum of all tokens in existence
+\end{itemize}
+
+\section{Implementation with OpenZeppelin}
+
+\subsection{Why Use OpenZeppelin?}
+
+OpenZeppelin Contracts is the gold standard library for secure smart contract development.
+
+\textbf{Advantages}:
+\begin{itemize}
+  \item Audited by multiple security firms
+  \item Battle-tested (used by thousands of projects)
+  \item Modular and extensible
+  \item Well-documented
+  \item Regularly updated
+\end{itemize}
+
+\subsection{Basic ERC-20 Token}
+
+\begin{examplebox}{Simple Token Implementation}
+\begin{lstlisting}[language=Solidity]
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract MyToken is ERC20 {
+    constructor(uint256 initialSupply) ERC20("MyToken", "MTK") {
+        _mint(msg.sender, initialSupply * 10**decimals());
+    }
+}
+\end{lstlisting}
+
+\textbf{Deployment}:
+\begin{lstlisting}[language=JavaScript]
+// scripts/deploy.js
+const initialSupply = 1000000; // 1 million tokens
+const MyToken = await ethers.getContractFactory("MyToken");
+const token = await MyToken.deploy(initialSupply);
+await token.deployed();
+console.log("Token deployed to:", token.address);
+\end{lstlisting}
+
+This 7-line contract provides:
+\begin{itemize}
+  \item Full ERC-20 compliance
+  \item Minting of initial supply
+  \item All transfer and allowance functions
+  \item Safe arithmetic (no overflow/underflow)
+\end{itemize}
+\end{examplebox}
+
+\subsection{Advanced Features}
+
+\subsubsection{Mintable Token}
+
+Allow authorized addresses to create new tokens:
+
+\begin{lstlisting}[language=Solidity]
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract MintableToken is ERC20, Ownable {
+    constructor() ERC20("MintableToken", "MINT") {}
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Burnable Token}
+
+Allow token holders to destroy their tokens:
+
+\begin{lstlisting}[language=Solidity]
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+
+contract BurnableToken is ERC20, ERC20Burnable {
+    constructor(uint256 initialSupply) ERC20("BurnableToken", "BURN") {
+        _mint(msg.sender, initialSupply);
+    }
+}
+\end{lstlisting}
+
+Usage:
+\begin{lstlisting}[language=Solidity]
+// Burn your own tokens
+token.burn(1000);
+
+// Burn tokens you have allowance for
+token.burnFrom(otherAddress, 500);
+\end{lstlisting}
+
+\subsubsection{Capped Supply}
+
+Enforce maximum total supply:
+
+\begin{lstlisting}[language=Solidity]
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract CappedToken is ERC20, ERC20Capped, Ownable {
+    constructor(uint256 cap) ERC20("CappedToken", "CAP")
+        ERC20Capped(cap * 10**decimals()) {}
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
+
+    function _mint(address account, uint256 amount)
+        internal virtual override(ERC20, ERC20Capped) {
+        super._mint(account, amount);
+    }
+}
+\end{lstlisting}
+
+\subsection{Comprehensive Token Example}
+
+\begin{examplebox}{Full-Featured Token}
+\begin{lstlisting}[language=Solidity]
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+
+contract ComprehensiveToken is ERC20, ERC20Burnable,
+    ERC20Capped, Ownable, Pausable {
+
+    // Events
+    event TokensMinted(address indexed to, uint256 amount);
+    event TokensBurned(address indexed from, uint256 amount);
+
+    constructor(
+        string memory name,
+        string memory symbol,
+        uint256 cap,
+        uint256 initialSupply
+    ) ERC20(name, symbol) ERC20Capped(cap * 10**decimals()) {
+        require(initialSupply <= cap, "Initial supply exceeds cap");
+        _mint(msg.sender, initialSupply * 10**decimals());
+    }
+
+    // Minting function (only owner)
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+        emit TokensMinted(to, amount);
+    }
+
+    // Enhanced burn with event
+    function burn(uint256 amount) public override {
+        super.burn(amount);
+        emit TokensBurned(msg.sender, amount);
+    }
+
+    // Pause/unpause transfers
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    // Override required by Solidity
+    function _mint(address account, uint256 amount)
+        internal virtual override(ERC20, ERC20Capped) {
+        super._mint(account, amount);
+    }
+
+    // Ensure transfers respect pause state
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override whenNotPaused {
+        super._beforeTokenTransfer(from, to, amount);
+    }
+}
+\end{lstlisting}
+
+\textbf{Features}:
+\begin{itemize}
+  \item ERC-20 compliant
+  \item Burnable (reduce supply)
+  \item Capped (maximum supply)
+  \item Mintable (owner only)
+  \item Pausable (emergency stop)
+  \item Ownable (access control)
+\end{itemize}
+\end{examplebox}
+
+\section{Token Economics and Supply Models}
+
+\subsection{Supply Mechanisms}
+
+\subsubsection{Fixed Supply}
+
+Total supply created at deployment, never changes.
+
+\textbf{Example}: Bitcoin (21M cap), Wrapped Bitcoin (WBTC)
+
+\textbf{Implementation}:
+\begin{lstlisting}[language=Solidity]
+constructor() ERC20("FixedToken", "FIX") {
+    _mint(msg.sender, 21_000_000 * 10**decimals());
+}
+\end{lstlisting}
+
+\textbf{Characteristics}:
+\begin{itemize}
+  \item Deflationary pressure if tokens are lost
+  \item Scarcity-driven value
+  \item Predictable supply schedule
+\end{itemize}
+
+\subsubsection{Inflationary Supply}
+
+New tokens continuously minted.
+
+\textbf{Example}: Ethereum (before EIP-1559 burn), staking rewards
+
+\textbf{Implementation}:
+\begin{lstlisting}[language=Solidity]
+uint256 public constant ANNUAL_INFLATION_RATE = 2; // 2% per year
+
+function mintInflation() public onlyOwner {
+    uint256 timeSinceLastMint = block.timestamp - lastMintTimestamp;
+    uint256 annualSeconds = 365 days;
+    uint256 inflationAmount = (totalSupply() * ANNUAL_INFLATION_RATE
+        * timeSinceLastMint) / (100 * annualSeconds);
+
+    _mint(treasury, inflationAmount);
+    lastMintTimestamp = block.timestamp;
+}
+\end{lstlisting}
+
+\textbf{Characteristics}:
+\begin{itemize}
+  \item Rewards participation (staking, mining)
+  \item Can decrease token value over time
+  \item Funds development or ecosystem growth
+\end{itemize}
+
+\subsubsection{Elastic Supply}
+
+Supply adjusts to maintain price target (rebase tokens).
+
+\textbf{Example}: Ampleforth (AMPL)
+
+\textbf{Mechanism}: If price > \$1.05, increase all balances proportionally. If price < \$0.95, decrease balances.
+
+\begin{warningbox}{Rebase Tokens}
+Elastic supply tokens are NOT standard ERC-20 compatible:
+\begin{itemize}
+  \item Balance changes without transfers
+  \item Breaks DeFi integrations expecting constant balances
+  \item Requires special handling by exchanges/wallets
+\end{itemize}
+\end{warningbox}
+
+\subsection{Distribution Strategies}
+
+\subsubsection{Initial Coin Offering (ICO)}
+
+\begin{itemize}
+  \item Sell tokens to public before launch
+  \item Raised \$20B+ in 2017-2018 peak
+  \item Often unregulated, high fraud risk
+  \item Regulatory crackdowns in most jurisdictions
+\end{itemize}
+
+\subsubsection{Airdrop}
+
+\begin{itemize}
+  \item Free distribution to specific addresses
+  \item Reward early users or protocol participants
+  \item Marketing and community building
+\end{itemize}
+
+\begin{examplebox}{Airdrop Implementation}
+\begin{lstlisting}[language=Solidity]
+contract Airdrop {
+    IERC20 public token;
+    mapping(address => bool) public claimed;
+
+    function claimAirdrop() public {
+        require(!claimed[msg.sender], "Already claimed");
+        require(isEligible(msg.sender), "Not eligible");
+
+        claimed[msg.sender] = true;
+        token.transfer(msg.sender, 100 * 10**18); // 100 tokens
+    }
+
+    function isEligible(address user) internal view returns (bool) {
+        // Example: Must have interacted before block X
+        // Implementation depends on criteria
+        return true;
+    }
+}
+\end{lstlisting}
+\end{examplebox}
+
+\subsubsection{Liquidity Mining}
+
+\begin{itemize}
+  \item Reward users who provide liquidity to DEXs
+  \item Tokens distributed over time based on participation
+  \item Popularized by Compound, Uniswap, etc.
+\end{itemize}
+
+\subsubsection{Vesting}
+
+Lock tokens and release gradually over time.
+
+\begin{examplebox}{Simple Vesting}
+\begin{lstlisting}[language=Solidity]
+contract TokenVesting {
+    IERC20 public token;
+    address public beneficiary;
+    uint256 public cliff;        // When vesting starts
+    uint256 public duration;     // Vesting period
+    uint256 public released;
+
+    constructor(
+        IERC20 _token,
+        address _beneficiary,
+        uint256 _cliff,
+        uint256 _duration
+    ) {
+        token = _token;
+        beneficiary = _beneficiary;
+        cliff = block.timestamp + _cliff;
+        duration = _duration;
+    }
+
+    function release() public {
+        require(block.timestamp >= cliff, "Cliff not reached");
+
+        uint256 vested = vestedAmount();
+        uint256 releasable = vested - released;
+        require(releasable > 0, "No tokens to release");
+
+        released += releasable;
+        token.transfer(beneficiary, releasable);
+    }
+
+    function vestedAmount() public view returns (uint256) {
+        uint256 totalBalance = token.balanceOf(address(this)) + released;
+
+        if (block.timestamp < cliff) {
+            return 0;
+        } else if (block.timestamp >= cliff + duration) {
+            return totalBalance;
+        } else {
+            return (totalBalance * (block.timestamp - cliff)) / duration;
+        }
+    }
+}
+\end{lstlisting}
+\end{examplebox}
+
+\subsection{Tokenomics Design Considerations}
+
+\begin{enumerate}
+  \item \textbf{Utility}: What does the token do?
+    \begin{itemize}
+      \item Governance (voting rights)
+      \item Access (pay for services)
+      \item Staking (earn rewards, secure network)
+      \item Dividends (share revenue)
+    \end{itemize}
+
+  \item \textbf{Supply Schedule}: When are tokens released?
+    \begin{itemize}
+      \item Avoid dumping large amounts at once
+      \item Align incentives with long-term growth
+      \item Consider market absorption capacity
+    \end{itemize}
+
+  \item \textbf{Allocation}: Who gets tokens?
+    \begin{itemize}
+      \item Team (10-20\%, vested)
+      \item Investors (10-30\%, vested)
+      \item Community/Ecosystem (40-60\%)
+      \item Treasury/Reserve (10-20\%)
+    \end{itemize}
+
+  \item \textbf{Value Accrual}: How does token capture value?
+    \begin{itemize}
+      \item Token burns (reduce supply)
+      \item Buybacks (market support)
+      \item Staking yield (incentivize holding)
+      \item Revenue sharing (cashflow to holders)
+    \end{itemize}
+\end{enumerate}
+
+\section{Security Considerations}
+
+\subsection{Common Vulnerabilities}
+
+\subsubsection{Integer Overflow/Underflow}
+
+\textbf{Pre-Solidity 0.8.0 Issue}:
+\begin{lstlisting}[language=Solidity]
+// Vulnerable (Solidity < 0.8.0)
+uint256 balance = 0;
+balance -= 1; // Underflows to 2^256 - 1
+\end{lstlisting}
+
+\textbf{Solution}: Solidity 0.8+ has built-in overflow checking. For older versions, use SafeMath library.
+
+\subsubsection{Approval Race Condition}
+
+\textbf{Problem}: Changing approval from N to M can be exploited.
+
+\textbf{Attack Scenario}:
+\begin{enumerate}
+  \item Alice approves Bob for 100 tokens
+  \item Alice decides to change to 50, sends \texttt{approve(Bob, 50)}
+  \item Bob sees pending transaction, front-runs with \texttt{transferFrom(Alice, Bob, 100)}
+  \item Bob's transaction executes first (uses old 100 allowance)
+  \item Alice's transaction executes (sets allowance to 50)
+  \item Bob calls \texttt{transferFrom(Alice, Bob, 50)} again
+  \item Total stolen: 150 tokens
+\end{enumerate}
+
+\textbf{Mitigation}:
+\begin{lstlisting}[language=Solidity]
+// Set to 0 first, then set to new value
+token.approve(spender, 0);
+token.approve(spender, newAmount);
+
+// Or use increaseAllowance/decreaseAllowance
+token.increaseAllowance(spender, 50);
+token.decreaseAllowance(spender, 30);
+\end{lstlisting}
+
+\subsubsection{Unlimited Approvals}
+
+\textbf{Common Pattern}: \texttt{approve(spender, type(uint256).max)}
+
+\textbf{Risk}: If spender contract is compromised, all tokens can be stolen.
+
+\bestpracticebox{Approval Best Practices}
+\begin{itemize}
+  \item Approve only what's needed for immediate transaction
+  \item Revoke approvals after use
+  \item Use tools like \url{https://revoke.cash} to audit/revoke approvals
+  \item Consider using permit (EIP-2612) for gasless approvals
+\end{itemize}
+\end{bestpracticebox}
+
+\subsection{Audit and Testing}
+
+\subsubsection{Testing Framework}
+
+\begin{examplebox}{Hardhat Test Example}
+\begin{lstlisting}[language=JavaScript]
+const { expect } = require("chai");
+
+describe("MyToken", function() {
+  let token, owner, addr1, addr2;
+
+  beforeEach(async function() {
+    [owner, addr1, addr2] = await ethers.getSigners();
+    const Token = await ethers.getContractFactory("MyToken");
+    token = await Token.deploy(1000000);
+  });
+
+  it("Should assign total supply to owner", async function() {
+    const ownerBalance = await token.balanceOf(owner.address);
+    expect(await token.totalSupply()).to.equal(ownerBalance);
+  });
+
+  it("Should transfer tokens correctly", async function() {
+    await token.transfer(addr1.address, 50);
+    expect(await token.balanceOf(addr1.address)).to.equal(50);
+  });
+
+  it("Should fail if sender doesn't have enough tokens", async function() {
+    const initialOwnerBalance = await token.balanceOf(owner.address);
+    await expect(
+      token.connect(addr1).transfer(owner.address, 1)
+    ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+  });
+
+  it("Should handle allowance correctly", async function() {
+    await token.approve(addr1.address, 100);
+    expect(await token.allowance(owner.address, addr1.address))
+      .to.equal(100);
+
+    await token.connect(addr1).transferFrom(
+      owner.address, addr2.address, 50
+    );
+    expect(await token.balanceOf(addr2.address)).to.equal(50);
+    expect(await token.allowance(owner.address, addr1.address))
+      .to.equal(50);
+  });
+});
+\end{lstlisting}
+\end{examplebox}
+
+\subsubsection{Security Audit Checklist}
+
+\begin{enumerate}
+  \item \textbf{Access Control}
+    \begin{itemize}
+      \item Only authorized addresses can mint
+      \item Owner cannot steal user tokens
+      \item Ownership transfer is secure
+    \end{itemize}
+
+  \item \textbf{Arithmetic}
+    \begin{itemize}
+      \item No overflow/underflow possible
+      \item Rounding errors minimized
+      \item Division by zero prevented
+    \end{itemize}
+
+  \item \textbf{External Calls}
+    \begin{itemize}
+      \item Reentrancy protection where needed
+      \item Check return values
+      \item Gas limits considered
+    \end{itemize}
+
+  \item \textbf{Token Mechanics}
+    \begin{itemize}
+      \item Transfer logic correct
+      \item Allowance handling secure
+      \item Events emitted properly
+      \item Decimal handling consistent
+    \end{itemize}
+
+  \item \textbf{Deployment}
+    \begin{itemize}
+      \item Constructor parameters validated
+      \item Initial supply distributed correctly
+      \item Contract ownership set properly
+    \end{itemize}
+\end{enumerate}
+
+\section{Deployment and Verification}
+
+\subsection{Deployment Process}
+
+\begin{examplebox}{Complete Deployment Script}
+\begin{lstlisting}[language=JavaScript]
+const hre = require("hardhat");
+
+async function main() {
+  // Deployment parameters
+  const NAME = "My Project Token";
+  const SYMBOL = "MPT";
+  const CAP = 100_000_000;        // 100 million cap
+  const INITIAL_SUPPLY = 10_000_000; // 10 million initial
+
+  console.log("Deploying token...");
+
+  const Token = await hre.ethers.getContractFactory(
+    "ComprehensiveToken"
+  );
+  const token = await Token.deploy(
+    NAME,
+    SYMBOL,
+    CAP,
+    INITIAL_SUPPLY
+  );
+
+  await token.deployed();
+
+  console.log("Token deployed to:", token.address);
+  console.log("Name:", await token.name());
+  console.log("Symbol:", await token.symbol());
+  console.log("Decimals:", await token.decimals());
+  console.log("Total Supply:", ethers.utils.formatEther(
+    await token.totalSupply()
+  ));
+  console.log("Cap:", ethers.utils.formatEther(await token.cap()));
+
+  // Wait for 5 confirmations before verifying
+  console.log("Waiting for block confirmations...");
+  await token.deployTransaction.wait(5);
+
+  // Verify on Etherscan
+  console.log("Verifying contract...");
+  await hre.run("verify:verify", {
+    address: token.address,
+    constructorArguments: [NAME, SYMBOL, CAP, INITIAL_SUPPLY],
+  });
+
+  console.log("Deployment complete!");
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+\end{lstlisting}
+
+Execution:
+\begin{verbatim}
+npx hardhat run scripts/deploy.js --network sepolia
+\end{verbatim}
+\end{examplebox}
+
+\subsection{Contract Verification}
+
+Contract verification publishes source code on block explorers, enabling:
+\begin{itemize}
+  \item Users to read contract code
+  \item Direct interaction via explorer UI
+  \item Trust and transparency
+  \item Automated security checks
+\end{itemize}
+
+\textbf{hardhat.config.js}:
+\begin{lstlisting}[language=JavaScript]
+require("@nomiclabs/hardhat-etherscan");
+
+module.exports = {
+  solidity: "0.8.20",
+  networks: {
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL,
+      accounts: [process.env.PRIVATE_KEY]
+    }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
+  }
+};
+\end{lstlisting}
+
+\section{Study Questions}
+
+\subsection{Conceptual Questions}
+
+\begin{enumerate}
+  \item Explain the difference between \texttt{transfer} and \texttt{transferFrom}.
+  \item Why is the approve-transferFrom pattern necessary for DEX interactions?
+  \item What are the risks of unlimited token approvals?
+  \item How does \texttt{decimals} affect token display vs. storage?
+  \item Compare fixed supply vs. inflationary token economics.
+\end{enumerate}
+
+\subsection{Implementation Exercises}
+
+\begin{enumerate}
+  \item Create an ERC-20 token with 2\% transfer tax that goes to a treasury.
+  \item Implement a token with blacklist functionality to freeze malicious accounts.
+  \item Build a token that pays dividends to holders from contract balance.
+  \item Design a governance token where voting power increases with holding duration.
+\end{enumerate}
+
+\subsection{Security Analysis}
+
+\begin{enumerate}
+  \item Identify the approval race condition vulnerability and propose mitigation.
+  \item Write tests to verify all critical token functions.
+  \item Analyze a given token contract for potential security issues.
+  \item Design a safe token vesting contract with multiple beneficiaries.
+\end{enumerate}
+
+\subsection{Advanced Topics}
+
+\begin{enumerate}
+  \item Implement EIP-2612 (permit) for gasless approvals.
+  \item Create a token with snapshot functionality for airdrops.
+  \item Build a wrapper token (like WETH) that converts ETH to ERC-20.
+  \item Design a rebasing token that adjusts supply based on oracle price.
+\end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+  \item EIP-20: Token Standard Specification
+  \item OpenZeppelin ERC-20 Documentation and Code
+  \item EIP-2612: Permit Extension (Gasless Approvals)
+  \item EIP-4626: Tokenized Vault Standard
+  \item ConsenSys: Token Implementation Best Practices
+  \item Trail of Bits: Token Security Checklist
+  \item DeFi Developer Roadmap: Token Standards
+  \item Ethereum.org: Token Standards Overview
+\end{itemize}
+
+\end{document}

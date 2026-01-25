@@ -1,0 +1,573 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning}
+
+% Color definitions
+\definecolor{mlblue}{RGB}{0,102,204}
+\definecolor{mlpurple}{RGB}{51,51,178}
+\definecolor{mlorange}{RGB}{255,127,14}
+\definecolor{mlgreen}{RGB}{44,160,44}
+
+% Key concept box
+\newtcolorbox{keybox}[1]{
+  colback=mlblue!5!white,
+  colframe=mlblue,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Example box
+\newtcolorbox{examplebox}[1]{
+  colback=mlgreen!5!white,
+  colframe=mlgreen,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Security box
+\newtcolorbox{securitybox}[1]{
+  colback=mlorange!5!white,
+  colframe=mlorange,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% Code listing style
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  captionpos=b
+}
+
+\title{\textbf{Lecture Notes: Lesson 2}\\Cryptography and Security}
+\author{Cryptocurrency Course}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction to Cryptography in Blockchain}
+
+Cryptography is the cornerstone of blockchain security. It provides:
+\begin{itemize}
+  \item \textbf{Data Integrity}: Ensuring data hasn't been tampered with
+  \item \textbf{Authentication}: Proving identity without revealing secrets
+  \item \textbf{Non-repudiation}: Preventing denial of actions taken
+  \item \textbf{Confidentiality}: Protecting sensitive information (in some blockchains)
+\end{itemize}
+
+\begin{keybox}{Core Cryptographic Primitives}
+Blockchain systems rely on two fundamental cryptographic tools:
+\begin{enumerate}
+  \item \textbf{Hash Functions}: For data integrity and chain linkage (SHA-256)
+  \item \textbf{Digital Signatures}: For authentication and authorization (ECDSA)
+\end{enumerate}
+\end{keybox}
+
+\section{SHA-256: Secure Hash Algorithm}
+
+\subsection{Algorithm Structure}
+
+SHA-256 belongs to the SHA-2 family designed by the NSA and published by NIST in 2001. It produces a 256-bit (32-byte) hash from arbitrary-length input.
+
+\subsubsection{Internal Architecture}
+
+The algorithm operates on 512-bit message blocks through:
+
+\begin{enumerate}
+  \item \textbf{Message Padding}:
+  \begin{itemize}
+    \item Append bit '1' to message
+    \item Append '0' bits until length $\equiv 448 \pmod{512}$
+    \item Append original message length as 64-bit integer
+  \end{itemize}
+
+  \item \textbf{Initialize Hash Values}: Eight 32-bit registers (H0-H7)
+  \[
+  \begin{aligned}
+  H_0 &= \text{0x6a09e667} \quad H_1 = \text{0xbb67ae85} \\
+  H_2 &= \text{0x3c6ef372} \quad H_3 = \text{0xa54ff53a} \\
+  H_4 &= \text{0x510e527f} \quad H_5 = \text{0x9b05688c} \\
+  H_6 &= \text{0x1f83d9ab} \quad H_7 = \text{0x5be0cd19}
+  \end{aligned}
+  \]
+  These are the fractional parts of square roots of first 8 primes.
+
+  \item \textbf{Message Schedule}: Expand 512-bit block to 64 words ($W_0 \ldots W_{63}$)
+
+  \item \textbf{Compression Function}: 64 rounds of operations using:
+  \begin{itemize}
+    \item Logical functions: Ch, Maj, $\Sigma_0$, $\Sigma_1$, $\sigma_0$, $\sigma_1$
+    \item Constants $K_t$ (fractional parts of cube roots of first 64 primes)
+    \item Modular addition and bitwise operations
+  \end{itemize}
+
+  \item \textbf{Finalization}: Add compressed values to current hash values
+\end{enumerate}
+
+\subsection{Key Operations}
+
+\subsubsection{Logical Functions}
+
+\begin{align*}
+\text{Ch}(x, y, z) &= (x \land y) \oplus (\neg x \land z) \\
+\text{Maj}(x, y, z) &= (x \land y) \oplus (x \land z) \oplus (y \land z) \\
+\Sigma_0(x) &= \text{ROTR}^2(x) \oplus \text{ROTR}^{13}(x) \oplus \text{ROTR}^{22}(x) \\
+\Sigma_1(x) &= \text{ROTR}^6(x) \oplus \text{ROTR}^{11}(x) \oplus \text{ROTR}^{25}(x) \\
+\sigma_0(x) &= \text{ROTR}^7(x) \oplus \text{ROTR}^{18}(x) \oplus \text{SHR}^3(x) \\
+\sigma_1(x) &= \text{ROTR}^{17}(x) \oplus \text{ROTR}^{19}(x) \oplus \text{SHR}^{10}(x)
+\end{align*}
+
+where ROTR is rotate right and SHR is shift right.
+
+\subsection{Avalanche Effect Demonstration}
+
+The avalanche effect ensures that small input changes cascade through the hash, producing drastically different outputs.
+
+\begin{examplebox}{Avalanche Effect in SHA-256}
+\begin{lstlisting}[language=Python]
+import hashlib
+
+def demonstrate_avalanche():
+    """Show how 1-bit change affects entire hash"""
+    messages = [
+        "Hello World",
+        "Hello World!",  # Added 1 character
+        "hello World",   # Changed 1 bit (H->h)
+    ]
+
+    for msg in messages:
+        hash_val = hashlib.sha256(msg.encode()).hexdigest()
+        print(f"Input:  '{msg}'")
+        print(f"SHA256: {hash_val}")
+        print()
+
+demonstrate_avalanche()
+\end{lstlisting}
+
+Output:
+\begin{verbatim}
+Input:  'Hello World'
+SHA256: a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e
+
+Input:  'Hello World!'
+SHA256: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+
+Input:  'hello World'
+SHA256: 5eb63bbbe01eeed093cb22bb8f5acdc3299ae8ad6e45a5b9b8f0a35a33c15f95
+\end{verbatim}
+
+\textbf{Analysis}: Changing a single bit flips approximately 50\% of the output bits, demonstrating excellent avalanche properties.
+\end{examplebox}
+
+\subsection{Security Strength}
+
+\begin{keybox}{Computational Security}
+SHA-256's 256-bit output provides:
+\begin{itemize}
+  \item \textbf{Pre-image Resistance}: $2^{256}$ operations ($\approx 10^{77}$)
+  \item \textbf{Collision Resistance}: $2^{128}$ operations (Birthday paradox)
+  \item \textbf{Current Status}: No practical attacks known
+\end{itemize}
+
+For comparison: There are only $\approx 10^{80}$ atoms in the observable universe.
+\end{keybox}
+
+\section{Public Key Cryptography}
+
+\subsection{Asymmetric Encryption Fundamentals}
+
+Unlike symmetric encryption (same key for encryption/decryption), public key cryptography uses a key pair:
+
+\begin{itemize}
+  \item \textbf{Private Key} ($sk$): Secret, used for signing
+  \item \textbf{Public Key} ($pk$): Shared publicly, used for verification
+\end{itemize}
+
+\textbf{Mathematical Property}:
+\[
+\text{Verify}_{pk}(\text{Sign}_{sk}(m)) = \text{True}
+\]
+
+but knowing $pk$ doesn't reveal $sk$ (computational one-way function).
+
+\subsection{Elliptic Curve Cryptography (ECC)}
+
+Bitcoin and Ethereum use ECC, specifically the \texttt{secp256k1} curve, for digital signatures.
+
+\subsubsection{Elliptic Curve Definition}
+
+An elliptic curve over finite field $\mathbb{F}_p$ is defined by:
+\[
+y^2 \equiv x^3 + ax + b \pmod{p}
+\]
+
+For \texttt{secp256k1}:
+\begin{itemize}
+  \item $a = 0$, $b = 7$
+  \item $p = 2^{256} - 2^{32} - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1$
+  \item Generator point $G$
+  \item Order $n$ (prime number of points)
+\end{itemize}
+
+Equation simplifies to:
+\[
+y^2 \equiv x^3 + 7 \pmod{p}
+\]
+
+\subsubsection{Point Addition}
+
+The curve has a group structure with point addition operation:
+
+\textbf{Geometric Interpretation}: To add points $P$ and $Q$:
+\begin{enumerate}
+  \item Draw line through $P$ and $Q$
+  \item Find third intersection point $R'$
+  \item Reflect $R'$ across x-axis to get $R = P + Q$
+\end{enumerate}
+
+\textbf{Algebraic Formula}: For $P = (x_1, y_1)$ and $Q = (x_2, y_2)$:
+\begin{align*}
+\lambda &= \begin{cases}
+\frac{y_2 - y_1}{x_2 - x_1} & \text{if } P \neq Q \\
+\frac{3x_1^2 + a}{2y_1} & \text{if } P = Q \text{ (point doubling)}
+\end{cases} \\
+x_3 &= \lambda^2 - x_1 - x_2 \\
+y_3 &= \lambda(x_1 - x_3) - y_1
+\end{align*}
+
+\subsubsection{Scalar Multiplication}
+
+Key operation: $Q = k \cdot G$ (add $G$ to itself $k$ times)
+
+\textbf{Efficient Computation}: Use double-and-add algorithm in $O(\log k)$ time.
+
+\begin{keybox}{Elliptic Curve Discrete Logarithm Problem (ECDLP)}
+Given $Q = k \cdot G$, it's computationally infeasible to find $k$ (the private key).
+
+This is the foundation of ECC security. Best known attacks require $O(\sqrt{n})$ time, where $n \approx 2^{256}$ for secp256k1.
+\end{keybox}
+
+\section{Digital Signatures with ECDSA}
+
+\subsection{Elliptic Curve Digital Signature Algorithm}
+
+ECDSA provides authentication and non-repudiation for blockchain transactions.
+
+\subsubsection{Key Generation}
+
+\begin{enumerate}
+  \item Choose random private key: $sk \in [1, n-1]$
+  \item Compute public key: $pk = sk \cdot G$
+\end{enumerate}
+
+\begin{examplebox}{Key Generation Example}
+\begin{lstlisting}[language=Python]
+from ecdsa import SigningKey, SECP256k1
+import hashlib
+
+# Generate private key
+private_key = SigningKey.generate(curve=SECP256k1)
+
+# Derive public key
+public_key = private_key.get_verifying_key()
+
+# Export as hex
+sk_hex = private_key.to_string().hex()
+pk_hex = public_key.to_string().hex()
+
+print(f"Private Key: {sk_hex}")
+print(f"Public Key:  {pk_hex}")
+
+# Generate Bitcoin-style address
+pk_hash = hashlib.sha256(public_key.to_string()).digest()
+address_hash = hashlib.new('ripemd160', pk_hash).hexdigest()
+print(f"Address (simplified): {address_hash}")
+\end{lstlisting}
+\end{examplebox}
+
+\subsubsection{Signature Generation}
+
+To sign message $m$ with private key $sk$:
+
+\begin{enumerate}
+  \item Hash the message: $e = H(m)$ (where $H$ is SHA-256)
+  \item Choose random nonce: $k \in [1, n-1]$
+  \item Compute point: $P = k \cdot G = (x, y)$
+  \item Calculate $r = x \bmod n$
+  \item Calculate $s = k^{-1}(e + r \cdot sk) \bmod n$
+  \item Signature is pair: $(r, s)$
+\end{enumerate}
+
+\begin{securitybox}{Nonce Security Critical}
+The nonce $k$ must be:
+\begin{itemize}
+  \item \textbf{Random}: Predictable $k$ leaks private key
+  \item \textbf{Unique}: Reusing $k$ for different messages leaks private key
+  \item \textbf{Secret}: Revealing $k$ leaks private key
+\end{itemize}
+
+Historical disaster: PlayStation 3 used constant $k$, leading to complete system compromise in 2010.
+\end{securitybox}
+
+\subsubsection{Signature Verification}
+
+Given message $m$, signature $(r, s)$, and public key $pk$:
+
+\begin{enumerate}
+  \item Hash the message: $e = H(m)$
+  \item Calculate: $w = s^{-1} \bmod n$
+  \item Calculate: $u_1 = e \cdot w \bmod n$
+  \item Calculate: $u_2 = r \cdot w \bmod n$
+  \item Calculate point: $P = u_1 \cdot G + u_2 \cdot pk = (x, y)$
+  \item Verify: $r \equiv x \pmod{n}$
+\end{enumerate}
+
+If $r \equiv x \pmod{n}$, signature is valid.
+
+\subsection{Mathematical Proof of Correctness}
+
+\begin{keybox}{Why ECDSA Works}
+During signing:
+\[
+s = k^{-1}(e + r \cdot sk) \implies k = s^{-1}(e + r \cdot sk)
+\]
+
+During verification:
+\begin{align*}
+P &= u_1 \cdot G + u_2 \cdot pk \\
+  &= (e \cdot s^{-1}) \cdot G + (r \cdot s^{-1}) \cdot (sk \cdot G) \\
+  &= s^{-1}(e + r \cdot sk) \cdot G \\
+  &= k \cdot G \quad \text{(same point computed during signing)}
+\end{align*}
+
+Therefore, $x$-coordinate matches $r$, confirming authenticity.
+\end{keybox}
+
+\section{Wallet Security}
+
+\subsection{Wallet Types}
+
+\subsubsection{Hot Wallets}
+
+Connected to the internet:
+\begin{itemize}
+  \item \textbf{Web Wallets}: Browser-based (e.g., MetaMask)
+  \item \textbf{Mobile Wallets}: Smartphone apps
+  \item \textbf{Desktop Wallets}: Computer software
+\end{itemize}
+
+\textbf{Pros}: Convenient for frequent transactions \\
+\textbf{Cons}: Vulnerable to malware, phishing, server breaches
+
+\subsubsection{Cold Wallets}
+
+Offline storage:
+\begin{itemize}
+  \item \textbf{Hardware Wallets}: Dedicated devices (Ledger, Trezor)
+  \item \textbf{Paper Wallets}: Printed private keys
+  \item \textbf{Steel Wallets}: Engraved metal plates
+\end{itemize}
+
+\textbf{Pros}: Maximum security for long-term storage \\
+\textbf{Cons}: Less convenient for frequent use
+
+\subsection{Hierarchical Deterministic Wallets (HD Wallets)}
+
+HD wallets (BIP-32 standard) generate multiple addresses from a single seed.
+
+\subsubsection{Derivation Path}
+
+\begin{verbatim}
+Master Seed (128-256 bits)
+    |
+    v
+Master Private Key (m)
+    |
+    +--> Child Key (m/0)
+    |       |
+    |       +--> Grandchild (m/0/0)
+    |
+    +--> Child Key (m/1)
+            |
+            +--> Grandchild (m/1/0)
+\end{verbatim}
+
+\textbf{Standard Paths}:
+\begin{itemize}
+  \item Bitcoin: \texttt{m/44'/0'/0'/0/i}
+  \item Ethereum: \texttt{m/44'/60'/0'/0/i}
+\end{itemize}
+
+\subsubsection{Seed Phrase (Mnemonic)}
+
+BIP-39 encodes seed as 12-24 words from a 2048-word dictionary.
+
+\begin{examplebox}{Mnemonic Example}
+\begin{verbatim}
+witch collapse practice feed shame open despair
+creek road again ice least
+\end{verbatim}
+
+This 12-word phrase represents 128 bits of entropy and can recover the entire wallet.
+\end{examplebox}
+
+\begin{securitybox}{Mnemonic Security}
+\textbf{Best Practices}:
+\begin{itemize}
+  \item Never store digitally (no photos, no cloud)
+  \item Write on paper, store in secure location
+  \item Consider metal backup for fire/water resistance
+  \item Never share with anyone
+  \item Beware of "recovery" scams asking for your phrase
+\end{itemize}
+\end{securitybox}
+
+\subsection{Address Generation}
+
+\subsubsection{Bitcoin Address}
+
+\begin{enumerate}
+  \item Start with public key (33 or 65 bytes)
+  \item Apply SHA-256: $h_1 = \text{SHA256}(pk)$
+  \item Apply RIPEMD-160: $h_2 = \text{RIPEMD160}(h_1)$
+  \item Add version byte (0x00 for mainnet)
+  \item Compute checksum: $c = \text{SHA256}(\text{SHA256}(\text{version} || h_2))[:4]$
+  \item Encode in Base58: $\text{Base58}(\text{version} || h_2 || c)$
+\end{enumerate}
+
+Result: Address like \texttt{1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa}
+
+\subsubsection{Ethereum Address}
+
+\begin{enumerate}
+  \item Take public key (64 bytes, uncompressed, without prefix)
+  \item Apply Keccak-256 hash
+  \item Take last 20 bytes
+  \item Add \texttt{0x} prefix
+\end{enumerate}
+
+Result: Address like \texttt{0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb}
+
+\subsection{Multi-Signature Wallets}
+
+Require $m$ out of $n$ signatures to authorize transactions.
+
+\textbf{Example}: 2-of-3 multisig
+\begin{itemize}
+  \item Three key holders (e.g., you, partner, lawyer)
+  \item Any two can authorize transaction
+  \item Single key compromise doesn't lose funds
+\end{itemize}
+
+\textbf{Use Cases}:
+\begin{itemize}
+  \item Corporate funds (require multiple executives)
+  \item Escrow services
+  \item Personal backup (key redundancy)
+\end{itemize}
+
+\section{Common Security Threats}
+
+\subsection{Private Key Compromise}
+
+\textbf{Attack Vectors}:
+\begin{itemize}
+  \item Malware/keyloggers
+  \item Phishing websites
+  \item Clipboard hijacking
+  \item Weak random number generators
+  \item Physical theft
+\end{itemize}
+
+\textbf{Mitigation}:
+\begin{itemize}
+  \item Use hardware wallets for significant holdings
+  \item Verify addresses character-by-character
+  \item Use operating system with verified integrity
+  \item Never enter private keys on websites
+\end{itemize}
+
+\subsection{Transaction Malleability}
+
+Before SegWit, Bitcoin transaction IDs could be modified without invalidating signatures.
+
+\textbf{Problem}: Attackers could change transaction ID, causing wallet confusion.
+
+\textbf{Solution}: Segregated Witness (SegWit) separates signature data, fixing transaction ID calculation.
+
+\subsection{Replay Attacks}
+
+After a blockchain fork, transactions can be valid on both chains.
+
+\textbf{Example}: Bitcoin/Bitcoin Cash split (2017)
+\begin{itemize}
+  \item Sending BTC on Bitcoin chain also sent BCH on Bitcoin Cash chain
+  \item Users lost funds on one chain
+\end{itemize}
+
+\textbf{Mitigation}: Replay protection mechanisms, split coins intentionally
+
+\section{Study Questions}
+
+\subsection{Conceptual Questions}
+
+\begin{enumerate}
+  \item Explain why reusing the same nonce $k$ in ECDSA is catastrophic.
+  \item How does the avalanche effect contribute to blockchain security?
+  \item What is the difference between pre-image resistance and collision resistance?
+  \item Why can't someone derive a private key from a public key in ECC?
+  \item Describe the trade-offs between hot and cold wallet storage.
+\end{enumerate}
+
+\subsection{Mathematical Problems}
+
+\begin{enumerate}
+  \item If a hash function has 160-bit output, estimate the number of hashes needed to find a collision (use birthday paradox).
+
+  \item Given ECDSA signature $(r, s)$ and two messages $m_1$, $m_2$ signed with the same nonce $k$, derive a formula to recover the private key $sk$.
+
+  \item Calculate the probability that a random private key matches a specific public key for secp256k1 (order $n \approx 2^{256}$).
+
+  \item How many bits of security does SHA-256 provide against collision attacks? Against pre-image attacks?
+\end{enumerate}
+
+\subsection{Practical Exercises}
+
+\begin{enumerate}
+  \item Implement ECDSA signature generation and verification using a cryptography library.
+
+  \item Create a program to demonstrate the avalanche effect by measuring Hamming distance between hashes of similar inputs.
+
+  \item Write code to generate Bitcoin addresses from public keys (including Base58Check encoding).
+
+  \item Build a simple HD wallet that derives multiple addresses from a single seed.
+\end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+  \item NIST FIPS 180-4: Secure Hash Standard (SHA-256 specification)
+  \item NIST FIPS 186-4: Digital Signature Standard (ECDSA specification)
+  \item Koblitz, N. (1987). \textit{Elliptic curve cryptosystems}. Mathematics of Computation.
+  \item BIP-32: Hierarchical Deterministic Wallets
+  \item BIP-39: Mnemonic code for generating deterministic keys
+  \item Antonopoulos, A. M. (2017). \textit{Mastering Bitcoin}, Chapter 4: Keys, Addresses.
+\end{itemize}
+
+\end{document}

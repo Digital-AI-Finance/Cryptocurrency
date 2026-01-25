@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 4: ERC-20 Token Creation | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #764ba2;
+        }
+
+        .quiz-container {
+            padding: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .options {
+            list-style: none;
+        }
+
+        .option {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e9ecef;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .option.incorrect {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .explanation {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .explanation-title {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 8px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 30px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .score-number {
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .results h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .results p {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-top: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .question-text {
+                font-size: 1em;
+            }
+
+            .button-container {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quiz 4: ERC-20 Token Creation</h1>
+            <p>Build Your Own Cryptocurrency</p>
+        </header>
+
+        <nav>
+            <a href="../index.html">📊 Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">💻 GitHub</a>
+        </nav>
+
+        <div class="quiz-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <div id="quizContent"></div>
+
+            <div class="button-container">
+                <button id="prevBtn" onclick="previousQuestion()" disabled>← Previous</button>
+                <button id="nextBtn" onclick="nextQuestion()">Next →</button>
+                <button id="submitBtn" onclick="submitQuiz()" style="display: none;">Submit Quiz</button>
+            </div>
+
+            <div class="results" id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "What is the ERC-20 standard?",
+                options: [
+                    "A cryptocurrency launched in 2020",
+                    "A token standard that defines a common interface for fungible tokens on Ethereum",
+                    "A type of smart contract for NFTs",
+                    "A security protocol for blockchain networks"
+                ],
+                correct: 1,
+                explanation: "ERC-20 is a technical standard for fungible tokens on the Ethereum blockchain. It defines a common set of rules (functions and events) that all ERC-20 tokens must implement, enabling interoperability across wallets, exchanges, and dApps."
+            },
+            {
+                question: "How many required functions must an ERC-20 token implement?",
+                options: [
+                    "3 functions",
+                    "6 functions",
+                    "9 functions",
+                    "12 functions"
+                ],
+                correct: 1,
+                explanation: "An ERC-20 token must implement 6 required functions: totalSupply(), balanceOf(), transfer(), approve(), allowance(), and transferFrom(). These functions enable basic token operations and delegation of transfer rights."
+            },
+            {
+                question: "What does the totalSupply() function return?",
+                options: [
+                    "The number of token holders",
+                    "The total number of tokens in existence",
+                    "The maximum supply cap",
+                    "The circulating supply excluding burned tokens"
+                ],
+                correct: 1,
+                explanation: "The totalSupply() function returns the total number of tokens that currently exist (have been minted). This includes all tokens across all addresses. It's a view function that doesn't modify state and costs no gas when called externally."
+            },
+            {
+                question: "What parameter does the balanceOf() function take?",
+                options: [
+                    "A token amount",
+                    "A transaction hash",
+                    "An Ethereum address",
+                    "A block number"
+                ],
+                correct: 2,
+                explanation: "The balanceOf() function takes an Ethereum address as a parameter and returns the token balance of that address. It's declared as: function balanceOf(address account) external view returns (uint256)."
+            },
+            {
+                question: "What does the transfer() function do?",
+                options: [
+                    "Transfers ownership of the contract",
+                    "Moves tokens from the caller's account to a recipient",
+                    "Approves another address to spend tokens",
+                    "Transfers Ether between accounts"
+                ],
+                correct: 1,
+                explanation: "The transfer() function allows the caller (msg.sender) to send tokens directly from their own balance to a recipient address. It returns a boolean indicating success and must emit a Transfer event. Syntax: transfer(address to, uint256 amount)."
+            },
+            {
+                question: "What is the purpose of the approve() function?",
+                options: [
+                    "To approve contract deployment",
+                    "To authorize another address to spend tokens on your behalf",
+                    "To verify transaction signatures",
+                    "To approve token minting"
+                ],
+                correct: 1,
+                explanation: "The approve() function allows a token holder to authorize another address (spender) to withdraw tokens from their account, up to a specified amount. This enables the delegated transfer pattern used by DEXs and other contracts. It emits an Approval event."
+            },
+            {
+                question: "What does the allowance() function return?",
+                options: [
+                    "The remaining tokens an owner allows a spender to transfer",
+                    "The total supply of tokens",
+                    "The gas allowance for transactions",
+                    "The maximum transfer amount"
+                ],
+                correct: 0,
+                explanation: "The allowance() function returns the remaining number of tokens that a spender is still allowed to withdraw from an owner's account. It takes two parameters: allowance(address owner, address spender) and is used to check approved spending limits."
+            },
+            {
+                question: "What is unique about the transferFrom() function?",
+                options: [
+                    "It transfers tokens from any address to any address",
+                    "It allows a spender to transfer tokens from an owner's account (if approved)",
+                    "It's only callable by the contract owner",
+                    "It transfers all tokens at once"
+                ],
+                correct: 1,
+                explanation: "The transferFrom() function enables the delegated transfer pattern. A spender can use it to transfer tokens from an owner's account to a recipient, but only up to the amount previously approved via approve(). This is essential for DEXs and automated trading."
+            },
+            {
+                question: "What is the standard number of decimals for ERC-20 tokens?",
+                options: [
+                    "8 decimals (like Bitcoin)",
+                    "2 decimals (like USD cents)",
+                    "18 decimals (like Ether)",
+                    "0 decimals (whole numbers only)"
+                ],
+                correct: 2,
+                explanation: "While the decimals value is optional and can vary, the standard convention is 18 decimals to match Ether's denomination. This means 1 token = 10^18 base units. For example, if a token has 18 decimals, a balance of 1000000000000000000 represents 1.0 token."
+            },
+            {
+                question: "When must the Transfer event be emitted?",
+                options: [
+                    "Only when using the transfer() function",
+                    "Whenever tokens move between addresses, including minting (from 0x0) and burning (to 0x0)",
+                    "Only during initial token distribution",
+                    "Only when transferFrom() is called"
+                ],
+                correct: 1,
+                explanation: "The Transfer event must be emitted whenever tokens move between addresses, including: transfer(), transferFrom(), minting (from address(0)), and burning (to address(0)). The event signature is: event Transfer(address indexed from, address indexed to, uint256 value)."
+            },
+            {
+                question: "What parameters does the Approval event include?",
+                options: [
+                    "owner, amount",
+                    "spender, amount, timestamp",
+                    "owner, spender, value",
+                    "from, to, value"
+                ],
+                correct: 2,
+                explanation: "The Approval event must be emitted when approve() is called. It includes three parameters: event Approval(address indexed owner, address indexed spender, uint256 value), where owner is who approved, spender is who can spend, and value is the approved amount."
+            },
+            {
+                question: "How are new tokens typically created (minted)?",
+                options: [
+                    "By calling a mint() function that increases totalSupply and a recipient's balance",
+                    "Automatically by the Ethereum network",
+                    "By burning other tokens",
+                    "Through mining like Bitcoin"
+                ],
+                correct: 0,
+                explanation: "Token minting is typically done through a mint() function (not part of ERC-20 standard but commonly implemented) that increases totalSupply, increases the recipient's balance, and emits a Transfer event from address(0). Access is usually restricted to contract owner or specific roles."
+            },
+            {
+                question: "What happens when tokens are burned?",
+                options: [
+                    "They are sent to a random address",
+                    "The totalSupply is decreased and tokens are destroyed permanently",
+                    "They are locked in the contract",
+                    "They are converted to Ether"
+                ],
+                correct: 1,
+                explanation: "Burning tokens permanently removes them from circulation by decreasing totalSupply and the holder's balance, typically by transferring to address(0) or actually destroying the balance. A Transfer event is emitted with 'to' address as address(0). This is often used for deflationary tokenomics."
+            },
+            {
+                question: "What is OpenZeppelin's role in ERC-20 token creation?",
+                options: [
+                    "They regulate all ERC-20 tokens",
+                    "They provide secure, audited, reusable smart contract libraries including ERC-20 implementations",
+                    "They host Ethereum nodes",
+                    "They mine ERC-20 tokens"
+                ],
+                correct: 1,
+                explanation: "OpenZeppelin provides battle-tested, community-audited smart contract libraries. Their ERC20.sol contract implements the ERC-20 standard with security best practices. Developers can inherit from OpenZeppelin contracts to build tokens quickly and securely: contract MyToken is ERC20 { }."
+            },
+            {
+                question: "What is Hardhat primarily used for?",
+                options: [
+                    "Mining cryptocurrency",
+                    "A development environment for compiling, testing, and deploying smart contracts",
+                    "A type of hardware wallet",
+                    "A consensus algorithm"
+                ],
+                correct: 1,
+                explanation: "Hardhat is a development environment for Ethereum that provides tools for writing, testing, deploying, and debugging smart contracts. It includes a local blockchain for testing, a plugin system, and excellent debugging capabilities. Use: npx hardhat compile, test, and deploy."
+            },
+            {
+                question: "What library does Hardhat use for interacting with Ethereum?",
+                options: [
+                    "Web3.js",
+                    "Ethers.js",
+                    "Truffle",
+                    "Remix"
+                ],
+                correct: 1,
+                explanation: "Hardhat primarily uses ethers.js as its Ethereum library. Ethers.js provides a complete, compact library for interacting with Ethereum, including wallet management, contract interaction, and transaction signing. It's known for its small size and extensive documentation."
+            },
+            {
+                question: "What is the difference between testnet and mainnet deployment?",
+                options: [
+                    "Testnet uses fake ETH with no real value; mainnet uses real ETH with monetary value",
+                    "Testnet is faster than mainnet",
+                    "Mainnet is for testing; testnet is for production",
+                    "There is no difference"
+                ],
+                correct: 0,
+                explanation: "Testnets (like Sepolia, Goerli) use test ETH that has no real monetary value and can be obtained from faucets for free. They allow developers to test contracts without financial risk. Mainnet is the production Ethereum network where transactions use real ETH and have actual value."
+            },
+            {
+                question: "Why verify your token contract on Etherscan?",
+                options: [
+                    "It's required by law",
+                    "To make the source code publicly readable and enable direct contract interaction",
+                    "To increase token price",
+                    "To speed up transactions"
+                ],
+                correct: 1,
+                explanation: "Verifying your contract on Etherscan publishes the source code and allows anyone to read it, verify it matches the deployed bytecode, and interact with the contract directly through Etherscan's UI. This increases transparency, trust, and usability. Use: npx hardhat verify."
+            },
+            {
+                question: "How do you implement a supply cap (maximum supply)?",
+                options: [
+                    "Set a state variable and check it in the mint function",
+                    "It's automatic in all ERC-20 tokens",
+                    "Use OpenZeppelin's ERC20Capped extension",
+                    "Both A and C are correct"
+                ],
+                correct: 3,
+                explanation: "You can implement a supply cap by: 1) Manually adding a maxSupply state variable and require(totalSupply() + amount <= maxSupply) in your mint function, or 2) Using OpenZeppelin's ERC20Capped extension which implements this pattern securely: contract MyToken is ERC20Capped(maxSupply)."
+            },
+            {
+                question: "What are the three main types of token economics (supply models)?",
+                options: [
+                    "Fast, medium, slow",
+                    "Fixed supply, inflationary, deflationary",
+                    "Public, private, hybrid",
+                    "Centralized, decentralized, distributed"
+                ],
+                correct: 1,
+                explanation: "Token economics models: 1) Fixed supply - capped maximum (e.g., Bitcoin's 21M), 2) Inflationary - unlimited minting increases supply over time (e.g., Ether), 3) Deflationary - burning mechanisms reduce supply (e.g., tokens with transaction burn). Each model affects scarcity and value differently."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let userAnswers = new Array(quizData.length).fill(null);
+        let quizSubmitted = false;
+
+        function renderQuestion() {
+            const question = quizData[currentQuestion];
+            const quizContent = document.getElementById('quizContent');
+
+            let optionsHTML = '';
+            question.options.forEach((option, index) => {
+                const letter = String.fromCharCode(65 + index);
+                const isSelected = userAnswers[currentQuestion] === index;
+                const selectedClass = isSelected ? 'selected' : '';
+                const disabledClass = quizSubmitted ? 'disabled' : '';
+
+                let resultClass = '';
+                if (quizSubmitted) {
+                    if (index === question.correct) {
+                        resultClass = 'correct';
+                    } else if (isSelected && index !== question.correct) {
+                        resultClass = 'incorrect';
+                    }
+                }
+
+                optionsHTML += `
+                    <li class="option ${selectedClass} ${disabledClass} ${resultClass}"
+                        onclick="selectAnswer(${index})"
+                        data-index="${index}">
+                        <strong>${letter}.</strong> ${option}
+                    </li>
+                `;
+            });
+
+            const explanationClass = quizSubmitted ? 'show' : '';
+
+            quizContent.innerHTML = `
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-number">Question ${currentQuestion + 1} of ${quizData.length}</span>
+                    </div>
+                    <div class="question-text">${question.question}</div>
+                    <ul class="options">
+                        ${optionsHTML}
+                    </ul>
+                    <div class="explanation ${explanationClass}">
+                        <div class="explanation-title">💡 Explanation:</div>
+                        <div>${question.explanation}</div>
+                    </div>
+                </div>
+            `;
+
+            updateButtons();
+            updateProgress();
+        }
+
+        function selectAnswer(index) {
+            if (quizSubmitted) return;
+
+            userAnswers[currentQuestion] = index;
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+
+            prevBtn.disabled = currentQuestion === 0;
+
+            if (currentQuestion === quizData.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = quizSubmitted ? 'none' : 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+
+            if (quizSubmitted) {
+                nextBtn.style.display = currentQuestion === quizData.length - 1 ? 'none' : 'block';
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / quizData.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function submitQuiz() {
+            const unanswered = userAnswers.filter(a => a === null).length;
+            if (unanswered > 0) {
+                if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) {
+                    return;
+                }
+            }
+
+            quizSubmitted = true;
+            showResults();
+        }
+
+        function showResults() {
+            let correctCount = 0;
+            quizData.forEach((q, index) => {
+                if (userAnswers[index] === q.correct) {
+                    correctCount++;
+                }
+            });
+
+            const percentage = Math.round((correctCount / quizData.length) * 100);
+            const resultsDiv = document.getElementById('results');
+
+            let message = '';
+            let emoji = '';
+            if (percentage >= 90) {
+                message = 'Outstanding! You are ready to create professional ERC-20 tokens!';
+                emoji = '🏆';
+            } else if (percentage >= 80) {
+                message = 'Great job! You have a strong grasp of ERC-20 token development.';
+                emoji = '🌟';
+            } else if (percentage >= 70) {
+                message = 'Good work! You understand the core concepts of token creation.';
+                emoji = '👍';
+            } else if (percentage >= 60) {
+                message = 'Not bad! Review the ERC-20 standard to strengthen your knowledge.';
+                emoji = '📚';
+            } else {
+                message = 'Keep studying! Token development requires practice to master.';
+                emoji = '💪';
+            }
+
+            resultsDiv.innerHTML = `
+                <div class="score-circle">
+                    <div class="score-number">${percentage}%</div>
+                    <div class="score-label">${correctCount}/${quizData.length}</div>
+                </div>
+                <h2>${emoji} ${message}</h2>
+                <p>You answered ${correctCount} out of ${quizData.length} questions correctly.</p>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">${correctCount}</div>
+                        <div class="stat-label">Correct</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${quizData.length - correctCount}</div>
+                        <div class="stat-label">Incorrect</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${percentage}%</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                </div>
+                <div class="button-container">
+                    <button onclick="reviewAnswers()">📝 Review Answers</button>
+                    <button onclick="restartQuiz()">🔄 Retake Quiz</button>
+                    <button onclick="window.location.href='../index.html'">📊 Back to Dashboard</button>
+                </div>
+            `;
+
+            resultsDiv.classList.add('show');
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('prevBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'none';
+        }
+
+        function reviewAnswers() {
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('prevBtn').style.display = 'block';
+            document.getElementById('nextBtn').style.display = currentQuestion === quizData.length - 1 ? 'none' : 'block';
+            currentQuestion = 0;
+            renderQuestion();
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            userAnswers = new Array(quizData.length).fill(null);
+            quizSubmitted = false;
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('prevBtn').style.display = 'block';
+            renderQuestion();
+        }
+
+        // Initialize quiz
+        renderQuestion();
+    </script>
+</body>
+</html>

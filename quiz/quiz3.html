@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 3: Ethereum & Smart Contracts | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #764ba2;
+        }
+
+        .quiz-container {
+            padding: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .options {
+            list-style: none;
+        }
+
+        .option {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e9ecef;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .option.incorrect {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .explanation {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .explanation-title {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 8px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 30px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .score-number {
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .results h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .results p {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-top: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .question-text {
+                font-size: 1em;
+            }
+
+            .button-container {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quiz 3: Ethereum & Smart Contracts</h1>
+            <p>Build Your Own Cryptocurrency</p>
+        </header>
+
+        <nav>
+            <a href="../index.html">📊 Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">💻 GitHub</a>
+        </nav>
+
+        <div class="quiz-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <div id="quizContent"></div>
+
+            <div class="button-container">
+                <button id="prevBtn" onclick="previousQuestion()" disabled>← Previous</button>
+                <button id="nextBtn" onclick="nextQuestion()">Next →</button>
+                <button id="submitBtn" onclick="submitQuiz()" style="display: none;">Submit Quiz</button>
+            </div>
+
+            <div class="results" id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "What is the key difference between Ethereum and Bitcoin?",
+                options: [
+                    "Ethereum has faster transaction times",
+                    "Ethereum supports smart contracts and programmable transactions",
+                    "Ethereum uses proof-of-work consensus",
+                    "Ethereum has a lower market cap"
+                ],
+                correct: 1,
+                explanation: "The key difference is that Ethereum is a programmable blockchain platform that supports smart contracts, allowing developers to build decentralized applications. Bitcoin is primarily designed as a digital currency."
+            },
+            {
+                question: "What is the Ethereum Virtual Machine (EVM)?",
+                options: [
+                    "A physical server that runs Ethereum",
+                    "A runtime environment that executes smart contracts on Ethereum",
+                    "A wallet for storing Ether",
+                    "A mining algorithm for Ethereum"
+                ],
+                correct: 1,
+                explanation: "The EVM is a decentralized runtime environment that executes smart contract bytecode on every node in the Ethereum network. It provides a sandboxed execution environment that ensures deterministic execution across all nodes."
+            },
+            {
+                question: "What is 'gas' in the context of Ethereum?",
+                options: [
+                    "A type of cryptocurrency on Ethereum",
+                    "The fuel needed to run Ethereum nodes",
+                    "A unit that measures computational effort required to execute operations",
+                    "The speed at which transactions are processed"
+                ],
+                correct: 2,
+                explanation: "Gas is a unit that measures the computational effort required to execute operations on the Ethereum network. Each operation has a fixed gas cost, and users pay for the gas consumed by their transactions."
+            },
+            {
+                question: "What is the difference between gas price and gas limit?",
+                options: [
+                    "They are the same thing",
+                    "Gas price is how much you pay per gas unit; gas limit is the maximum gas you're willing to use",
+                    "Gas limit is the price; gas price is the maximum amount",
+                    "Gas price is set by miners; gas limit is set by the network"
+                ],
+                correct: 1,
+                explanation: "Gas price is the amount of Ether you're willing to pay per unit of gas (typically measured in Gwei). Gas limit is the maximum amount of gas you're willing to consume for a transaction. Total transaction cost = gas price × gas used (up to gas limit)."
+            },
+            {
+                question: "How many Wei are in 1 Ether?",
+                options: [
+                    "1,000,000 Wei",
+                    "1,000,000,000 Wei (1 billion)",
+                    "1,000,000,000,000,000,000 Wei (10^18)",
+                    "100,000,000 Wei"
+                ],
+                correct: 2,
+                explanation: "1 Ether = 10^18 Wei. Wei is the smallest denomination of Ether. Common intermediate units include Gwei (1 billion Wei or 10^9 Wei), which is commonly used for gas prices."
+            },
+            {
+                question: "What is a smart contract?",
+                options: [
+                    "A legal document stored on blockchain",
+                    "A self-executing program stored on the blockchain with predefined rules",
+                    "A contract between two parties that is smart",
+                    "An AI-powered agreement"
+                ],
+                correct: 1,
+                explanation: "A smart contract is a self-executing program deployed on the blockchain that automatically executes predefined rules when certain conditions are met. Once deployed, the code cannot be changed, ensuring trustless execution."
+            },
+            {
+                question: "What happens when you deploy a smart contract?",
+                options: [
+                    "The contract code is sent to a central server",
+                    "The contract bytecode is stored on every node in the network at a unique address",
+                    "The contract is stored temporarily until mined",
+                    "The contract is only stored on mining nodes"
+                ],
+                correct: 1,
+                explanation: "When deployed, the smart contract's bytecode is stored permanently on the blockchain and assigned a unique contract address. Every full node in the network maintains a copy of the contract code and its state."
+            },
+            {
+                question: "In Solidity, what does 'uint256' represent?",
+                options: [
+                    "An unsigned integer of 256 bits",
+                    "A string with 256 characters",
+                    "A 256-byte array",
+                    "A floating point number with 256 decimal places"
+                ],
+                correct: 0,
+                explanation: "uint256 is an unsigned (non-negative) integer type that can hold values from 0 to 2^256 - 1. It's the most common integer type in Solidity and is equivalent to 'uint'. Solidity also supports uint8, uint16, uint32, etc."
+            },
+            {
+                question: "Which visibility modifier makes a function callable only from within the contract?",
+                options: [
+                    "public",
+                    "external",
+                    "internal",
+                    "private"
+                ],
+                correct: 3,
+                explanation: "The 'private' visibility modifier restricts function access to only within the contract where it's defined. 'internal' allows access from the contract and derived contracts. 'public' allows access from anywhere. 'external' allows only external calls (not from within the contract)."
+            },
+            {
+                question: "What is the difference between state variables and local variables?",
+                options: [
+                    "State variables are stored on the blockchain; local variables exist only during function execution",
+                    "Local variables are stored on the blockchain; state variables are temporary",
+                    "There is no difference",
+                    "State variables are faster to access"
+                ],
+                correct: 0,
+                explanation: "State variables are permanently stored in the contract's storage on the blockchain and persist between function calls. Local variables are stored in memory or stack and only exist during function execution, making them much cheaper in terms of gas."
+            },
+            {
+                question: "What is a mapping in Solidity?",
+                options: [
+                    "A type of array",
+                    "A hash table that stores key-value pairs",
+                    "A function that maps inputs to outputs",
+                    "A geographic coordinate system"
+                ],
+                correct: 1,
+                explanation: "A mapping is a key-value data structure (hash table) in Solidity. It's declared as 'mapping(keyType => valueType)'. Mappings are efficient for lookups but cannot be iterated over, and all possible keys virtually exist with default values."
+            },
+            {
+                question: "What is the purpose of the 'emit' keyword in Solidity?",
+                options: [
+                    "To send Ether to an address",
+                    "To trigger an event that can be logged and listened to off-chain",
+                    "To create a new contract",
+                    "To return a value from a function"
+                ],
+                correct: 1,
+                explanation: "The 'emit' keyword triggers an event, which creates a log entry in the transaction receipt. Events are stored in a special data structure that is cheaper than contract storage and can be efficiently queried by off-chain applications."
+            },
+            {
+                question: "What is a constructor function in Solidity?",
+                options: [
+                    "A function that builds the contract",
+                    "A special function executed once during contract deployment to initialize state",
+                    "A function that creates new instances",
+                    "A function called every time the contract is used"
+                ],
+                correct: 1,
+                explanation: "The constructor is a special function that executes only once when the contract is deployed. It's used to initialize state variables and set up the initial contract state. After deployment, the constructor code is not part of the contract bytecode."
+            },
+            {
+                question: "What is the difference between fallback and receive functions?",
+                options: [
+                    "They are the same function",
+                    "receive() handles plain Ether transfers; fallback() handles calls to non-existent functions",
+                    "fallback() receives Ether; receive() handles function calls",
+                    "receive() is for external calls; fallback() is for internal calls"
+                ],
+                correct: 1,
+                explanation: "The receive() function (if defined) is called when the contract receives plain Ether with no data. The fallback() function is called when no other function matches the call signature or when Ether is sent with data but no receive() exists."
+            },
+            {
+                question: "What does 'msg.sender' represent in a smart contract?",
+                options: [
+                    "The contract address",
+                    "The address that deployed the contract",
+                    "The address of the account that called the current function",
+                    "The address that will receive the transaction"
+                ],
+                correct: 2,
+                explanation: "msg.sender is a global variable that contains the address of the account (EOA or contract) that directly called the current function. It changes with each call in a transaction chain and is commonly used for access control."
+            },
+            {
+                question: "What is 'msg.value' in Solidity?",
+                options: [
+                    "The return value of a function",
+                    "The amount of Ether (in Wei) sent with the transaction",
+                    "The gas price of the transaction",
+                    "The value of a state variable"
+                ],
+                correct: 1,
+                explanation: "msg.value is a global variable containing the amount of Ether (in Wei) sent along with the function call. It's only available in payable functions and allows contracts to receive and track Ether transfers."
+            },
+            {
+                question: "What is the difference between 'require' and 'assert'?",
+                options: [
+                    "They are identical",
+                    "require() is for input validation and refunds unused gas; assert() is for internal errors and consumes all gas",
+                    "assert() is for input validation; require() is for internal errors",
+                    "require() is faster than assert()"
+                ],
+                correct: 1,
+                explanation: "require() is used for validating inputs and conditions, and refunds remaining gas on failure. assert() is for catching internal errors and invariants that should never be false; it consumes all remaining gas on failure (pre-0.8.0). Use revert() for custom error handling."
+            },
+            {
+                question: "What does contract inheritance allow in Solidity?",
+                options: [
+                    "Contracts to receive Ether from parent contracts",
+                    "Contracts to reuse code and extend functionality from parent contracts",
+                    "Contracts to share the same address",
+                    "Contracts to be deployed together"
+                ],
+                correct: 1,
+                explanation: "Contract inheritance allows a contract to reuse code from parent contracts using the 'is' keyword (e.g., 'contract Child is Parent'). Solidity supports multiple inheritance with C3 linearization. Inherited contracts can override functions and extend functionality."
+            },
+            {
+                question: "What is an interface in Solidity?",
+                options: [
+                    "A user interface for the contract",
+                    "A contract with only function declarations (no implementations) used to interact with other contracts",
+                    "A way to connect to the internet",
+                    "A type of smart contract template"
+                ],
+                correct: 1,
+                explanation: "An interface is a contract that contains only function declarations without implementations. It's used to define how to interact with external contracts. All functions in an interface must be external, and interfaces cannot have state variables or constructors."
+            },
+            {
+                question: "What is a reentrancy vulnerability?",
+                options: [
+                    "When a contract runs out of gas",
+                    "When an external contract calls back into the calling contract before the first execution completes",
+                    "When a contract is deployed twice",
+                    "When a function is called multiple times"
+                ],
+                correct: 1,
+                explanation: "Reentrancy occurs when a contract calls an external contract, which then calls back into the original contract before the first call completes. This can lead to unexpected state changes. The famous DAO hack exploited this. Use checks-effects-interactions pattern or reentrancy guards to prevent it."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let userAnswers = new Array(quizData.length).fill(null);
+        let quizSubmitted = false;
+
+        function renderQuestion() {
+            const question = quizData[currentQuestion];
+            const quizContent = document.getElementById('quizContent');
+
+            let optionsHTML = '';
+            question.options.forEach((option, index) => {
+                const letter = String.fromCharCode(65 + index);
+                const isSelected = userAnswers[currentQuestion] === index;
+                const selectedClass = isSelected ? 'selected' : '';
+                const disabledClass = quizSubmitted ? 'disabled' : '';
+
+                let resultClass = '';
+                if (quizSubmitted) {
+                    if (index === question.correct) {
+                        resultClass = 'correct';
+                    } else if (isSelected && index !== question.correct) {
+                        resultClass = 'incorrect';
+                    }
+                }
+
+                optionsHTML += `
+                    <li class="option ${selectedClass} ${disabledClass} ${resultClass}"
+                        onclick="selectAnswer(${index})"
+                        data-index="${index}">
+                        <strong>${letter}.</strong> ${option}
+                    </li>
+                `;
+            });
+
+            const explanationClass = quizSubmitted ? 'show' : '';
+
+            quizContent.innerHTML = `
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-number">Question ${currentQuestion + 1} of ${quizData.length}</span>
+                    </div>
+                    <div class="question-text">${question.question}</div>
+                    <ul class="options">
+                        ${optionsHTML}
+                    </ul>
+                    <div class="explanation ${explanationClass}">
+                        <div class="explanation-title">💡 Explanation:</div>
+                        <div>${question.explanation}</div>
+                    </div>
+                </div>
+            `;
+
+            updateButtons();
+            updateProgress();
+        }
+
+        function selectAnswer(index) {
+            if (quizSubmitted) return;
+
+            userAnswers[currentQuestion] = index;
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+
+            prevBtn.disabled = currentQuestion === 0;
+
+            if (currentQuestion === quizData.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = quizSubmitted ? 'none' : 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+
+            if (quizSubmitted) {
+                nextBtn.style.display = currentQuestion === quizData.length - 1 ? 'none' : 'block';
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / quizData.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function submitQuiz() {
+            const unanswered = userAnswers.filter(a => a === null).length;
+            if (unanswered > 0) {
+                if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) {
+                    return;
+                }
+            }
+
+            quizSubmitted = true;
+            showResults();
+        }
+
+        function showResults() {
+            let correctCount = 0;
+            quizData.forEach((q, index) => {
+                if (userAnswers[index] === q.correct) {
+                    correctCount++;
+                }
+            });
+
+            const percentage = Math.round((correctCount / quizData.length) * 100);
+            const resultsDiv = document.getElementById('results');
+
+            let message = '';
+            let emoji = '';
+            if (percentage >= 90) {
+                message = 'Outstanding! You have excellent mastery of Ethereum and smart contracts!';
+                emoji = '🏆';
+            } else if (percentage >= 80) {
+                message = 'Great job! You have a strong understanding of Ethereum fundamentals.';
+                emoji = '🌟';
+            } else if (percentage >= 70) {
+                message = 'Good work! You grasp the core concepts of smart contract development.';
+                emoji = '👍';
+            } else if (percentage >= 60) {
+                message = 'Not bad! Review the Ethereum and Solidity materials to strengthen your knowledge.';
+                emoji = '📚';
+            } else {
+                message = 'Keep studying! Ethereum and smart contracts require practice to master.';
+                emoji = '💪';
+            }
+
+            resultsDiv.innerHTML = `
+                <div class="score-circle">
+                    <div class="score-number">${percentage}%</div>
+                    <div class="score-label">${correctCount}/${quizData.length}</div>
+                </div>
+                <h2>${emoji} ${message}</h2>
+                <p>You answered ${correctCount} out of ${quizData.length} questions correctly.</p>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">${correctCount}</div>
+                        <div class="stat-label">Correct</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${quizData.length - correctCount}</div>
+                        <div class="stat-label">Incorrect</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${percentage}%</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                </div>
+                <div class="button-container">
+                    <button onclick="reviewAnswers()">📝 Review Answers</button>
+                    <button onclick="restartQuiz()">🔄 Retake Quiz</button>
+                    <button onclick="window.location.href='../index.html'">📊 Back to Dashboard</button>
+                </div>
+            `;
+
+            resultsDiv.classList.add('show');
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('prevBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'none';
+        }
+
+        function reviewAnswers() {
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('prevBtn').style.display = 'block';
+            document.getElementById('nextBtn').style.display = currentQuestion === quizData.length - 1 ? 'none' : 'block';
+            currentQuestion = 0;
+            renderQuestion();
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            userAnswers = new Array(quizData.length).fill(null);
+            quizSubmitted = false;
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('prevBtn').style.display = 'block';
+            renderQuestion();
+        }
+
+        // Initialize quiz
+        renderQuestion();
+    </script>
+</body>
+</html>
