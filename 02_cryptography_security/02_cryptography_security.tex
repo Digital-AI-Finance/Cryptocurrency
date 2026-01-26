@@ -102,7 +102,31 @@
 \titlepage
 \end{frame}
 
-% ==================== SLIDE 2: OUTLINE ====================
+% ==================== SLIDE 2: PREREQUISITES ====================
+\begin{frame}{Prerequisites}
+\textbf{Before this lesson, you should understand:}
+\begin{itemize}
+\item Lesson 1 concepts (blocks, hashing, blockchain basics)
+\item Basic mathematics (multiplication, exponents)
+\item The concept of public and private information
+\end{itemize}
+
+\vspace{1em}
+\textbf{Software needed:}
+\begin{itemize}
+\item Python 3.7 or later (for cryptography demonstrations)
+\item \texttt{ecdsa} library: \texttt{pip install ecdsa}
+\item Text editor or IDE (optional)
+\end{itemize}
+
+\vspace{1em}
+\textbf{What you'll gain:}\\
+Understanding how cryptography secures blockchain transactions and wallets.
+
+\bottomnote{This lesson builds directly on Lesson 1's blockchain fundamentals.}
+\end{frame}
+
+% ==================== SLIDE 3: OUTLINE ====================
 \begin{frame}[t]{Lesson Outline}
 \tableofcontents
 \vfill
@@ -513,12 +537,9 @@ $$E_{pub}(m) = c \quad D_{priv}(c) = m$$
 \end{itemize}
 
 \vspace{0.3em}
-\textbf{Think of it as:}
-\begin{itemize}
-\item Password to your bank vault
-\item Master key to everything
-\item Irreplaceable if lost
-\end{itemize}
+\begin{block}{Real-World Analogy}
+Your \textbf{private key is like a house key} -- only you should have it. It unlocks your wallet and lets you spend funds. Lose it, and you're locked out forever. Share it, and someone else can take everything!
+\end{block}
 
 \column{0.48\textwidth}
 \textbf{Public Key}
@@ -532,15 +553,12 @@ $$E_{pub}(m) = c \quad D_{priv}(c) = m$$
 \end{itemize}
 
 \vspace{0.3em}
-\textbf{Think of it as:}
-\begin{itemize}
-\item Your email address
-\item Bank account number
-\item Safe to share publicly
-\end{itemize}
+\begin{block}{Real-World Analogy}
+Your \textbf{public key is like your home address} -- you give it to anyone who needs to send you something. It's safe to share because it doesn't let anyone into your house!
+\end{block}
 \end{columns}
 
-\vspace{0.5em}
+\vspace{0.3em}
 \begin{center}
 \begin{tabular}{lcc}
 \toprule
@@ -791,16 +809,10 @@ A mathematical scheme that:
 \item Provides non-repudiation
 \end{itemize}
 
-\vspace{0.5em}
-\textbf{Real-World Analogy}
-
-Like a handwritten signature but:
-\begin{itemize}
-\item Cannot be forged (mathematically)
-\item Tied to specific message
-\item Can be verified by anyone
-\item Different for each message
-\end{itemize}
+\vspace{0.3em}
+\begin{block}{Real-World Analogy}
+A digital signature is like \textbf{signing with invisible ink that only shows under UV light}. Everyone can verify it's YOUR unique signature, but no one can copy it or forge it. Each message gets its own unique signature!
+\end{block}
 
 \column{0.48\textwidth}
 \textbf{Components}
@@ -1371,37 +1383,37 @@ Inheritance planning & Cold + documentation & Any amount \\
 \column{0.48\textwidth}
 \textbf{Hash Functions}
 \begin{itemize}
-\item Deterministic, one-way, collision-resistant
-\item SHA-256: blockchain standard
-\item Avalanche effect ensures security
-\item Used for blocks, Merkle trees, PoW
+\item \checkmark Deterministic, one-way, collision-resistant
+\item \checkmark SHA-256 is the blockchain standard
+\item \checkmark Avalanche effect ensures security
+\item \checkmark Used for blocks, Merkle trees, and PoW
 \end{itemize}
 
 \vspace{0.5em}
 \textbf{Public Key Cryptography}
 \begin{itemize}
-\item Private key: secret, used to sign
-\item Public key: shareable, used to verify
-\item ECC (SECP256k1) used in blockchain
-\item Enables trustless ownership
+\item \checkmark Private key: secret, used to sign
+\item \checkmark Public key: shareable, used to verify
+\item \checkmark ECC (SECP256k1) used in blockchain
+\item \checkmark Enables trustless ownership
 \end{itemize}
 
 \column{0.48\textwidth}
 \textbf{Digital Signatures}
 \begin{itemize}
-\item ECDSA: sign transactions
-\item Proves ownership without revealing key
-\item Non-repudiation: cannot deny signing
-\item Foundation of blockchain security
+\item \checkmark ECDSA signs transactions
+\item \checkmark Proves ownership without revealing key
+\item \checkmark Non-repudiation: cannot deny signing
+\item \checkmark Foundation of blockchain security
 \end{itemize}
 
 \vspace{0.5em}
 \textbf{Wallets}
 \begin{itemize}
-\item Key management, not coin storage
-\item Seed phrase $\rightarrow$ unlimited addresses
-\item Hot wallets: convenient, less secure
-\item Cold wallets: secure, less convenient
+\item \checkmark Key management, not coin storage
+\item \checkmark Seed phrase generates unlimited addresses
+\item \checkmark Hot wallets: convenient, less secure
+\item \checkmark Cold wallets: secure, less convenient
 \end{itemize}
 \end{columns}
 
@@ -1477,8 +1489,6 @@ Install the following:
 \item How do hardware wallets provide additional security?
 \end{itemize}
 }
-\vspace{1cm}
-{\footnotesize Contact: joerg.osterrieder@usi.ch}
 \end{center}
 \end{frame}
 

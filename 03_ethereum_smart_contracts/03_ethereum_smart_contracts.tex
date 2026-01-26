@@ -147,7 +147,32 @@
 \end{center}
 \end{frame}
 
-% ==================== SLIDE 2: OUTLINE ====================
+% ==================== SLIDE 2: PREREQUISITES ====================
+\begin{frame}{Prerequisites}
+\textbf{Before this lesson, you should understand:}
+\begin{itemize}
+\item Lessons 1-2: Blockchain fundamentals and cryptography
+\item Basic programming concepts (functions, variables, loops)
+\item How to use a command-line interface
+\end{itemize}
+
+\vspace{1em}
+\textbf{Software needed:}
+\begin{itemize}
+\item Node.js v18+ (\texttt{nodejs.org})
+\item Hardhat development environment (\texttt{npm install --save-dev hardhat})
+\item MetaMask browser extension (optional, for testnet)
+\item VS Code with Solidity extension (recommended)
+\end{itemize}
+
+\vspace{1em}
+\textbf{What you'll build:}\\
+Your first smart contract on Ethereum!
+
+\bottomnote{This lesson transitions from theory to hands-on smart contract development.}
+\end{frame}
+
+% ==================== SLIDE 3: OUTLINE ====================
 \begin{frame}[t]{Lesson Outline}
 \tableofcontents
 \vfill
@@ -447,7 +472,12 @@ Controlled by code (autonomous):
 \item Incentivizes efficient code
 \end{itemize}
 
-\vspace{0.5em}
+\vspace{0.3em}
+\begin{block}{Real-World Analogy}
+Gas is like \textbf{postage stamps for letters}. A simple letter (basic transaction) needs one stamp. A heavy package (complex smart contract) needs more stamps. The heavier your package, the more you pay!
+\end{block}
+
+\vspace{0.3em}
 \textbf{Why Not Just Use ETH?}
 \begin{itemize}
 \item Decouples computation cost from ETH price
@@ -726,7 +756,12 @@ while(true) {
 \item Most popular smart contract language
 \end{itemize}
 
-\vspace{0.5em}
+\vspace{0.3em}
+\begin{block}{Real-World Analogy}
+A smart contract is like a \textbf{vending machine}. You put money in (send a transaction), press a button (call a function), and it automatically gives you the product (executes code). No human needed -- it's all automatic!
+\end{block}
+
+\vspace{0.3em}
 \textbf{File Structure}
 \begin{itemize}
 \item \texttt{.sol} file extension
@@ -1840,37 +1875,37 @@ $ npx hardhat coverage
 \column{0.48\textwidth}
 \textbf{Ethereum Fundamentals}
 \begin{itemize}
-\item Ethereum = programmable blockchain
-\item EVM executes smart contracts
-\item Two account types: EOA and Contract
-\item State stored on-chain globally
+\item \checkmark Ethereum is a programmable blockchain
+\item \checkmark EVM executes smart contracts identically on all nodes
+\item \checkmark Two account types: EOA and Contract
+\item \checkmark State is stored on-chain globally
 \end{itemize}
 
 \vspace{0.5em}
 \textbf{Gas Mechanics}
 \begin{itemize}
-\item Gas measures computation cost
-\item Prevents infinite loops
-\item Fee = Gas Used $\times$ Gas Price
-\item Storage operations are expensive
+\item \checkmark Gas measures computation cost
+\item \checkmark Prevents infinite loops and spam
+\item \checkmark Fee = Gas Used $\times$ Gas Price
+\item \checkmark Storage operations are most expensive
 \end{itemize}
 
 \column{0.48\textwidth}
 \textbf{Solidity Essentials}
 \begin{itemize}
-\item State variables = persistent storage
-\item Functions: public, external, view, pure
-\item Events for logging (cheaper than storage)
-\item Modifiers for access control
+\item \checkmark State variables provide persistent storage
+\item \checkmark Functions: public, external, view, pure
+\item \checkmark Events for logging (cheaper than storage)
+\item \checkmark Modifiers for access control
 \end{itemize}
 
 \vspace{0.5em}
 \textbf{Development Workflow}
 \begin{itemize}
-\item Write $\rightarrow$ Compile $\rightarrow$ Deploy $\rightarrow$ Interact
-\item Use Hardhat for local development
-\item Test thoroughly before mainnet
-\item Call (free) vs Transaction (gas)
+\item \checkmark Write $\rightarrow$ Compile $\rightarrow$ Deploy $\rightarrow$ Interact
+\item \checkmark Use Hardhat for local development
+\item \checkmark Test thoroughly before mainnet
+\item \checkmark Call (free) vs Transaction (gas)
 \end{itemize}
 \end{columns}
 

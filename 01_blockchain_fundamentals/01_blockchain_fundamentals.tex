@@ -101,7 +101,30 @@
 \end{center}
 \end{frame}
 
-% ==================== SLIDE 2: OUTLINE ====================
+% ==================== SLIDE 2: PREREQUISITES ====================
+\begin{frame}{Prerequisites}
+\textbf{Before this lesson, you should understand:}
+\begin{itemize}
+\item Basic computer literacy (how computers and networks work)
+\item Interest in finance and/or technology
+\item Curiosity about how digital systems work
+\end{itemize}
+
+\vspace{1em}
+\textbf{Software needed:}
+\begin{itemize}
+\item Python 3.7 or later (for code demonstrations)
+\item A web browser (to view blockchain explorers)
+\item Text editor or IDE (optional, for experimenting with code)
+\end{itemize}
+
+\vspace{1em}
+\textbf{No prior blockchain knowledge required!}
+
+\bottomnote{This is Lesson 1 -- we start from the very beginning.}
+\end{frame}
+
+% ==================== SLIDE 3: OUTLINE ====================
 \begin{frame}[t]{Today's Agenda}
 \begin{columns}[T]
 \column{0.48\textwidth}
@@ -210,14 +233,9 @@ A blockchain is a \textcolor{mlpurple}{\textbf{distributed, immutable ledger}} t
 \end{itemize}
 
 \vspace{0.5em}
-\textbf{Simple analogy:}
-
-Think of it as a \textcolor{mlblue}{shared Google Doc} that:
-\begin{itemize}
-\item Everyone can read
-\item No one can edit past entries
-\item New entries require group approval
-\end{itemize}
+\begin{block}{Real-World Analogy}
+Think of blockchain like a \textbf{chain of linked train cars}. Each car (block) contains cargo (data) and is connected to the previous car. You can't remove or change a car in the middle without breaking the entire chain!
+\end{block}
 
 \column{0.42\textwidth}
 \textbf{Traditional Database vs Blockchain}
@@ -422,7 +440,12 @@ Permanent record:
 \bottomrule
 \end{tabular}
 
-\vspace{1em}
+\vspace{0.5em}
+\begin{block}{Real-World Analogy}
+A block hash is like a \textbf{fingerprint} -- unique to that specific block. Change even one tiny detail in the block, and you get a completely different ``fingerprint''!
+\end{block}
+
+\vspace{0.3em}
 \textbf{Additional fields (Bitcoin):}
 \begin{itemize}
 \item Version number
@@ -722,7 +745,12 @@ Miners compete to solve a computational puzzle:
 \textit{Find a nonce such that:}
 $$\text{Hash}(\text{block} + \text{nonce}) < \text{target}$$
 
-\vspace{0.5em}
+\vspace{0.3em}
+\begin{block}{Real-World Analogy}
+Proof of Work is like finding a \textbf{winning lottery ticket}. You have to try millions of random numbers (nonces) until you find one that produces a hash starting with enough zeros. It's hard to find, but easy for everyone else to verify you won!
+\end{block}
+
+\vspace{0.3em}
 \textbf{The Process:}
 \begin{enumerate}
 \item Collect pending transactions
@@ -731,11 +759,6 @@ $$\text{Hash}(\text{block} + \text{nonce}) < \text{target}$$
 \item First to succeed wins the reward
 \item Others verify and accept
 \end{enumerate}
-
-\vspace{0.5em}
-\textbf{Bitcoin's difficulty:}
-
-Hash must start with $\sim$19 zeros
 
 \column{0.48\textwidth}
 \textbf{Why It Works}
@@ -1161,27 +1184,27 @@ print(f"After tampering: {bc.is_chain_valid()}")    # False
 \begin{columns}[T]
 \column{0.48\textwidth}
 \textbf{Blockchain Fundamentals}
-\begin{enumerate}
-\item \textbf{Distributed ledger:} No central authority
-\item \textbf{Immutability:} Cryptographic linking prevents tampering
-\item \textbf{Consensus:} Network agrees on truth
-\item \textbf{Transparency:} Anyone can verify
-\end{enumerate}
+\begin{itemize}
+\item \checkmark \textbf{Distributed ledger:} No central authority needed
+\item \checkmark \textbf{Immutability:} Cryptographic linking prevents tampering
+\item \checkmark \textbf{Consensus:} Network agrees on one version of truth
+\item \checkmark \textbf{Transparency:} Anyone can verify transactions
+\end{itemize}
 
 \vspace{0.5em}
 \textbf{Block Structure}
 \begin{itemize}
-\item Header: metadata (hash, prev\_hash, nonce)
-\item Body: transaction data
-\item Merkle root: efficient verification
+\item \checkmark Header contains metadata (hash, prev\_hash, nonce)
+\item \checkmark Body contains transaction data
+\item \checkmark Merkle root enables efficient verification
 \end{itemize}
 
 \column{0.48\textwidth}
 \textbf{Consensus Mechanisms}
 \begin{itemize}
-\item \textbf{PoW:} Computational work proves legitimacy
-\item \textbf{PoS:} Economic stake proves commitment
-\item Both solve double-spending
+\item \checkmark \textbf{PoW:} Computational work proves legitimacy
+\item \checkmark \textbf{PoS:} Economic stake proves commitment
+\item \checkmark Both solve the double-spending problem
 \end{itemize}
 
 \vspace{0.5em}
@@ -1312,9 +1335,6 @@ Cryptography provides:
 \item Practice exercises in assignments
 \end{itemize}
 
-\vspace{0.5em}
-\textbf{Contact:}\\
-\small joerg.osterrieder@uni.edu
 \end{columns}
 
 \bottomnote{The Bitcoin whitepaper is only 9 pages -- highly recommended reading!}

@@ -114,6 +114,13 @@ def create_merkle_tree():
     output_path = os.path.join(script_dir, '03_merkle_tree.pdf')
     plt.savefig(output_path, format='pdf', dpi=300, bbox_inches='tight')
     print(f"Saved: {output_path}")
+
+    # Add PNG export for GitHub Pages
+    output_png = output_path.replace('.pdf', '.png')
+    plt.savefig(output_png, dpi=300, bbox_inches='tight',
+                facecolor='white', edgecolor='none', format='png')
+    print(f"PNG saved to: {output_png}")
+
     plt.close()
 
 if __name__ == '__main__':

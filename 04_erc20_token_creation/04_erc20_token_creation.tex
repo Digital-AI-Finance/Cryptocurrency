@@ -132,6 +132,31 @@
 \end{center}
 \end{frame}
 
+% ==================== PREREQUISITES ====================
+\begin{frame}{Prerequisites}
+\textbf{Before this lesson, you should understand:}
+\begin{itemize}
+\item Lessons 1-3: Blockchain, cryptography, and smart contracts
+\item Basic JavaScript syntax (for deployment scripts)
+\item How to use Node.js and npm
+\end{itemize}
+
+\vspace{1em}
+\textbf{Software needed:}
+\begin{itemize}
+\item Node.js v18+ with npm
+\item Hardhat (\texttt{npm install --save-dev hardhat})
+\item OpenZeppelin contracts (\texttt{npm install @openzeppelin/contracts})
+\item MetaMask (optional, for testnet deployment)
+\end{itemize}
+
+\vspace{1em}
+\textbf{What you'll create:}\\
+Your own cryptocurrency token on Ethereum!
+
+\bottomnote{This is the final lesson -- bringing everything together to create a real token.}
+\end{frame}
+
 % ==================== OUTLINE ====================
 \begin{frame}[t]{Lesson Outline}
 \tableofcontents
@@ -210,9 +235,10 @@ Tokens are programmable money with custom rules encoded in smart contracts.
 \item[\textcolor{mlred}{$\times$}] Security audits are complex
 \end{itemize}
 
-\vspace{0.5em}
-\textbf{The Problem:}\\
-Imagine if every website had different HTTP methods!
+\vspace{0.3em}
+\begin{block}{Real-World Analogy}
+Without standards, tokens would be like \textbf{gift cards that only work at one specific store}. ERC-20 makes tokens like \textbf{standard gift cards} that work everywhere!
+\end{block}
 
 \column{0.48\textwidth}
 \textbf{With Standards (ERC-20)}
@@ -490,6 +516,11 @@ function approve(
 \item Can be updated or revoked (set to 0)
 \end{itemize}
 
+\vspace{0.3em}
+\begin{block}{Real-World Analogy}
+\texttt{approve()} is like giving someone a \textbf{debit card with a spending limit}. You say ``you can spend up to \$1000 of my money.'' They can use it, but only up to that limit!
+\end{block}
+
 \column{0.48\textwidth}
 \textbf{allowance(owner, spender)}
 
@@ -510,7 +541,7 @@ function allowance(
 \end{itemize}
 \end{columns}
 
-\vspace{0.5em}
+\vspace{0.3em}
 \begin{center}
 \textbf{Internal Storage:}
 \begin{lstlisting}[style=solidity]
@@ -1529,23 +1560,23 @@ Create your own ERC-20 token with:
 \begin{enumerate}
 \item \textbf{Token Standards}
 \begin{itemize}
-\item ERC-20 defines fungible tokens
-\item Standards enable interoperability
-\item 6 functions + 2 events
+\item \checkmark ERC-20 defines fungible tokens
+\item \checkmark Standards enable interoperability
+\item \checkmark 6 functions + 2 events required
 \end{itemize}
 
 \item \textbf{Core Functions}
 \begin{itemize}
-\item transfer() for direct sends
-\item approve()/transferFrom() for delegation
-\item Events for transparency
+\item \checkmark transfer() for direct sends
+\item \checkmark approve()/transferFrom() for delegation
+\item \checkmark Events for transparency
 \end{itemize}
 
 \item \textbf{Development}
 \begin{itemize}
-\item OpenZeppelin for security
-\item Hardhat for tooling
-\item Test before deploy
+\item \checkmark Use OpenZeppelin for security
+\item \checkmark Use Hardhat for tooling
+\item \checkmark Test extensively before deploy
 \end{itemize}
 \end{enumerate}
 
@@ -1554,20 +1585,20 @@ Create your own ERC-20 token with:
 
 \begin{itemize}
 \item[\textcolor{mlgreen}{$\checkmark$}] Tokens are smart contracts
-\item[\textcolor{mlgreen}{$\checkmark$}] Standards enable ecosystem
+\item[\textcolor{mlgreen}{$\checkmark$}] Standards enable the ecosystem
 \item[\textcolor{mlgreen}{$\checkmark$}] Inheritance simplifies code
-\item[\textcolor{mlgreen}{$\checkmark$}] Tokenomics matter
+\item[\textcolor{mlgreen}{$\checkmark$}] Tokenomics matter for success
 \item[\textcolor{mlgreen}{$\checkmark$}] Security is paramount
 \end{itemize}
 
 \vspace{0.5em}
 \textbf{Skills Acquired:}
 \begin{itemize}
-\item Read and understand ERC-20
-\item Create custom tokens
-\item Deploy with Hardhat
-\item Design tokenomics
-\item Evaluate token projects
+\item \checkmark Read and understand ERC-20
+\item \checkmark Create custom tokens
+\item \checkmark Deploy with Hardhat
+\item \checkmark Design tokenomics
+\item \checkmark Evaluate token projects
 \end{itemize}
 \end{columns}
 

@@ -3,66 +3,90 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title StudentToken
- * @dev YOUR NAME - YOUR STUDENT ID
- * @notice Customize this token for your final project
+ * @dev A feature-rich ERC20 token with minting, burning, and pausable functionality
+ * @notice This token demonstrates common ERC20 extensions for educational purposes
  *
- * INSTRUCTIONS:
- * 1. Replace "YOUR NAME" and "YOUR STUDENT ID" above
- * 2. Change the token name and symbol in the constructor
- * 3. Add at least ONE custom feature from the list below
- * 4. Test your implementation thoroughly
- *
- * SUGGESTED FEATURES (choose at least one):
- * - Minting: Allow owner to mint new tokens
- * - Burning: Allow users to burn their tokens
- * - Pausable: Emergency stop mechanism
- * - Transfer Fee: Charge a small fee on transfers
- * - Whitelist: Only allow transfers to/from whitelisted addresses
- * - Vesting: Lock tokens for a specific period
- * - Staking: Allow users to stake tokens for rewards
- * - Voting: Token holders can vote on proposals
+ * Features:
+ * - Minting: Owner can mint new tokens up to MAX_SUPPLY
+ * - Burning: Any holder can burn their own tokens
+ * - Pausable: Owner can pause/unpause all transfers in emergencies
  */
-contract StudentToken is ERC20, Ownable {
-    // Token parameters - TODO: Adjust these values
-    uint256 public constant INITIAL_SUPPLY = 1000000 * 10**18; // 1 million tokens
+contract StudentToken is ERC20, Ownable, Pausable {
+    /// @notice Maximum supply that can ever exist (1 million tokens)
+    uint256 public constant MAX_SUPPLY = 1_000_000 * 10**18;
 
-    // TODO: Add state variables for your custom features here
-    // Example: bool public paused;
-    // Example: uint256 public transferFeePercent = 1;
+    /// @notice Emitted when new tokens are minted
+    /// @param to The address receiving the minted tokens
+    /// @param amount The amount of tokens minted
+    event TokensMinted(address indexed to, uint256 amount);
+
+    /// @notice Emitted when tokens are burned
+    /// @param from The address whose tokens were burned
+    /// @param amount The amount of tokens burned
+    event TokensBurned(address indexed from, uint256 amount);
 
     /**
-     * @dev Constructor initializes the token
-     * TODO: Change "YourTokenName" and "YTN" to your custom values
+     * @dev Constructor mints initial supply to deployer
+     * Initializes with 100,000 tokens (10% of max supply)
      */
-    constructor()
-        ERC20("YourTokenName", "YTN")  // TODO: Customize name and symbol
-        Ownable(msg.sender)
-    {
-        _mint(msg.sender, INITIAL_SUPPLY);
+    constructor() ERC20("StudentToken", "STU") Ownable(msg.sender) {
+        _mint(msg.sender, 100_000 * 10**18);
     }
 
-    // ============================================================
-    // TODO: ADD YOUR CUSTOM FEATURES BELOW
-    // ============================================================
+    /**
+     * @notice Mint new tokens to a specified address
+     * @dev Only owner can mint, and total supply cannot exceed MAX_SUPPLY
+     * @param to The address to receive the minted tokens
+     * @param amount The amount of tokens to mint
+     */
+    function mint(address to, uint256 amount) public onlyOwner {
+        require(totalSupply() + amount <= MAX_SUPPLY, "Exceeds max supply");
+        _mint(to, amount);
+        emit TokensMinted(to, amount);
+    }
 
     /**
-     * @dev Example: Mint function (only owner can mint)
-     * Uncomment and modify if you want minting functionality
+     * @notice Burn tokens from caller's balance
+     * @dev Any token holder can burn their own tokens
+     * @param amount The amount of tokens to burn
      */
-    // function mint(address to, uint256 amount) public onlyOwner {
-    //     _mint(to, amount);
-    // }
+    function burn(uint256 amount) public {
+        _burn(msg.sender, amount);
+        emit TokensBurned(msg.sender, amount);
+    }
 
     /**
-     * @dev Example: Burn function (anyone can burn their own tokens)
-     * Uncomment and modify if you want burning functionality
+     * @notice Pause all token transfers
+     * @dev Only owner can pause. Use in emergencies.
      */
-    // function burn(uint256 amount) public {
-    //     _burn(msg.sender, amount);
-    // }
+    function pause() public onlyOwner {
+        _pause();
+    }
 
-    // Add more custom functions here...
+    /**
+     * @notice Unpause token transfers
+     * @dev Only owner can unpause
+     */
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    /**
+     * @dev Override _update to enforce pause functionality
+     * This hook is called on every transfer, mint, and burn
+     * @param from Source address (zero for minting)
+     * @param to Destination address (zero for burning)
+     * @param value Amount of tokens being transferred
+     */
+    function _update(address from, address to, uint256 value)
+        internal
+        override
+        whenNotPaused
+    {
+        super._update(from, to, value);
+    }
 }

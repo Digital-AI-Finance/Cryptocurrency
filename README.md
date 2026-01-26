@@ -15,6 +15,19 @@ This 4-lesson course takes students from blockchain basics to creating and deplo
 
 ---
 
+## Interactive Notebooks
+
+Run the course code directly in Google Colab:
+
+| Lesson | Notebook | Open in Colab |
+|--------|----------|---------------|
+| 1. Blockchain Fundamentals | `notebooks/01_blockchain_fundamentals.ipynb` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/notebooks/01_blockchain_fundamentals.ipynb) |
+| 2. Cryptography & Security | `notebooks/02_cryptography_security.ipynb` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/notebooks/02_cryptography_security.ipynb) |
+| 3. Ethereum & Smart Contracts | `notebooks/03_ethereum_contracts.ipynb` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/notebooks/03_ethereum_contracts.ipynb) |
+| 4. ERC-20 Token Creation | `notebooks/04_erc20_tokens.ipynb` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/notebooks/04_erc20_tokens.ipynb) |
+
+---
+
 ## Lesson Structure
 
 | Lesson | Title | Duration | Key Topics | Deliverable |

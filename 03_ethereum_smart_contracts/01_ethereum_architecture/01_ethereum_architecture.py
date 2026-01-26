@@ -197,4 +197,10 @@ output_path = os.path.join(output_dir, '01_ethereum_architecture.pdf')
 plt.savefig(output_path, dpi=300, bbox_inches='tight', format='pdf')
 print(f"Chart saved to: {output_path}")
 
+# Add PNG export for GitHub Pages
+output_png = output_path.replace('.pdf', '.png')
+plt.savefig(output_png, dpi=300, bbox_inches='tight',
+            facecolor='white', edgecolor='none', format='png')
+print(f"PNG saved to: {output_png}")
+
 plt.show()
