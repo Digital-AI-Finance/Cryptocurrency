@@ -17,16 +17,30 @@ This 4-lesson course takes students from blockchain basics to creating and deplo
 
 ## Interactive Notebooks
 
-Run the course code directly in Google Colab:
+Each lesson includes interactive notebooks you can run directly in Google Colab.
 
-| Lesson | Notebook | Open in Colab |
-|--------|----------|---------------|
-| 1. Blockchain Fundamentals | `notebooks/01_blockchain_fundamentals.ipynb` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/notebooks/01_blockchain_fundamentals.ipynb) |
-| 2. Cryptography & Security | `notebooks/02_cryptography_security.ipynb` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/notebooks/02_cryptography_security.ipynb) |
-| 3. Ethereum & Smart Contracts | `notebooks/03_ethereum_contracts.ipynb` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/notebooks/03_ethereum_contracts.ipynb) |
-| 4. ERC-20 Token Creation | `notebooks/04_erc20_tokens.ipynb` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/notebooks/04_erc20_tokens.ipynb) |
+### Lesson 1: Blockchain Fundamentals
+| Notebook | Topic | Open in Colab |
+|----------|-------|---------------|
+| NB01 Blockchain Code Demo | Build blocks, chains, and proof of work | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/01_blockchain_fundamentals/notebooks/NB01_Blockchain_Code_Demo.ipynb) |
 
----
+### Lesson 2: Cryptography & Security
+| Notebook | Topic | Open in Colab |
+|----------|-------|---------------|
+| NB01 Cryptography Code Demo | Hashing, signatures, wallets | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/02_cryptography_security/notebooks/NB01_Cryptography_Code_Demo.ipynb) |
+| NB02 SHA-256 Avalanche Interactive | Experiment with the avalanche effect | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/02_cryptography_security/notebooks/NB02_SHA256_Avalanche_Interactive.ipynb) |
+
+### Lesson 3: Ethereum & Smart Contracts
+| Notebook | Topic | Open in Colab |
+|----------|-------|---------------|
+| NB01 Ethereum Code Demo | Web3 interaction, Sepolia testnet | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/03_ethereum_smart_contracts/notebooks/NB01_Ethereum_Code_Demo.ipynb) |
+| NB02 Gas Mechanics Interactive | Calculate and compare gas costs | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/03_ethereum_smart_contracts/notebooks/NB02_Gas_Mechanics_Interactive.ipynb) |
+
+### Lesson 4: ERC-20 Token Creation
+| Notebook | Topic | Open in Colab |
+|----------|-------|---------------|
+| NB01 ERC-20 Code Demo | Token testing and deployment | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/04_erc20_token_creation/notebooks/NB01_ERC20_Code_Demo.ipynb) |
+| NB02 Token Economics Interactive | Model supply curves and tokenomics | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/04_erc20_token_creation/notebooks/NB02_Token_Economics_Interactive.ipynb) |
 
 ## Lesson Structure
 
@@ -64,7 +78,7 @@ Run the course code directly in Google Colab:
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/yourusername/cryptocurrency-course.git
+git clone https://github.com/Digital-AI-Finance/Cryptocurrency.git
 cd cryptocurrency-course
 ```
 
@@ -283,8 +297,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 For questions or feedback:
-- **Issues:** [GitHub Issues](https://github.com/yourusername/cryptocurrency-course/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/cryptocurrency-course/discussions)
+- **Issues:** [GitHub Issues](https://github.com/Digital-AI-Finance/Cryptocurrency/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Digital-AI-Finance/Cryptocurrency/discussions)
 
 ---
 
