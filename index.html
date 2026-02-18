@@ -4,11 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Build Your Own Cryptocurrency</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;background:#f6f8fa;color:#24292e;font-size:12px;line-height:1.4}
+body{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;background:#f6f8fa;color:#24292e;font-size:11px;line-height:1.4}
 a{color:#0366d6;text-decoration:none}
 .nav{background:#24292e;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
 .nav-title{color:#fff;font-weight:600;font-size:14px}
@@ -23,13 +21,14 @@ a{color:#0366d6;text-decoration:none}
 .side summary::-webkit-details-marker{display:none}
 .side summary::after{content:"+";color:#586069;font-size:12px}
 .side details[open] summary::after{content:"-"}
-.side ul{list-style:none;padding:0 0 6px 0}
-.side li a{display:block;padding:4px 10px 4px 18px;color:#586069;font-size:10px}
-.side li a:hover{background:#f6f8fa;color:#0366d6}
-.p1 summary{border-left:3px solid #22c55e}
-.p2 summary{border-left:3px solid #f59e0b}
+.side a{display:block;padding:4px 10px 4px 18px;color:#586069;font-size:10px}
+.side a:hover{background:#f6f8fa;color:#0366d6}
+.d1 summary{border-left:3px solid #3b82f6}
+.d2 summary{border-left:3px solid #14b8a6}
+.d3 summary{border-left:3px solid #6366f1}
+.d4 summary{border-left:3px solid #8b5cf6}
 .main{flex:1;min-width:0;padding:10px}
-.hero{background:linear-gradient(135deg, #24292e 0%, #0366d6 100%);color:#fff;padding:12px 16px;border-radius:6px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.hero{background:linear-gradient(135deg, #24292e 0%, #3b82f6 100%);color:#fff;padding:12px 16px;border-radius:6px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
 .hero-left h1{font-size:18px;font-weight:700}
 .hero-left p{font-size:11px;opacity:0.8;margin-top:2px}
 .hero-stats{display:flex;gap:24px}
@@ -39,233 +38,336 @@ a{color:#0366d6;text-decoration:none}
 .section{margin-bottom:16px}
 .section-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 0;border-bottom:2px solid #e1e4e8}
 .section-head span{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
-.section-head.s1 span{background:#22c55e}
-.section-head.s2 span{background:#f59e0b}
+.section-head.d1 span{background:#3b82f6}
+.section-head.d2 span{background:#14b8a6}
+.section-head.d3 span{background:#6366f1}
+.section-head.d4 span{background:#8b5cf6}
+.section-head.notebooks span{background:#22c55e}
+.section-head.quizzes span{background:#8b5cf6}
 .section-head h2{font-size:13px;color:#24292e}
-.lgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.deck-link{display:inline-block;margin-bottom:8px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:3px;color:#fff}
+.deck-link.d1{background:#3b82f6}
+.deck-link.d2{background:#14b8a6}
+.deck-link.d3{background:#6366f1}
+.deck-link.d4{background:#8b5cf6}
+.deck-link:hover{opacity:0.85;color:#fff}
+.lgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
 .lcard{display:block;background:#fff;border:1px solid #e1e4e8;border-radius:4px;padding:8px 10px;cursor:pointer;transition:all 0.15s}
 .lcard:hover{border-color:#0366d6;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
-.lcard-num{font-size:10px;font-weight:700;padding:2px 5px;border-radius:3px;margin-right:6px}
-.s1 .lcard-num{background:#dcfce7;color:#22c55e}
-.s2 .lcard-num{background:#fef3c7;color:#f59e0b}
-.lcard-title{font-size:11px;font-weight:500;color:#24292e}
-.lesson-section{margin-bottom:16px;background:#fff;border:1px solid #e1e4e8;border-radius:6px;padding:12px}
-.lesson-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.lesson-num{font-size:11px;font-weight:700;padding:4px 8px;border-radius:4px}
-.l1 .lesson-num{background:#dcfce7;color:#22c55e}
-.l2 .lesson-num{background:#fef3c7;color:#f59e0b}
-.lesson-title{font-size:13px;font-weight:600;color:#24292e}
-.lesson-link{margin-left:auto;font-size:10px;color:#0366d6;padding:4px 8px;border:1px solid #0366d6;border-radius:4px}
-.lesson-link:hover{background:#0366d6;color:#fff}
-.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-.ccard{display:block;background:#f6f8fa;border:1px solid #e1e4e8;border-radius:4px;padding:6px;cursor:pointer;transition:all 0.15s;text-align:center}
-.ccard:hover{border-color:#0366d6;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
-.ccard img{width:100%;height:80px;object-fit:contain;background:#fff;border-radius:3px;margin-bottom:4px}
-.ccard-img{width:100%;height:120px;object-fit:contain;background:#f8f9fa;border-radius:4px}
-.ccard-name{font-size:9px;color:#24292e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ccard-placeholder{width:100%;height:80px;background:linear-gradient(135deg,#e1e4e8 0%,#f6f8fa 100%);border-radius:3px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#586069}
-.code-section{margin-bottom:16px;background:#fff;border:1px solid #e1e4e8;border-radius:6px;padding:12px}
-.code-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.code-icon{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
-.code-title{font-size:13px;font-weight:600;color:#24292e}
-.code-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-.code-card{display:block;background:#f6f8fa;border:1px solid #e1e4e8;border-radius:4px;padding:8px 10px;transition:all 0.15s}
-.code-card:hover{border-color:#0366d6;background:#fff}
-.code-card-name{font-size:11px;font-weight:500;color:#24292e}
-.code-card-path{font-size:9px;color:#586069;margin-top:2px}
-.code-badge{font-size:9px;padding:2px 6px;border-radius:3px;margin-right:6px}
-.badge-py{background:#3776ab;color:#fff}
-.badge-sol{background:#363636;color:#fff}
-.project-section{margin-bottom:16px;background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #f59e0b;border-radius:8px;padding:16px}
-.project-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.project-icon{background:#f59e0b;color:white;padding:8px 14px;border-radius:6px;font-weight:700;font-size:14px}
-.project-title{font-size:16px;font-weight:600;color:#92400e}
-.project-desc{font-size:11px;color:#92400e;margin-bottom:12px}
-.project-link{display:inline-block;background:#f59e0b;color:white;padding:8px 16px;border-radius:4px;font-size:12px;font-weight:600}
-.project-link:hover{background:#d97706;color:white}
-.formulas{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center}
-.formula{background:#fff;border:1px solid #e1e4e8;border-radius:4px;padding:6px 12px;text-align:center}
-.formula small{font-size:9px;color:#586069;display:block;margin-bottom:2px}
-.formula div{font-size:13px}
+.lcard-top{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.lcard-num{font-size:10px;font-weight:700;padding:2px 5px;border-radius:3px}
+.d1 .lcard-num{background:#dbeafe;color:#3b82f6}
+.d2 .lcard-num{background:#f0fdfa;color:#14b8a6}
+.d3 .lcard-num{background:#eef2ff;color:#6366f1}
+.d4 .lcard-num{background:#f5f3ff;color:#8b5cf6}
+.lcard-title{font-size:11px;font-weight:500;color:#24292e;margin-bottom:3px}
+.lcard-comp{font-size:9px;color:#586069;line-height:1.3}
+.nb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.nb-card{display:block;background:#fff;border:1px solid #e1e4e8;border-radius:4px;padding:8px 10px;cursor:pointer;transition:all 0.15s;border-left:3px solid #22c55e}
+.nb-card:hover{border-color:#0366d6;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.nb-num{font-size:10px;font-weight:700;padding:2px 5px;border-radius:3px;margin-right:4px;background:#dcfce7;color:#22c55e}
+.nb-title{font-size:11px;font-weight:500;color:#24292e;margin-bottom:2px}
+.nb-meta{font-size:9px;color:#586069}
+.quiz-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.quiz-card{display:block;background:#fff;border:1px solid #e1e4e8;border-radius:4px;padding:8px 10px;cursor:pointer;transition:all 0.15s;border-left:3px solid #8b5cf6}
+.quiz-card:hover{border-color:#0366d6;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.quiz-num{font-size:10px;font-weight:700;padding:2px 5px;border-radius:3px;margin-right:4px;background:#f5f3ff;color:#8b5cf6}
+.quiz-title{font-size:11px;font-weight:500;color:#24292e;margin-bottom:2px}
+.quiz-meta{font-size:9px;color:#586069}
+.notes-card{display:block;background:#fff;border:1px solid #e1e4e8;border-radius:4px;padding:8px 10px;cursor:pointer;transition:all 0.15s;border-left:3px solid #f59e0b}
+.notes-card:hover{border-color:#0366d6;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.notes-num{font-size:10px;font-weight:700;padding:2px 5px;border-radius:3px;margin-right:4px;background:#fffbeb;color:#f59e0b}
 .foot{text-align:center;padding:12px;font-size:10px;color:#586069;margin-top:12px}
 .foot a{margin:0 8px}
-@media(max-width:1000px){.lgrid{grid-template-columns:repeat(2,1fr)}.side{width:160px}}
+[id]{scroll-margin-top:48px}
+@media(max-width:1400px){.lgrid{grid-template-columns:repeat(3,1fr)}.nb-grid{grid-template-columns:repeat(3,1fr)}.quiz-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1000px){.lgrid{grid-template-columns:repeat(2,1fr)}.nb-grid{grid-template-columns:repeat(2,1fr)}.quiz-grid{grid-template-columns:repeat(2,1fr)}.side{width:160px}}
 @media(max-width:800px){.wrap{flex-direction:column}.side{width:100%;height:auto;max-height:200px;position:relative;top:0}.lgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <nav class="nav">
 <span class="nav-title">Build Your Own Cryptocurrency</span>
-<div class="nav-links"><a href="#lessons">Lessons</a><a href="#quizzes">Quizzes</a><a href="#charts">Charts</a><a href="#code">Code</a><a href="https://github.com/Digital-AI-Finance/Cryptocurrency">GitHub</a></div>
+<div class="nav-links"><a href="#lessons">Lessons</a><a href="#topics">Topics</a><a href="#notebooks">Notebooks</a><a href="#quizzes">Quizzes</a><a href="#notes">Notes</a><a href="#resources">Resources</a><a href="https://github.com/Digital-AI-Finance/Cryptocurrency">GitHub</a></div>
 </nav>
 <div class="wrap">
 <aside class="side">
 <div class="side-head">Navigation</div>
-<details class="p1" open><summary>I. Foundations</summary><ul>
-<li><a href="#L01">01 Blockchain Fundamentals</a></li>
-<li><a href="#L02">02 Cryptography & Security</a></li>
-<li><a href="quiz/quiz1.html">Q01 Quiz</a></li>
-<li><a href="quiz/quiz2.html">Q02 Quiz</a></li>
-</ul></details>
-<details class="p2" open><summary>II. Development</summary><ul>
-<li><a href="#L03">03 Ethereum & Smart Contracts</a></li>
-<li><a href="#L04">04 ERC-20 Token Creation</a></li>
-<li><a href="quiz/quiz3.html">Q03 Quiz</a></li>
-<li><a href="quiz/quiz4.html">Q04 Quiz</a></li>
-</ul></details>
+<details class="d1" open><summary>L1: Blockchain Fundamentals</summary>
+<a href="#t1-1">1.1 Block Structure</a>
+<a href="#t1-2">1.2 Hash Chain</a>
+<a href="#t1-3">1.3 Merkle Tree</a>
+<a href="#t1-4">1.4 Consensus Comparison</a>
+<a href="#t1-5">1.5 Decentralization</a>
+</details>
+<details class="d2" open><summary>L2: Cryptography &amp; Security</summary>
+<a href="#t2-1">2.1 Hash Function</a>
+<a href="#t2-2">2.2 SHA-256 Avalanche</a>
+<a href="#t2-3">2.3 Public/Private Keys</a>
+<a href="#t2-4">2.4 Digital Signature Flow</a>
+<a href="#t2-5">2.5 Wallet Architecture</a>
+</details>
+<details class="d3" open><summary>L3: Ethereum &amp; Smart Contracts</summary>
+<a href="#t3-1">3.1 Ethereum Architecture</a>
+<a href="#t3-2">3.2 Gas Mechanics</a>
+<a href="#t3-3">3.3 Smart Contract Lifecycle</a>
+<a href="#t3-4">3.4 Solidity Types</a>
+<a href="#t3-5">3.5 Contract Interaction</a>
+</details>
+<details class="d4" open><summary>L4: ERC-20 Token Creation</summary>
+<a href="#t4-1">4.1 ERC-20 Interface</a>
+<a href="#t4-2">4.2 Token Flow</a>
+<a href="#t4-3">4.3 Approval &amp; Allowance</a>
+<a href="#t4-4">4.4 Deployment Steps</a>
+<a href="#t4-5">4.5 Token Economics</a>
+</details>
 </aside>
 <main class="main">
 <div class="hero">
-<div class="hero-left"><h1>Build Your Own Cryptocurrency</h1><p>BSc Course - 4 Lessons</p></div>
-<div class="hero-stats"><span><b>4</b><small>Lessons</small></span><span><b>4</b><small>Quizzes</small></span><span><b>20</b><small>Charts</small></span><span><b>1</b><small>Token</small></span></div>
+<div class="hero-left"><h1>Build Your Own Cryptocurrency</h1><p>BSc Level Course &mdash; 4 Lessons</p></div>
+<div class="hero-stats"><span><b>4</b><small>Lessons</small></span><span><b>20</b><small>Topics</small></span><span><b>7</b><small>Notebooks</small></span><span><b>4</b><small>Quizzes</small></span></div>
 </div>
 
-<section class="section" id="lessons">
-<div class="section-head s1"><span>I</span><h2>Foundations</h2></div>
-<div class="lgrid s1">
-<a class="lcard" href="01_blockchain_fundamentals/01_blockchain_fundamentals.pdf"><span class="lcard-num">01</span><span class="lcard-title">Blockchain Fundamentals</span></a>
-<a class="lcard" href="02_cryptography_security/02_cryptography_security.pdf"><span class="lcard-num">02</span><span class="lcard-title">Cryptography & Security</span></a>
+<section class="section d1" id="lessons">
+<div class="section-head d1"><span>1</span><h2>Lesson 1: Blockchain Fundamentals</h2></div>
+<a href="01_blockchain_fundamentals/01_blockchain_fundamentals.pdf" class="deck-link d1">Slide Deck (PDF)</a>
+<div class="lgrid" id="topics">
+<a href="01_blockchain_fundamentals/01_blockchain_structure/01_blockchain_structure.pdf" class="lcard" id="t1-1">
+<div class="lcard-top"><span class="lcard-num">1.1</span></div>
+<div class="lcard-title">Block Structure</div>
+<div class="lcard-comp">Block anatomy: index, timestamp, transactions, hash, nonce</div>
+</a>
+<a href="01_blockchain_fundamentals/02_hash_chain/02_hash_chain.pdf" class="lcard" id="t1-2">
+<div class="lcard-top"><span class="lcard-num">1.2</span></div>
+<div class="lcard-title">Hash Chain</div>
+<div class="lcard-comp">Cryptographic linking of blocks via hash pointers</div>
+</a>
+<a href="01_blockchain_fundamentals/03_merkle_tree/03_merkle_tree.pdf" class="lcard" id="t1-3">
+<div class="lcard-top"><span class="lcard-num">1.3</span></div>
+<div class="lcard-title">Merkle Tree</div>
+<div class="lcard-comp">Efficient transaction verification with Merkle trees</div>
+</a>
+<a href="01_blockchain_fundamentals/04_consensus_comparison/04_consensus_comparison.pdf" class="lcard" id="t1-4">
+<div class="lcard-top"><span class="lcard-num">1.4</span></div>
+<div class="lcard-title">Consensus Comparison</div>
+<div class="lcard-comp">Proof of Work vs Proof of Stake trade-offs</div>
+</a>
+<a href="01_blockchain_fundamentals/05_decentralization/05_decentralization.pdf" class="lcard" id="t1-5">
+<div class="lcard-top"><span class="lcard-num">1.5</span></div>
+<div class="lcard-title">Decentralization</div>
+<div class="lcard-comp">Network topology and decentralization spectrum</div>
+</a>
 </div>
-<div class="section-head s2"><span>II</span><h2>Development</h2></div>
-<div class="lgrid s2">
-<a class="lcard" href="03_ethereum_smart_contracts/03_ethereum_smart_contracts.pdf"><span class="lcard-num">03</span><span class="lcard-title">Ethereum & Smart Contracts</span></a>
-<a class="lcard" href="04_erc20_token_creation/04_erc20_token_creation.pdf"><span class="lcard-num">04</span><span class="lcard-title">ERC-20 Token Creation</span></a>
+</section>
+
+<section class="section d2">
+<div class="section-head d2"><span>2</span><h2>Lesson 2: Cryptography &amp; Security</h2></div>
+<a href="02_cryptography_security/02_cryptography_security.pdf" class="deck-link d2">Slide Deck (PDF)</a>
+<div class="lgrid">
+<a href="02_cryptography_security/01_hash_function/01_hash_function.pdf" class="lcard" id="t2-1">
+<div class="lcard-top"><span class="lcard-num">2.1</span></div>
+<div class="lcard-title">Hash Function</div>
+<div class="lcard-comp">SHA-256 properties: deterministic, fast, one-way</div>
+</a>
+<a href="02_cryptography_security/02_sha256_avalanche/02_sha256_avalanche.pdf" class="lcard" id="t2-2">
+<div class="lcard-top"><span class="lcard-num">2.2</span></div>
+<div class="lcard-title">SHA-256 Avalanche</div>
+<div class="lcard-comp">Small input changes produce completely different hashes</div>
+</a>
+<a href="02_cryptography_security/03_public_private_keys/03_public_private_keys.pdf" class="lcard" id="t2-3">
+<div class="lcard-top"><span class="lcard-num">2.3</span></div>
+<div class="lcard-title">Public/Private Keys</div>
+<div class="lcard-comp">Asymmetric cryptography for secure transactions</div>
+</a>
+<a href="02_cryptography_security/04_digital_signature_flow/04_digital_signature_flow.pdf" class="lcard" id="t2-4">
+<div class="lcard-top"><span class="lcard-num">2.4</span></div>
+<div class="lcard-title">Digital Signature Flow</div>
+<div class="lcard-comp">Sign, verify, and detect tampering in messages</div>
+</a>
+<a href="02_cryptography_security/05_wallet_architecture/05_wallet_architecture.pdf" class="lcard" id="t2-5">
+<div class="lcard-top"><span class="lcard-num">2.5</span></div>
+<div class="lcard-title">Wallet Architecture</div>
+<div class="lcard-comp">Key management, address derivation, wallet types</div>
+</a>
+</div>
+</section>
+
+<section class="section d3">
+<div class="section-head d3"><span>3</span><h2>Lesson 3: Ethereum &amp; Smart Contracts</h2></div>
+<a href="03_ethereum_smart_contracts/03_ethereum_smart_contracts.pdf" class="deck-link d3">Slide Deck (PDF)</a>
+<div class="lgrid">
+<a href="03_ethereum_smart_contracts/01_ethereum_architecture/01_ethereum_architecture.pdf" class="lcard" id="t3-1">
+<div class="lcard-top"><span class="lcard-num">3.1</span></div>
+<div class="lcard-title">Ethereum Architecture</div>
+<div class="lcard-comp">EVM overview, accounts, state, and world computer</div>
+</a>
+<a href="03_ethereum_smart_contracts/02_gas_mechanics/02_gas_mechanics.pdf" class="lcard" id="t3-2">
+<div class="lcard-top"><span class="lcard-num">3.2</span></div>
+<div class="lcard-title">Gas Mechanics</div>
+<div class="lcard-comp">Gas pricing, limits, and transaction cost calculation</div>
+</a>
+<a href="03_ethereum_smart_contracts/03_smart_contract_lifecycle/03_smart_contract_lifecycle.pdf" class="lcard" id="t3-3">
+<div class="lcard-top"><span class="lcard-num">3.3</span></div>
+<div class="lcard-title">Smart Contract Lifecycle</div>
+<div class="lcard-comp">Write, compile, deploy, and interact with contracts</div>
+</a>
+<a href="03_ethereum_smart_contracts/04_solidity_types/04_solidity_types.pdf" class="lcard" id="t3-4">
+<div class="lcard-top"><span class="lcard-num">3.4</span></div>
+<div class="lcard-title">Solidity Types</div>
+<div class="lcard-comp">Value types, reference types, and mappings in Solidity</div>
+</a>
+<a href="03_ethereum_smart_contracts/05_contract_interaction/05_contract_interaction.pdf" class="lcard" id="t3-5">
+<div class="lcard-top"><span class="lcard-num">3.5</span></div>
+<div class="lcard-title">Contract Interaction</div>
+<div class="lcard-comp">Calling functions, sending ETH, and contract-to-contract</div>
+</a>
+</div>
+</section>
+
+<section class="section d4">
+<div class="section-head d4"><span>4</span><h2>Lesson 4: ERC-20 Token Creation</h2></div>
+<a href="04_erc20_token_creation/04_erc20_token_creation.pdf" class="deck-link d4">Slide Deck (PDF)</a>
+<div class="lgrid">
+<a href="04_erc20_token_creation/01_erc20_interface/01_erc20_interface.pdf" class="lcard" id="t4-1">
+<div class="lcard-top"><span class="lcard-num">4.1</span></div>
+<div class="lcard-title">ERC-20 Interface</div>
+<div class="lcard-comp">The ERC-20 standard: functions, events, compliance</div>
+</a>
+<a href="04_erc20_token_creation/02_token_flow/02_token_flow.pdf" class="lcard" id="t4-2">
+<div class="lcard-top"><span class="lcard-num">4.2</span></div>
+<div class="lcard-title">Token Flow</div>
+<div class="lcard-comp">Transfer mechanics and balance management</div>
+</a>
+<a href="04_erc20_token_creation/03_approval_allowance/03_approval_allowance.pdf" class="lcard" id="t4-3">
+<div class="lcard-top"><span class="lcard-num">4.3</span></div>
+<div class="lcard-title">Approval &amp; Allowance</div>
+<div class="lcard-comp">Delegated transfers with approve() and transferFrom()</div>
+</a>
+<a href="04_erc20_token_creation/04_deployment_steps/04_deployment_steps.pdf" class="lcard" id="t4-4">
+<div class="lcard-top"><span class="lcard-num">4.4</span></div>
+<div class="lcard-title">Deployment Steps</div>
+<div class="lcard-comp">From Solidity code to live contract on Ethereum</div>
+</a>
+<a href="04_erc20_token_creation/05_token_economics/05_token_economics.pdf" class="lcard" id="t4-5">
+<div class="lcard-top"><span class="lcard-num">4.5</span></div>
+<div class="lcard-title">Token Economics</div>
+<div class="lcard-comp">Supply models, inflation, burning, and token design</div>
+</a>
+</div>
+</section>
+
+<section class="section" id="notebooks">
+<div class="section-head notebooks"><span>7</span><h2>Interactive Notebooks</h2></div>
+<div class="nb-grid">
+<a href="https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/01_blockchain_fundamentals/notebooks/NB01_Blockchain_Code_Demo.ipynb" class="nb-card">
+<div><span class="nb-num">NB01</span><span class="nb-title">Blockchain Code Demo</span></div>
+<div class="nb-meta">Lesson 1 &bull; Build blocks, chains, and proof of work</div>
+</a>
+<a href="https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/02_cryptography_security/notebooks/NB01_Cryptography_Code_Demo.ipynb" class="nb-card">
+<div><span class="nb-num">NB01</span><span class="nb-title">Cryptography Code Demo</span></div>
+<div class="nb-meta">Lesson 2 &bull; Hashing, signatures, wallets</div>
+</a>
+<a href="https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/02_cryptography_security/notebooks/NB02_SHA256_Avalanche_Interactive.ipynb" class="nb-card">
+<div><span class="nb-num">NB02</span><span class="nb-title">SHA-256 Avalanche Interactive</span></div>
+<div class="nb-meta">Lesson 2 &bull; Experiment with the avalanche effect</div>
+</a>
+<a href="https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/03_ethereum_smart_contracts/notebooks/NB01_Ethereum_Code_Demo.ipynb" class="nb-card">
+<div><span class="nb-num">NB01</span><span class="nb-title">Ethereum Code Demo</span></div>
+<div class="nb-meta">Lesson 3 &bull; Web3 interaction, Sepolia testnet</div>
+</a>
+<a href="https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/03_ethereum_smart_contracts/notebooks/NB02_Gas_Mechanics_Interactive.ipynb" class="nb-card">
+<div><span class="nb-num">NB02</span><span class="nb-title">Gas Mechanics Interactive</span></div>
+<div class="nb-meta">Lesson 3 &bull; Calculate and compare gas costs</div>
+</a>
+<a href="https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/04_erc20_token_creation/notebooks/NB01_ERC20_Code_Demo.ipynb" class="nb-card">
+<div><span class="nb-num">NB01</span><span class="nb-title">ERC-20 Code Demo</span></div>
+<div class="nb-meta">Lesson 4 &bull; Token testing and deployment</div>
+</a>
+<a href="https://colab.research.google.com/github/Digital-AI-Finance/Cryptocurrency/blob/main/04_erc20_token_creation/notebooks/NB02_Token_Economics_Interactive.ipynb" class="nb-card">
+<div><span class="nb-num">NB02</span><span class="nb-title">Token Economics Interactive</span></div>
+<div class="nb-meta">Lesson 4 &bull; Model supply curves and tokenomics</div>
+</a>
 </div>
 </section>
 
 <section class="section" id="quizzes">
-<div class="section-head" style="border-color:#8b5cf6"><span style="background:#8b5cf6">Q</span><h2>Interactive Quizzes (74 questions)</h2></div>
-<div class="lgrid" style="grid-template-columns:repeat(4,1fr)">
-<a class="lcard" href="quiz/quiz1.html" style="border-left:3px solid #22c55e;background:linear-gradient(135deg,#f0fdf4,#dcfce7)"><span class="lcard-num" style="background:#22c55e;color:white">Q01</span><span class="lcard-title">Blockchain Fundamentals</span><div style="font-size:9px;color:#166534;margin-top:4px;font-weight:600">20 questions</div></a>
-<a class="lcard" href="quiz/quiz2.html" style="border-left:3px solid #22c55e;background:linear-gradient(135deg,#f0fdf4,#dcfce7)"><span class="lcard-num" style="background:#22c55e;color:white">Q02</span><span class="lcard-title">Cryptography & Security</span><div style="font-size:9px;color:#166534;margin-top:4px;font-weight:600">20 questions</div></a>
-<a class="lcard" href="quiz/quiz3.html" style="border-left:3px solid #f59e0b;background:linear-gradient(135deg,#fffbeb,#fef3c7)"><span class="lcard-num" style="background:#f59e0b;color:white">Q03</span><span class="lcard-title">Ethereum & Smart Contracts</span><div style="font-size:9px;color:#92400e;margin-top:4px;font-weight:600">17 questions</div></a>
-<a class="lcard" href="quiz/quiz4.html" style="border-left:3px solid #f59e0b;background:linear-gradient(135deg,#fffbeb,#fef3c7)"><span class="lcard-num" style="background:#f59e0b;color:white">Q04</span><span class="lcard-title">ERC-20 Token Creation</span><div style="font-size:9px;color:#92400e;margin-top:4px;font-weight:600">17 questions</div></a>
+<div class="section-head quizzes"><span>4</span><h2>Interactive Quizzes</h2></div>
+<div class="quiz-grid">
+<a href="quiz/quiz1.html" class="quiz-card">
+<div><span class="quiz-num">Q1</span><span class="quiz-title">Blockchain Fundamentals</span></div>
+<div class="quiz-meta">20 questions &bull; Lesson 1</div>
+</a>
+<a href="quiz/quiz2.html" class="quiz-card">
+<div><span class="quiz-num">Q2</span><span class="quiz-title">Cryptography &amp; Security</span></div>
+<div class="quiz-meta">20 questions &bull; Lesson 2</div>
+</a>
+<a href="quiz/quiz3.html" class="quiz-card">
+<div><span class="quiz-num">Q3</span><span class="quiz-title">Ethereum &amp; Smart Contracts</span></div>
+<div class="quiz-meta">20 questions &bull; Lesson 3</div>
+</a>
+<a href="quiz/quiz4.html" class="quiz-card">
+<div><span class="quiz-num">Q4</span><span class="quiz-title">ERC-20 Token Creation</span></div>
+<div class="quiz-meta">20 questions &bull; Lesson 4</div>
+</a>
 </div>
 </section>
 
-<section class="section" id="charts">
-<div class="section-head s1"><span>I</span><h2>All Charts (20)</h2></div>
-
-<div class="lesson-section l1" id="L01">
-<div class="lesson-head"><span class="lesson-num">L01</span><span class="lesson-title">Blockchain Fundamentals (5 charts)</span><a class="lesson-link" href="01_blockchain_fundamentals/01_blockchain_fundamentals.pdf">View Slides</a></div>
-<div class="cgrid">
-<a class="ccard" href="01_blockchain_fundamentals/01_blockchain_structure/01_blockchain_structure.pdf"><img class="ccard-img" src="01_blockchain_fundamentals/01_blockchain_structure/01_blockchain_structure.png" alt="Blockchain Structure"><span class="ccard-name">Blockchain Structure</span></a>
-<a class="ccard" href="01_blockchain_fundamentals/02_hash_chain/02_hash_chain.pdf"><img class="ccard-img" src="01_blockchain_fundamentals/02_hash_chain/02_hash_chain.png" alt="Hash Chain"><span class="ccard-name">Hash Chain</span></a>
-<a class="ccard" href="01_blockchain_fundamentals/03_merkle_tree/03_merkle_tree.pdf"><img class="ccard-img" src="01_blockchain_fundamentals/03_merkle_tree/03_merkle_tree.png" alt="Merkle Tree"><span class="ccard-name">Merkle Tree</span></a>
-<a class="ccard" href="01_blockchain_fundamentals/04_consensus_comparison/04_consensus_comparison.pdf"><img class="ccard-img" src="01_blockchain_fundamentals/04_consensus_comparison/04_consensus_comparison.png" alt="Consensus Comparison"><span class="ccard-name">Consensus Comparison</span></a>
-<a class="ccard" href="01_blockchain_fundamentals/05_decentralization/05_decentralization.pdf"><img class="ccard-img" src="01_blockchain_fundamentals/05_decentralization/05_decentralization.png" alt="Decentralization"><span class="ccard-name">Decentralization</span></a>
-</div>
-</div>
-
-<div class="lesson-section l1" id="L02">
-<div class="lesson-head"><span class="lesson-num">L02</span><span class="lesson-title">Cryptography & Security (5 charts)</span><a class="lesson-link" href="02_cryptography_security/02_cryptography_security.pdf">View Slides</a></div>
-<div class="cgrid">
-<a class="ccard" href="02_cryptography_security/01_hash_function/01_hash_function.pdf"><img class="ccard-img" src="02_cryptography_security/01_hash_function/01_hash_function.png" alt="Hash Function"><span class="ccard-name">Hash Function</span></a>
-<a class="ccard" href="02_cryptography_security/02_sha256_avalanche/02_sha256_avalanche.pdf"><img class="ccard-img" src="02_cryptography_security/02_sha256_avalanche/02_sha256_avalanche.png" alt="SHA-256 Avalanche"><span class="ccard-name">SHA-256 Avalanche</span></a>
-<a class="ccard" href="02_cryptography_security/03_public_private_keys/03_public_private_keys.pdf"><img class="ccard-img" src="02_cryptography_security/03_public_private_keys/03_public_private_keys.png" alt="Public/Private Keys"><span class="ccard-name">Public/Private Keys</span></a>
-<a class="ccard" href="02_cryptography_security/04_digital_signature_flow/04_digital_signature_flow.pdf"><img class="ccard-img" src="02_cryptography_security/04_digital_signature_flow/04_digital_signature_flow.png" alt="Digital Signature Flow"><span class="ccard-name">Digital Signature Flow</span></a>
-<a class="ccard" href="02_cryptography_security/05_wallet_architecture/05_wallet_architecture.pdf"><img class="ccard-img" src="02_cryptography_security/05_wallet_architecture/05_wallet_architecture.png" alt="Wallet Architecture"><span class="ccard-name">Wallet Architecture</span></a>
-</div>
-</div>
-
-<div class="lesson-section l2" id="L03">
-<div class="lesson-head"><span class="lesson-num">L03</span><span class="lesson-title">Ethereum & Smart Contracts (5 charts)</span><a class="lesson-link" href="03_ethereum_smart_contracts/03_ethereum_smart_contracts.pdf">View Slides</a></div>
-<div class="cgrid">
-<a class="ccard" href="03_ethereum_smart_contracts/01_ethereum_architecture/01_ethereum_architecture.pdf"><img class="ccard-img" src="03_ethereum_smart_contracts/01_ethereum_architecture/01_ethereum_architecture.png" alt="Ethereum Architecture"><span class="ccard-name">Ethereum Architecture</span></a>
-<a class="ccard" href="03_ethereum_smart_contracts/02_gas_mechanics/02_gas_mechanics.pdf"><img class="ccard-img" src="03_ethereum_smart_contracts/02_gas_mechanics/02_gas_mechanics.png" alt="Gas Mechanics"><span class="ccard-name">Gas Mechanics</span></a>
-<a class="ccard" href="03_ethereum_smart_contracts/03_smart_contract_lifecycle/03_smart_contract_lifecycle.pdf"><img class="ccard-img" src="03_ethereum_smart_contracts/03_smart_contract_lifecycle/03_smart_contract_lifecycle.png" alt="Smart Contract Lifecycle"><span class="ccard-name">Smart Contract Lifecycle</span></a>
-<a class="ccard" href="03_ethereum_smart_contracts/04_solidity_types/04_solidity_types.pdf"><img class="ccard-img" src="03_ethereum_smart_contracts/04_solidity_types/04_solidity_types.png" alt="Solidity Types"><span class="ccard-name">Solidity Types</span></a>
-<a class="ccard" href="03_ethereum_smart_contracts/05_contract_interaction/05_contract_interaction.pdf"><img class="ccard-img" src="03_ethereum_smart_contracts/05_contract_interaction/05_contract_interaction.png" alt="Contract Interaction"><span class="ccard-name">Contract Interaction</span></a>
-</div>
-</div>
-
-<div class="lesson-section l2" id="L04">
-<div class="lesson-head"><span class="lesson-num">L04</span><span class="lesson-title">ERC-20 Token Creation (5 charts)</span><a class="lesson-link" href="04_erc20_token_creation/04_erc20_token_creation.pdf">View Slides</a></div>
-<div class="cgrid">
-<a class="ccard" href="04_erc20_token_creation/01_erc20_interface/01_erc20_interface.pdf"><img class="ccard-img" src="04_erc20_token_creation/01_erc20_interface/01_erc20_interface.png" alt="ERC-20 Interface"><span class="ccard-name">ERC-20 Interface</span></a>
-<a class="ccard" href="04_erc20_token_creation/02_token_flow/02_token_flow.pdf"><img class="ccard-img" src="04_erc20_token_creation/02_token_flow/02_token_flow.png" alt="Token Flow"><span class="ccard-name">Token Flow</span></a>
-<a class="ccard" href="04_erc20_token_creation/03_approval_allowance/03_approval_allowance.pdf"><img class="ccard-img" src="04_erc20_token_creation/03_approval_allowance/03_approval_allowance.png" alt="Approval & Allowance"><span class="ccard-name">Approval & Allowance</span></a>
-<a class="ccard" href="04_erc20_token_creation/04_deployment_steps/04_deployment_steps.pdf"><img class="ccard-img" src="04_erc20_token_creation/04_deployment_steps/04_deployment_steps.png" alt="Deployment Steps"><span class="ccard-name">Deployment Steps</span></a>
-<a class="ccard" href="04_erc20_token_creation/05_token_economics/05_token_economics.pdf"><img class="ccard-img" src="04_erc20_token_creation/05_token_economics/05_token_economics.png" alt="Token Economics"><span class="ccard-name">Token Economics</span></a>
-</div>
-</div>
-
-</section>
-
-<section class="section" id="code">
-<div class="section-head" style="border-color:#3776ab"><span style="background:#3776ab">Py</span><h2>Python Code Examples</h2></div>
-
-<div class="code-section">
-<div class="code-head"><div class="code-icon" style="background:#22c55e">01</div><span class="code-title">Blockchain Fundamentals</span></div>
-<div class="code-grid">
-<a class="code-card" href="01_blockchain_fundamentals/code/simple_blockchain.py"><span class="code-badge badge-py">PY</span><span class="code-card-name">Simple Blockchain</span><div class="code-card-path">code/simple_blockchain.py</div></a>
-<a class="code-card" href="01_blockchain_fundamentals/code/block.py"><span class="code-badge badge-py">PY</span><span class="code-card-name">Block Class</span><div class="code-card-path">code/block.py</div></a>
-<a class="code-card" href="01_blockchain_fundamentals/code/blockchain.py"><span class="code-badge badge-py">PY</span><span class="code-card-name">Blockchain Class</span><div class="code-card-path">code/blockchain.py</div></a>
-</div>
-</div>
-
-<div class="code-section">
-<div class="code-head"><div class="code-icon" style="background:#22c55e">02</div><span class="code-title">Cryptography & Security</span></div>
-<div class="code-grid">
-<a class="code-card" href="02_cryptography_security/code/hashing_demo.py"><span class="code-badge badge-py">PY</span><span class="code-card-name">Hashing Demo</span><div class="code-card-path">code/hashing_demo.py</div></a>
-<a class="code-card" href="02_cryptography_security/code/digital_signatures.py"><span class="code-badge badge-py">PY</span><span class="code-card-name">Digital Signatures</span><div class="code-card-path">code/digital_signatures.py</div></a>
-<a class="code-card" href="02_cryptography_security/code/wallet_demo.py"><span class="code-badge badge-py">PY</span><span class="code-card-name">Wallet Demo</span><div class="code-card-path">code/wallet_demo.py</div></a>
-</div>
-</div>
-
-<div class="code-section">
-<div class="code-head"><div class="code-icon" style="background:#f59e0b">03</div><span class="code-title">Ethereum & Smart Contracts</span></div>
-<div class="code-grid">
-<a class="code-card" href="03_ethereum_smart_contracts/code/web3_interact.py"><span class="code-badge badge-py">PY</span><span class="code-card-name">Web3 Interaction</span><div class="code-card-path">code/web3_interact.py</div></a>
-<a class="code-card" href="03_ethereum_smart_contracts/code/HelloWorld.sol"><span class="code-badge badge-sol">SOL</span><span class="code-card-name">HelloWorld Contract</span><div class="code-card-path">code/HelloWorld.sol</div></a>
-<a class="code-card" href="03_ethereum_smart_contracts/code/SimpleStorage.sol"><span class="code-badge badge-sol">SOL</span><span class="code-card-name">SimpleStorage Contract</span><div class="code-card-path">code/SimpleStorage.sol</div></a>
-</div>
-</div>
-
-<div class="code-section">
-<div class="code-head"><div class="code-icon" style="background:#f59e0b">04</div><span class="code-title">ERC-20 Token Creation</span></div>
-<div class="code-grid">
-<a class="code-card" href="04_erc20_token_creation/code/test_token.py"><span class="code-badge badge-py">PY</span><span class="code-card-name">Token Testing</span><div class="code-card-path">code/test_token.py</div></a>
-<a class="code-card" href="04_erc20_token_creation/code/MyToken.sol"><span class="code-badge badge-sol">SOL</span><span class="code-card-name">MyToken Contract</span><div class="code-card-path">code/MyToken.sol</div></a>
-</div>
-</div>
-
-</section>
-
-<section class="section" id="project">
-<div class="project-section">
-<div class="project-head">
-<span class="project-icon">FINAL PROJECT</span>
-<span class="project-title">Create Your Own ERC-20 Token</span>
-</div>
-<div class="project-desc">Build and deploy a fully functional ERC-20 token on Ethereum testnet. Includes Hardhat setup, contract development, testing, and deployment scripts.</div>
-<div style="display:flex;gap:12px;flex-wrap:wrap">
-<a class="project-link" href="project/">View Project</a>
-<a class="project-link" href="project/README.md" style="background:#92400e">Instructions</a>
-<a class="project-link" href="project/contracts/StudentToken.sol" style="background:#363636">StudentToken.sol</a>
-</div>
+<section class="section" id="notes">
+<div class="section-head" style="border-bottom-color:#f59e0b"><span style="background:#f59e0b">4</span><h2>Lecture Notes</h2></div>
+<div class="nb-grid">
+<a href="notes/L01_blockchain_fundamentals_notes.pdf" class="notes-card">
+<div><span class="notes-num">L1</span><span class="nb-title">Blockchain Fundamentals</span></div>
+<div class="nb-meta">Comprehensive lecture notes</div>
+</a>
+<a href="notes/L02_cryptography_security_notes.pdf" class="notes-card">
+<div><span class="notes-num">L2</span><span class="nb-title">Cryptography &amp; Security</span></div>
+<div class="nb-meta">Comprehensive lecture notes</div>
+</a>
+<a href="notes/L03_ethereum_smart_contracts_notes.pdf" class="notes-card">
+<div><span class="notes-num">L3</span><span class="nb-title">Ethereum &amp; Smart Contracts</span></div>
+<div class="nb-meta">Comprehensive lecture notes</div>
+</a>
+<a href="notes/L04_erc20_token_creation_notes.pdf" class="notes-card">
+<div><span class="notes-num">L4</span><span class="nb-title">ERC-20 Token Creation</span></div>
+<div class="nb-meta">Comprehensive lecture notes</div>
+</a>
 </div>
 </section>
 
-<div class="formulas">
-<div class="formula"><small>Block Hash</small><div id="f1"></div></div>
-<div class="formula"><small>Merkle Root</small><div id="f2"></div></div>
-<div class="formula"><small>Gas Cost</small><div id="f3"></div></div>
-<div class="formula"><small>Total Supply</small><div id="f4"></div></div>
+<section class="section" id="resources">
+<div class="section-head" style="border-bottom-color:#24292e"><span style="background:#24292e">R</span><h2>Resources</h2></div>
+<div class="nb-grid">
+<a href="glossary.md" class="nb-card" style="border-left-color:#f59e0b">
+<div><span class="nb-num" style="background:#fffbeb;color:#f59e0b">REF</span><span class="nb-title">Cryptocurrency Glossary</span></div>
+<div class="nb-meta">Key terms and definitions</div>
+</a>
+<a href="assessments/final_report_template.md" class="nb-card" style="border-left-color:#f59e0b">
+<div><span class="nb-num" style="background:#fffbeb;color:#f59e0b">TPL</span><span class="nb-title">Final Project Template</span></div>
+<div class="nb-meta">Student submission guidelines</div>
+</a>
+<a href="https://github.com/Digital-AI-Finance/Cryptocurrency" class="nb-card" style="border-left-color:#24292e">
+<div><span class="nb-num" style="background:#f0f0f0;color:#24292e">GH</span><span class="nb-title">GitHub Repository</span></div>
+<div class="nb-meta">Source code and materials</div>
+</a>
 </div>
-<div class="foot"><a href="https://github.com/Digital-AI-Finance/Cryptocurrency">GitHub</a>|<a href="https://github.com/Digital-AI-Finance/Cryptocurrency/archive/refs/heads/main.zip">Download</a>| (c) Joerg Osterrieder 2025</div>
+</section>
+
+<footer class="foot">
+<div>Joerg Osterrieder, 2025</div>
+<div><a href="https://github.com/Digital-AI-Finance/Cryptocurrency">GitHub</a><a href="#lessons">View Slides</a></div>
+</footer>
 </main>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-if(typeof katex!=='undefined'){
-katex.render("H_n = \\text{SHA256}(H_{n-1} \\| \\text{data}_n)",document.getElementById("f1"),{throwOnError:false});
-katex.render("M_R = H(H(L_1,L_2) \\| H(L_3,L_4))",document.getElementById("f2"),{throwOnError:false});
-katex.render("\\text{Cost} = \\text{Gas} \\times \\text{Price}",document.getElementById("f3"),{throwOnError:false});
-katex.render("S = \\sum_{i=1}^{n} \\text{balance}_i",document.getElementById("f4"),{throwOnError:false});
-}
+document.querySelectorAll('.side a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
 });
-document.querySelectorAll('.side a[href^="#"]').forEach(a=>a.onclick=e=>{e.preventDefault();document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'})});
 </script>
 </body>
 </html>
