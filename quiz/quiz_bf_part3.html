@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz BF-3: Consensus Mechanisms | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz BF-3: Consensus Mechanisms</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz BF-3: Consensus Mechanisms</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+        <div class="questions-row" id="questionsRow"></div>
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "The double-spending problem refers to which fundamental challenge in digital cash systems?",
+                    "options": {
+                        "A": "A single coin costs twice as much to mint as its face value",
+                        "B": "A digital token can be copied and spent multiple times because digital data is freely duplicable",
+                        "C": "Two miners simultaneously find the same block, causing a fork",
+                        "D": "A transaction fee is charged twice by the network"
+                    },
+                    "correct": "B",
+                    "explanation": "Unlike physical cash, digital data can be copied perfectly. Without a trusted third party or consensus mechanism, nothing prevents a user from broadcasting the same digital coin to two different recipients simultaneously. Bitcoin solves this by requiring network-wide agreement on a single ordered transaction history."
+                },
+                {
+                    "id": 2,
+                    "question": "In Bitcoin's design, how does Proof-of-Work prevent double-spending without a central authority?",
+                    "options": {
+                        "A": "Each coin is assigned a unique serial number stored by a certificate authority",
+                        "B": "Transactions are frozen for 24 hours before being considered valid",
+                        "C": "The chain with the most cumulative computational work is accepted as canonical, making rewriting history computationally prohibitive",
+                        "D": "Every node votes on each transaction using a simple majority protocol"
+                    },
+                    "correct": "C",
+                    "explanation": "PoW creates an objective, unforgeable record: the valid chain is the one representing the greatest total computational effort. To double-spend a confirmed transaction an attacker must redo all that work plus outpace the honest network going forward — a cost that grows exponentially with confirmation depth."
+                },
+                {
+                    "id": 3,
+                    "question": "In Bitcoin's Proof-of-Work, what is a 'nonce'?",
+                    "options": {
+                        "A": "The hash of the previous block",
+                        "B": "A 32-bit field in the block header that miners increment to find a valid hash",
+                        "C": "The coinbase reward paid to the winning miner",
+                        "D": "A cryptographic signature proving block ownership"
+                    },
+                    "correct": "B",
+                    "explanation": "The nonce (number used once) is a 32-bit integer in the block header. Miners repeatedly hash the header with different nonce values — cycling through up to 4 billion possibilities — until the resulting hash is below the current target. When the nonce space is exhausted, miners also vary the extraNonce in the coinbase transaction."
+                },
+                {
+                    "id": 4,
+                    "question": "The PoW mining target $T$ is related to difficulty $D$ and the maximum target $T_{max}$ by $T = T_{max}/D$. If difficulty doubles, what happens to the probability of a single hash satisfying the target?",
+                    "options": {
+                        "A": "It doubles",
+                        "B": "It is halved",
+                        "C": "It stays the same",
+                        "D": "It decreases by a factor of four"
+                    },
+                    "correct": "B",
+                    "explanation": "The target $T$ shrinks to $T_{max}/(2D)$ when difficulty doubles. Since valid hashes must fall below $T$, and SHA-256 outputs are uniformly distributed, the probability $P \\approx T/2^{256}$ is halved. Miners must therefore perform twice as many hashes on average to find a valid block."
+                },
+                {
+                    "id": 5,
+                    "question": "What does the SHA-256 output need to satisfy for a Bitcoin block to be considered valid under the current target?",
+                    "options": {
+                        "A": "The hash must end with a specific suffix of zeros",
+                        "B": "The numerical value of the hash must be less than or equal to the current target",
+                        "C": "The hash must be exactly 256 bits with the first bit set to zero",
+                        "D": "The hash must match the previous block hash exactly"
+                    },
+                    "correct": "B",
+                    "explanation": "Bitcoin interprets the 256-bit SHA-256 output as a large unsigned integer. A block is valid only when that integer is less than or equal to the current target value. In practice this means the hash must begin with a sufficient number of leading zero bits, but the formal condition is numeric comparison against the target."
+                },
+                {
+                    "id": 6,
+                    "question": "The Bitcoin difficulty adjustment algorithm targets a block interval of 10 minutes. If the last 2016 blocks were mined in 8 days instead of the expected 14 days, how will difficulty change?",
+                    "options": {
+                        "A": "Difficulty decreases by a factor of 8/14 ≈ 0.57",
+                        "B": "Difficulty increases by a factor of 14/8 = 1.75",
+                        "C": "Difficulty remains the same because the deviation is less than 4x",
+                        "D": "Difficulty resets to the genesis block value"
+                    },
+                    "correct": "B",
+                    "explanation": "The adjustment formula is: new_difficulty = old_difficulty × (actual_time / expected_time). With actual = 8 days and expected = 14 days: factor = 14/8 = 1.75. Difficulty increases by 75% to slow block production back to ~10 minutes. The adjustment is capped at 4× in either direction per period."
+                },
+                {
+                    "id": 7,
+                    "question": "Bitcoin's difficulty adjusts every 2016 blocks. What is the target duration for that adjustment period?",
+                    "options": {
+                        "A": "1 week (7 days)",
+                        "B": "2 weeks (14 days)",
+                        "C": "1 month (30 days)",
+                        "D": "3 days"
+                    },
+                    "correct": "B",
+                    "explanation": "2016 blocks × 10 minutes/block = 20,160 minutes = 14 days (exactly 2 weeks). The protocol compares the actual elapsed time against this 1,209,600-second target and scales difficulty accordingly, ensuring that as global hash rate grows or shrinks, the block interval stays close to 10 minutes."
+                },
+                {
+                    "id": 8,
+                    "question": "What is the Bitcoin block subsidy (coinbase reward) schedule? How does it change over time?",
+                    "options": {
+                        "A": "It is fixed at 3.125 BTC forever",
+                        "B": "It halves approximately every 4 years (every 210,000 blocks), starting from 50 BTC at genesis",
+                        "C": "It increases with inflation to maintain miner incentives",
+                        "D": "It is determined dynamically by transaction volume in each block"
+                    },
+                    "correct": "B",
+                    "explanation": "The block subsidy started at 50 BTC at the genesis block (2009) and halves every 210,000 blocks (~4 years). After the 2024 halving it stands at 3.125 BTC. This geometric decay means roughly 21 million BTC total will ever exist, with the last subsidy approaching zero around 2140 — after which miners rely solely on transaction fees."
+                },
+                {
+                    "id": 9,
+                    "question": "A miner's expected revenue per block equals the block subsidy plus transaction fees. As the block subsidy trends toward zero over the coming decades, what economic mechanism is expected to sustain miner security?",
+                    "options": {
+                        "A": "Central banks will fund mining through monetary policy",
+                        "B": "Mining hardware will become so efficient that cost approaches zero",
+                        "C": "Transaction fees paid by users will replace the subsidy as the primary miner incentive",
+                        "D": "Bitcoin will switch to Proof-of-Stake, eliminating the need for miners"
+                    },
+                    "correct": "C",
+                    "explanation": "Satoshi's design assumes that as the block subsidy diminishes, rising transaction volume and fee markets will compensate miners. Each transaction's fee is an optional payment users attach to incentivize inclusion. For long-run security, total fee revenue per block must remain high enough to deter 51% attacks — an open research question in Bitcoin's long-term security model."
+                },
+                {
+                    "id": 10,
+                    "question": "In Ethereum's Proof-of-Stake, what resource do validators lock up to participate in consensus?",
+                    "options": {
+                        "A": "CPU time proportional to their ETH holdings",
+                        "B": "At least 32 ETH deposited into the staking contract as collateral",
+                        "C": "A hardware security module certified by the Ethereum Foundation",
+                        "D": "Mining rigs with a minimum hash rate of 1 GH/s"
+                    },
+                    "correct": "B",
+                    "explanation": "Ethereum's post-Merge PoS requires each validator to deposit exactly 32 ETH into a one-way deposit contract. This stake serves as financial collateral — validators who behave correctly earn rewards, while dishonest validators face slashing (forced loss of stake). The 32 ETH minimum was chosen to balance network decentralization against the number of validator messages."
+                },
+                {
+                    "id": 11,
+                    "question": "How is the block proposer (validator) selected in Ethereum's Proof-of-Stake?",
+                    "options": {
+                        "A": "The validator with the highest stake always proposes the next block",
+                        "B": "Proposers are selected pseudo-randomly using RANDAO, weighted by effective balance (up to 32 ETH per validator)",
+                        "C": "Validators take turns in a strict round-robin based on registration order",
+                        "D": "The proposer is chosen by a committee vote in the previous slot"
+                    },
+                    "correct": "B",
+                    "explanation": "Ethereum uses RANDAO — a collective randomness beacon built from validators' BLS signature contributions — to pseudo-randomly select a proposer for each 12-second slot. Selection probability is proportional to effective balance (capped at 32 ETH), so running 10 validators at 32 ETH each gives 10× the proposer probability of a single validator, but no single validator is favored beyond their proportional stake."
+                },
+                {
+                    "id": 12,
+                    "question": "In Ethereum PoS, what is the role of attestation committees during each slot?",
+                    "options": {
+                        "A": "They audit smart contract code before block inclusion",
+                        "B": "They vote on the validity of the proposed block and the current head of the chain, providing the data needed for finality",
+                        "C": "They collect transaction fees and distribute them to validators",
+                        "D": "They generate the random seed used for the next epoch's proposer selection"
+                    },
+                    "correct": "B",
+                    "explanation": "Each slot (12 seconds), a random subset of the active validator set is formed into committees. Committee members broadcast attestations — signed votes indicating which block they believe is the current canonical head. These attestations aggregate into a single BLS signature, feed into the LMD-GHOST fork choice rule, and contribute to the Casper FFG finality gadget, which finalises checkpoints every two epochs (~12.8 minutes)."
+                },
+                {
+                    "id": 13,
+                    "question": "What is 'slashing' in Ethereum's Proof-of-Stake?",
+                    "options": {
+                        "A": "A reward multiplier applied to validators who stay online continuously",
+                        "B": "A forced reduction of a validator's staked ETH as punishment for provably malicious behaviour such as double-voting",
+                        "C": "The process of reducing transaction fees during low-demand periods",
+                        "D": "Removing inactive validators from the validator set after inactivity"
+                    },
+                    "correct": "B",
+                    "explanation": "Slashing is a cryptoeconomic penalty for demonstrably dishonest actions: (1) proposer equivocation (signing two different blocks for the same slot) or (2) surround/double voting in Casper FFG. The slash immediately destroys at minimum 1/32 of the validator's stake and initiates a forced exit. A correlation penalty may increase the slash if many validators misbehave simultaneously, reaching up to 100% of stake."
+                },
+                {
+                    "id": 14,
+                    "question": "Besides slashing, what other penalty do Ethereum validators face for extended offline periods?",
+                    "options": {
+                        "A": "They are permanently banned from re-staking",
+                        "B": "They incur inactivity leak penalties that gradually drain their balance, becoming more severe if the chain fails to finalise",
+                        "C": "Their addresses are blacklisted and transactions from them are rejected",
+                        "D": "They must pay a re-activation fee equal to 1 ETH per missed epoch"
+                    },
+                    "correct": "B",
+                    "explanation": "The inactivity leak is a quadratic drain on offline validators' balances, designed to restore supermajority participation after a catastrophic network partition. If the chain fails to finalise for more than 4 epochs, offline validators lose stake at an accelerating rate until the online supermajority exceeds 2/3 of total stake, allowing finality to resume. This ensures liveness even if a large fraction of validators disappear."
+                },
+                {
+                    "id": 15,
+                    "question": "What is the 'nothing-at-stake' problem that naive Proof-of-Stake implementations suffer from?",
+                    "options": {
+                        "A": "Validators with zero stake can still vote, diluting the value of large stakes",
+                        "B": "Validators have no cost to vote on every fork simultaneously, undermining consensus because they can support multiple chains at once",
+                        "C": "Block proposers keep all transaction fees, leaving attesters with nothing",
+                        "D": "New validators can join without depositing collateral during the bootstrapping phase"
+                    },
+                    "correct": "B",
+                    "explanation": "In PoW, mining on multiple forks wastes real energy. In naive PoS without slashing, voting on every competing fork is costless and rational: validators maximise rewards by hedging across all forks. Ethereum's Casper FFG fixes this by slashing validators who issue conflicting votes (equivocation), imposing a real economic cost for the behaviour that causes the nothing-at-stake attack."
+                },
+                {
+                    "id": 16,
+                    "question": "What is the difference between probabilistic finality (as in Bitcoin PoW) and deterministic finality (as in Casper FFG)?",
+                    "options": {
+                        "A": "Probabilistic finality means a block is final after exactly 6 confirmations; deterministic means never",
+                        "B": "Probabilistic finality means reversion probability decreases exponentially with confirmations but never reaches zero; deterministic finality guarantees a block is irreversible once a supermajority has committed to it under well-defined conditions",
+                        "C": "They are identical; the terms are used interchangeably",
+                        "D": "Deterministic finality applies only to smart contract execution, not to block ordering"
+                    },
+                    "correct": "B",
+                    "explanation": "Bitcoin's PoW provides probabilistic finality: each additional confirmation exponentially reduces the probability of a successful reorganisation, but it is never mathematically impossible. Casper FFG provides economic finality: once two consecutive checkpoints are justified and finalised by a 2/3 supermajority of stake, reversing them requires the attacker to get at least 1/3 of all stake slashed — a concrete, measurable economic condition rather than a probability."
+                },
+                {
+                    "id": 17,
+                    "question": "In Bitcoin, approximately how many confirmations are conventionally required for a payment to be considered practically irreversible, and why?",
+                    "options": {
+                        "A": "1 confirmation, because one PoW block is sufficient proof",
+                        "B": "6 confirmations (~1 hour), because the probability of a successful reorg drops to negligible levels for an attacker with less than 50% hash rate",
+                        "C": "100 confirmations, which is the mandatory lock-up for coinbase outputs",
+                        "D": "2016 confirmations, matching the difficulty adjustment period"
+                    },
+                    "correct": "B",
+                    "explanation": "Satoshi's original paper showed that for an attacker with 10% of hash rate, the probability of a 6-deep reorg is less than 0.1%. The 6-confirmation rule (about 60 minutes) has become the de facto standard for high-value transactions. Low-value payments often accept 1–2 confirmations, while exchanges typically require 6. Coinbase outputs (block rewards) require 100 confirmations before they can be spent."
+                },
+                {
+                    "id": 18,
+                    "question": "Which consensus property does Casper FFG guarantee that Nakamoto PoW does NOT provide?",
+                    "options": {
+                        "A": "Liveness — the chain always makes progress",
+                        "B": "Accountability — at least 1/3 of total stake must be demonstrably slashed for safety to be violated",
+                        "C": "Sybil resistance — it is impossible to create fake validator identities",
+                        "D": "Censorship resistance — no transaction can ever be excluded from blocks"
+                    },
+                    "correct": "B",
+                    "explanation": "Casper FFG introduces accountable safety: any violation of safety (two conflicting finalized checkpoints) requires at least 1/3 of total staked ETH to be slashable. This creates a concrete financial guarantee absent from PoW. In PoW, a safety violation (deep reorg) costs energy but there is no on-chain proof that identifies or penalizes the attacker after the fact."
+                },
+                {
+                    "id": 19,
+                    "question": "In Ethereum's epoch structure, how many slots are in one epoch, and what is the minimum number of epochs required for a checkpoint to achieve finality under Casper FFG?",
+                    "options": {
+                        "A": "16 slots per epoch; finality after 1 epoch",
+                        "B": "32 slots per epoch; finality requires two consecutive epochs with supermajority justification",
+                        "C": "64 slots per epoch; finality requires three consecutive justified epochs",
+                        "D": "128 slots per epoch; finality is achieved after a single justified epoch"
+                    },
+                    "correct": "B",
+                    "explanation": "An Ethereum epoch contains 32 slots of 12 seconds each (6.4 minutes per epoch). Casper FFG finalises checkpoints at epoch boundaries using a two-phase commit: epoch N is first 'justified' when more than 2/3 of validators attest to it, then 'finalised' when epoch N+1 is also justified, confirming that the checkpoint is irreversible. Total time to finality is therefore at minimum ~2 epochs ≈ 12.8 minutes."
+                },
+                {
+                    "id": 20,
+                    "question": "A Proof-of-Work block reward consists of two components. When Bitcoin's block subsidy was 6.25 BTC and a block contained transactions with fees totalling 0.15 BTC, what was the total miner revenue for that block?",
+                    "options": {
+                        "A": "6.25 BTC (fees go to the network treasury)",
+                        "B": "6.40 BTC (subsidy + fees)",
+                        "C": "0.15 BTC (only fees; subsidy is burned)",
+                        "D": "6.25 BTC minus 0.15 BTC = 6.10 BTC"
+                    },
+                    "correct": "B",
+                    "explanation": "The miner who successfully mines a block collects both the block subsidy and all transaction fees from the transactions they included. Total revenue = 6.25 + 0.15 = 6.40 BTC, all of which is claimed in the coinbase (first) transaction of the block. Post-EIP-1559 in Ethereum, the base fee is burned rather than paid to validators, but priority fees (tips) still go to the block proposer."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

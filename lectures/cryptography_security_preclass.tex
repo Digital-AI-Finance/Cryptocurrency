@@ -1,0 +1,231 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+
+% Course color palette (copied from beamer preamble)
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Cryptography \& Security} \textcolor{mlgray}{|} Lesson 02 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+% ──────────────────────────────────────────────────────────────────────────────
+%  PAGE 1
+% ──────────────────────────────────────────────────────────────────────────────
+
+\section*{\color{mlpurple}How Does Cryptography Protect Your Money?}
+
+\vspace{-2pt}
+\noindent\textcolor{mlgray}{\small Work through the activities below \emph{before} our second session.
+Bring your notes and answers to class.}
+\vspace{4pt}
+
+% ── Activity 1 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 1 --- The Caesar Cipher}{$\sim$7 min | pairs}{%
+\textbf{Rule:} Shift each letter 3 positions forward (\texttt{A$\to$D}, \texttt{Z$\to$C}).
+
+\vspace{2pt}
+\textbf{Encrypt} \texttt{BLOCKCHAIN} with shift~3. Write your ciphertext here:
+\quad\rule{5cm}{0.3pt}
+\quad\textit{(answer: \texttt{EORFNFKDLQ})}
+
+\vspace{3pt}
+\textbf{Break it:} Your partner encrypts a 6-letter word with an unknown shift and hands you only
+the ciphertext. Try all 25 shifts until you find the plaintext. Record the shift you found:
+\quad\rule{2cm}{0.3pt}
+
+\vspace{3pt}
+\textbf{Kerckhoffs's principle:} The algorithm is public; only the key is secret.
+\textit{Why does Bitcoin's open-source code not compromise its security?}
+\vspace{4pt}
+\noindent\rule{\linewidth}{0.3pt}
+}
+
+\vspace{2pt}
+
+% ── Activity 2 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 2 --- Hash It Yourself}{$\sim$7 min | individual}{%
+\textbf{ASCII values:} \texttt{a=97 \; b=98 \; c=99 \; s=115 \; t=116 \; C=67}
+\quad\textbf{Hash rule:} sum all values, take \textbf{mod 256}.
+
+\vspace{3pt}
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Input} & \textbf{Sum of ASCII values} & \textbf{Hash (mod 256)} \\
+\hline
+\texttt{cat}  & \fillcell & \fillcell \\
+\hline
+\texttt{Cat}  & \fillcell & \fillcell \\
+\hline
+\texttt{cats} & \fillcell & \fillcell \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{2pt}
+\textit{Answers: \texttt{cat}$\to$56 \quad \texttt{Cat}$\to$26 \quad \texttt{cats}$\to$171}
+
+\vspace{2pt}
+Changing one character yields a completely different hash --- the \textbf{avalanche effect}.
+Can you reconstruct the word from the number~56? Why not?
+}
+
+\vspace{2pt}
+
+% ── Activity 3 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 3 --- The Envelope Analogy}{$\sim$7 min | groups of 3}{%
+\textbf{Paper exercise:}
+\begin{enumerate}
+  \item Write a short secret, fold the paper, seal it in an envelope. Write your \textbf{name} on
+        the outside (your \textcolor{mlblue}{\textbf{public address}}).
+  \item Classmates seal messages to you in separate envelopes addressed by name.
+  \item \textbf{Only you} open your envelopes.
+\end{enumerate}
+
+\textbf{Mapping:} public key $\approx$ name on envelope (anyone can send); private key $\approx$
+ability to open (only you decrypt). \textit{Why is sharing your Bitcoin private key catastrophic?}
+\vspace{4pt}
+\noindent\rule{\linewidth}{0.3pt}
+}
+
+\newpage
+
+% ──────────────────────────────────────────────────────────────────────────────
+%  PAGE 2
+% ──────────────────────────────────────────────────────────────────────────────
+
+\section*{\color{mlpurple}Why Can't You Fake a Signature?}
+
+\vspace{-2pt}
+\noindent\textcolor{mlgray}{\small Digital signatures and key management are the last line of defence
+for your coins.}
+\vspace{4pt}
+
+% ── Activity 4 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 4 --- Sign and Verify}{$\sim$8 min | pairs}{%
+\begin{enumerate}
+  \item Write \textit{``Send 2 BTC to Alice''} on a card and add your \textbf{unique personal mark}
+        (distinctive doodle or symbol) --- your ``private key'' signature.
+  \item Your neighbour examines it: genuine or fake?
+  \item Your neighbour now tries to \textbf{forge} your mark on a blank card. How convincing?
+\end{enumerate}
+
+\textbf{ECDSA connection:} In Bitcoin every transaction is signed with the sender's
+Elliptic Curve Digital Signature Algorithm (ECDSA) private key. The network verifies against the
+public key --- mathematically impossible to forge. Changing even one satoshi invalidates the
+signature.
+
+\vspace{3pt}
+\textit{Why must the message content be part of what is signed, not just the sender's identity?}
+\vspace{4pt}
+\noindent\rule{\linewidth}{0.3pt}
+}
+
+\vspace{2pt}
+
+% ── Activity 5 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 5 --- The Key Management Challenge}{$\sim$8 min | individual $\to$ group}{%
+\textbf{Scenario:} You control 5 Bitcoin wallets, each with a separate private key.
+
+\vspace{3pt}
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|p{4.5cm}|p{4.5cm}|p{3.6cm}|}
+\hline
+\textbf{Question} & \textbf{Your answer} & \textbf{Group answer} \\
+\hline
+How many keys to back up? & \rule{4.2cm}{0.3pt} & \rule{3.3cm}{0.3pt} \\[6pt]
+\hline
+What if one key is lost? & \rule{4.2cm}{0.3pt} & \rule{3.3cm}{0.3pt} \\[6pt]
+\hline
+What if a backup is found? & \rule{4.2cm}{0.3pt} & \rule{3.3cm}{0.3pt} \\[6pt]
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{2pt}
+\textbf{Solution --- HD Wallets \& Seed Phrases:} A Hierarchical Deterministic (HD) wallet derives
+\emph{all} keys from one \textbf{seed phrase} (12--24 words). Back up once $\Rightarrow$ recover
+everything. Lose the seed $\Rightarrow$ lose all coins. \textit{Order of words matters.}
+}
+
+\vspace{4pt}
+
+% ── Reflection ────────────────────────────────────────────────────────────────
+\section{Reflection Questions --- Bring Your Answers to Class}
+
+\begin{enumerate}[leftmargin=1.8em, label=\textbf{\color{mlpurple}\arabic*.}]
+  \item SHA-256 is a \emph{one-way} function: easy to compute, practically impossible to reverse.
+        Why is this critical for Bitcoin mining and password storage?
+        What would happen if SHA-256 were reversible?
+
+  \vspace{7pt}\noindent\rule{\linewidth}{0.3pt}\vspace{2pt}\noindent\rule{\linewidth}{0.3pt}
+  \vspace{3pt}
+
+  \item Quantum computers could break the elliptic-curve cryptography protecting Bitcoin private
+        keys (Shor's algorithm). What happens to Bitcoin then?
+        What post-quantum solutions are being explored, and what trade-offs do they introduce?
+
+  \vspace{7pt}\noindent\rule{\linewidth}{0.3pt}\vspace{2pt}\noindent\rule{\linewidth}{0.3pt}
+  \vspace{3pt}
+
+  \item \textit{``Not your keys, not your coins.''} Compare the trade-offs of
+        \textbf{self-custody} (hardware wallet, seed phrase) versus funds on a
+        \textbf{centralised exchange}. When is each option the wiser choice?
+
+  \vspace{7pt}\noindent\rule{\linewidth}{0.3pt}\vspace{2pt}\noindent\rule{\linewidth}{0.3pt}
+\end{enumerate}
+
+\vspace{4pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Cryptography \& Security --- Lesson 02 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

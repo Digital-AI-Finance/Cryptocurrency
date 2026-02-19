@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz BF-2: Merkle Trees & Data Structures | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz BF-2: Merkle Trees & Data Structures</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz BF-2: Merkle Trees & Data Structures</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the first step when constructing a Merkle tree from a list of transactions?",
+                    "options": {
+                        "A": "Sort the transactions alphabetically before hashing",
+                        "B": "Concatenate all transactions into one string and hash the result",
+                        "C": "Hash each individual transaction to create the leaf nodes",
+                        "D": "Compute the XOR of all transaction bytes"
+                    },
+                    "correct": "C",
+                    "explanation": "Merkle tree construction begins by hashing each transaction individually: leaf_i = SHA256(SHA256(tx_i)). Bitcoin double-hashes for extra security. These leaf hashes form the bottom level of the tree from which pairs are iteratively combined upward."
+                },
+                {
+                    "id": 2,
+                    "question": "In a Merkle tree with 4 leaf transactions T1, T2, T3, T4, which hash is computed at the first internal level?",
+                    "options": {
+                        "A": "H(H(T1) || H(T2)) and H(H(T3) || H(T4)) — pairs of adjacent leaf hashes",
+                        "B": "H(H(T1) || H(T3)) and H(H(T2) || H(T4)) — alternating pairs",
+                        "C": "H(T1 || T2 || T3 || T4) — one single hash of all transactions",
+                        "D": "H(H(T1) || H(T4)) and H(H(T2) || H(T3)) — outer and inner pairs"
+                    },
+                    "correct": "A",
+                    "explanation": "At each level of a Merkle tree, adjacent pairs of hashes are concatenated and hashed together. With leaves H(T1), H(T2), H(T3), H(T4), the first internal level produces H(H(T1)||H(T2)) and H(H(T3)||H(T4)). These two values are then combined to form the Merkle root."
+                },
+                {
+                    "id": 3,
+                    "question": "When a Merkle tree has an odd number of leaf transactions, the standard Bitcoin protocol handles the imbalance by:",
+                    "options": {
+                        "A": "Hashing the odd node with a fixed null value",
+                        "B": "Dropping the final transaction and adding it to the next block",
+                        "C": "Padding with zero-filled transactions to reach the next power of two",
+                        "D": "Duplicating the last transaction hash so every level has an even number of nodes"
+                    },
+                    "correct": "D",
+                    "explanation": "Bitcoin duplicates the last hash when a level has an odd number of nodes. For example, with 5 leaves [L1, L2, L3, L4, L5], L5 is duplicated to give [L1, L2, L3, L4, L5, L5], forming three pairs. This duplication propagates up each level as needed."
+                },
+                {
+                    "id": 4,
+                    "question": "The Merkle root stored in a block header summarises which data?",
+                    "options": {
+                        "A": "The difficulty targets for the last 2016 blocks",
+                        "B": "The public keys of all miners who contributed to this block",
+                        "C": "All transactions in the current block, in a single fixed-size digest",
+                        "D": "The hashes of all previous block headers in the chain"
+                    },
+                    "correct": "C",
+                    "explanation": "The Merkle root is a single 256-bit hash that cryptographically summarises every transaction in the block. It is stored in the block header, so any change to any transaction changes the Merkle root, invalidating the block hash. This allows the header alone to commit to all transactions."
+                },
+                {
+                    "id": 5,
+                    "question": "A Merkle proof (audit path) for a single transaction in a tree of $n$ leaves contains how many hashes?",
+                    "options": {
+                        "A": "$n / 2$ hashes",
+                        "B": "$n - 1$ hashes",
+                        "C": "$\\sqrt{n}$ hashes",
+                        "D": "$\\log_2 n$ hashes"
+                    },
+                    "correct": "D",
+                    "explanation": "A Merkle proof requires one sibling hash per level of the tree. A balanced tree with $n$ leaves has $\\log_2 n$ levels, so the proof contains $\\log_2 n$ hashes. For a block with 2,048 transactions, only 11 hashes are needed — a dramatic reduction from sending all 2,048 transactions."
+                },
+                {
+                    "id": 6,
+                    "question": "In Simplified Payment Verification (SPV), a light client verifies that a transaction is included in a block by:",
+                    "options": {
+                        "A": "Checking that the transaction's digital signature is valid",
+                        "B": "Asking a trusted full node to confirm the transaction",
+                        "C": "Using the Merkle proof path to recompute the Merkle root and comparing it to the header",
+                        "D": "Downloading the entire block and re-executing every transaction"
+                    },
+                    "correct": "C",
+                    "explanation": "SPV clients download only block headers and request a Merkle proof from full nodes. They recompute the root by hashing the target transaction with each sibling on the proof path. If the computed root matches the one in the trusted header, inclusion is proven without downloading the full block."
+                },
+                {
+                    "id": 7,
+                    "question": "Which attack is an SPV client vulnerable to that a full node is not?",
+                    "options": {
+                        "A": "Merkle root collisions allowing fake inclusion proofs",
+                        "B": "Double-spending attacks that happen before any confirmation",
+                        "C": "51% hash-power attacks",
+                        "D": "Invalid transaction rules being accepted because SPV does not validate script execution"
+                    },
+                    "correct": "D",
+                    "explanation": "SPV clients verify that a transaction is included in a block with sufficient proof-of-work, but they do not execute transaction scripts or check consensus rules. A malicious miner could include an invalid transaction (e.g., printing coins) and an SPV client would accept it if the block header looks valid."
+                },
+                {
+                    "id": 8,
+                    "question": "Compared to a linear scan of all $n$ transactions, verifying one transaction with a Merkle proof reduces verification complexity from $O(n)$ to:",
+                    "options": {
+                        "A": "$O(1)$",
+                        "B": "$O(\\sqrt{n})$",
+                        "C": "$O(\\log n)$",
+                        "D": "$O(n \\log n)$"
+                    },
+                    "correct": "C",
+                    "explanation": "A Merkle proof has length $\\log_2 n$, so verifying it requires $O(\\log n)$ hash computations. This logarithmic scaling is why Merkle trees are essential for blockchains: even with millions of transactions per block, inclusion can be verified with only ~20 hash operations."
+                },
+                {
+                    "id": 9,
+                    "question": "A block contains 1,024 transactions. How many hashes must an SPV client compute to verify inclusion of one transaction using a Merkle proof?",
+                    "options": {
+                        "A": "1,023 hashes",
+                        "B": "32 hashes",
+                        "C": "512 hashes",
+                        "D": "10 hashes"
+                    },
+                    "correct": "D",
+                    "explanation": "$\\log_2(1024) = 10$. The Merkle proof contains 10 sibling hashes (one per tree level), and the verifier computes 10 hash operations to reconstruct the root. This is the logarithmic $O(\\log n)$ efficiency in action."
+                },
+                {
+                    "id": 10,
+                    "question": "In Bitcoin's UTXO model, what exactly is a UTXO?",
+                    "options": {
+                        "A": "An unspent transaction output — a discrete amount of bitcoin locked to a recipient's address",
+                        "B": "A special output created only by mining rewards",
+                        "C": "A record of every wallet balance in the network",
+                        "D": "A pending transaction waiting in the mempool"
+                    },
+                    "correct": "A",
+                    "explanation": "A UTXO (Unspent Transaction Output) is a specific amount of bitcoin that has been received by an address but not yet spent. Bitcoin balances do not exist as numbers — they are the sum of all UTXOs owned. Spending a UTXO destroys it and creates new UTXOs for the recipient and change address."
+                },
+                {
+                    "id": 11,
+                    "question": "Alice has two UTXOs: 0.3 BTC and 0.5 BTC. She sends 0.7 BTC to Bob (fee: 0.01 BTC). Which outputs does this transaction create?",
+                    "options": {
+                        "A": "Three UTXOs: 0.3 BTC, 0.4 BTC, and 0.09 BTC",
+                        "B": "One UTXO of 0.7 BTC for Bob only",
+                        "C": "Two UTXOs: 0.3 BTC for Bob and 0.4 BTC for Alice",
+                        "D": "Two UTXOs: 0.7 BTC for Bob and 0.09 BTC change back to Alice"
+                    },
+                    "correct": "D",
+                    "explanation": "Alice's two UTXOs (0.3 + 0.5 = 0.8 BTC) are consumed as inputs. The transaction creates two outputs: 0.7 BTC to Bob and 0.09 BTC change to Alice (0.8 - 0.7 - 0.01 fee = 0.09). The original two UTXOs are destroyed; two new UTXOs are created."
+                },
+                {
+                    "id": 12,
+                    "question": "What is the primary advantage of the UTXO model over an account balance model for preventing double-spending?",
+                    "options": {
+                        "A": "UTXO transactions are processed faster than account model transactions",
+                        "B": "UTXOs are encrypted so miners cannot read transaction amounts",
+                        "C": "Each UTXO can only be spent once and is atomically consumed, making double-spend attempts immediately detectable",
+                        "D": "The UTXO model requires larger transaction fees that deter attackers"
+                    },
+                    "correct": "C",
+                    "explanation": "UTXOs are discrete and atomic: once a UTXO is included in a valid transaction as an input, it is marked spent and removed from the UTXO set. Any attempt to use the same UTXO in a second transaction is automatically rejected by nodes, making double-spending structurally impossible within the same chain."
+                },
+                {
+                    "id": 13,
+                    "question": "Ethereum uses an account-based model rather than UTXO. What does this mean for how balances are stored?",
+                    "options": {
+                        "A": "Each account has a single balance field that is updated directly when transactions occur",
+                        "B": "Ethereum accounts store balance as a Merkle tree of micro-payments",
+                        "C": "Balances are computed by summing all transaction outputs for an address",
+                        "D": "Ethereum stores each coin as a separate token with a unique ID"
+                    },
+                    "correct": "A",
+                    "explanation": "Ethereum's account model maintains a global state trie where each account address maps to a state object containing its balance, nonce, code hash, and storage root. A transaction simply debits the sender's balance and credits the receiver's balance — no UTXO management needed."
+                },
+                {
+                    "id": 14,
+                    "question": "Which feature does Ethereum's account model enable that Bitcoin's UTXO model makes significantly more difficult?",
+                    "options": {
+                        "A": "Lightning Network payment channels",
+                        "B": "Segregated Witness (SegWit) transaction format",
+                        "C": "Multi-signature transactions",
+                        "D": "Stateful smart contracts that maintain persistent storage between calls"
+                    },
+                    "correct": "D",
+                    "explanation": "Smart contracts require persistent state — variables that change across multiple function calls. Ethereum's account model naturally supports this: each contract account has a storage trie. Bitcoin's UTXO model is stateless by design, making general-purpose stateful contracts much more complex to implement."
+                },
+                {
+                    "id": 15,
+                    "question": "Which fields are found in a standard Bitcoin transaction input?",
+                    "options": {
+                        "A": "Block height, timestamp, and miner signature",
+                        "B": "Sender balance, nonce, and gas price",
+                        "C": "Recipient address and amount to send",
+                        "D": "Previous transaction ID (TXID), output index (vout), and unlocking script (scriptSig)"
+                    },
+                    "correct": "D",
+                    "explanation": "A Bitcoin transaction input identifies which UTXO to spend via the previous transaction ID and output index (vout), and provides a scriptSig (or witness data for SegWit) that satisfies the locking script of that UTXO. Together these prove the spender has authority to use those funds."
+                },
+                {
+                    "id": 16,
+                    "question": "What does the `scriptPubKey` (locking script) field in a Bitcoin transaction output specify?",
+                    "options": {
+                        "A": "The conditions that must be satisfied to spend that output in a future transaction",
+                        "B": "The network fee paid for processing",
+                        "C": "The SHA-256 hash of the output amount",
+                        "D": "The public key of the miner who included the transaction"
+                    },
+                    "correct": "A",
+                    "explanation": "The scriptPubKey encodes the spending conditions for an output. For a standard P2PKH output it requires the spender to provide a public key that hashes to the embedded address and a valid signature. More complex scripts can require multiple signatures (multisig) or time locks."
+                },
+                {
+                    "id": 17,
+                    "question": "An Ethereum transaction includes a `nonce` field. What is its purpose?",
+                    "options": {
+                        "A": "It stores the random seed for smart contract execution",
+                        "B": "It is the mining nonce used to satisfy proof-of-work",
+                        "C": "It is a per-account counter that prevents replay attacks and enforces transaction ordering",
+                        "D": "It encodes the transaction's position within the block"
+                    },
+                    "correct": "C",
+                    "explanation": "In Ethereum, each account has a nonce that increments with every outgoing transaction (starting at 0). Nodes reject transactions whose nonce does not match the expected next value, preventing replay attacks (resubmitting old signed transactions) and ensuring transactions execute in the correct sequence."
+                },
+                {
+                    "id": 18,
+                    "question": "What data structure does Ethereum use to store its global state (account balances, contract storage) in a verifiable and efficient way?",
+                    "options": {
+                        "A": "A Patricia Merkle Trie (also called a Merkle Patricia Trie)",
+                        "B": "A red-black balanced binary search tree",
+                        "C": "A flat hash map with SHA-256 keys",
+                        "D": "A simple sorted array of account records"
+                    },
+                    "correct": "A",
+                    "explanation": "Ethereum uses a Patricia Merkle Trie (MPT) — a combination of a Patricia trie (efficient prefix-based key lookup) and a Merkle tree (each node's hash commits to all children). This provides both $O(\\log n)$ lookups and a single root hash that cryptographically summarises the entire state."
+                },
+                {
+                    "id": 19,
+                    "question": "In a Patricia Merkle Trie, what is the key advantage of path compression (extension nodes) over a standard Merkle tree?",
+                    "options": {
+                        "A": "It ensures all paths from root to leaf have exactly the same length",
+                        "B": "It collapses long sequences of single-child nodes into a single node, reducing tree depth and storage",
+                        "C": "It allows the trie to store values only at leaf nodes, saving memory",
+                        "D": "It encrypts key prefixes so private account addresses are hidden"
+                    },
+                    "correct": "B",
+                    "explanation": "Path compression in a Patricia trie collapses chains of nodes that each have only one child into a single extension node that stores the shared prefix. This dramatically reduces tree depth for sparse key spaces (like Ethereum addresses), making state lookups faster and the trie more compact."
+                },
+                {
+                    "id": 20,
+                    "question": "In a Bitcoin block, the coinbase transaction is special because:",
+                    "options": {
+                        "A": "It is signed by all nodes in the network to confirm the block",
+                        "B": "It is the transaction that pays the highest fee and is always placed first",
+                        "C": "It records the Merkle root of the previous block's transactions",
+                        "D": "It has no inputs referencing a previous UTXO and creates new bitcoin as the block reward plus collected fees"
+                    },
+                    "correct": "D",
+                    "explanation": "The coinbase transaction is the first transaction in every block. Unlike regular transactions it has no valid input UTXO — its input field contains arbitrary data (miners use it for extra nonce space and messages). Its outputs create new bitcoin equal to the block subsidy plus all transaction fees collected in the block."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz CS-2: Asymmetric Crypto &amp; Digital Signatures | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz CS-2: Asymmetric Crypto &amp; Digital Signatures</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz CS-2: Asymmetric Crypto &amp; Digital Signatures</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "In RSA, a public key is $(n, e)$ where $n = p \cdot q$ for large primes $p, q$. How is the private key exponent $d$ defined?",
+                    "options": {
+                        "A": "$d = e^{-1} \bmod n$",
+                        "B": "$d = e^{-1} \bmod \phi(n)$ where $\phi(n) = (p-1)(q-1)$",
+                        "C": "$d = n - e$",
+                        "D": "$d = (p-1)(q-1) - e$"
+                    },
+                    "correct": "B",
+                    "explanation": "The RSA private key $d$ is the modular inverse of $e$ modulo Euler's totient $\phi(n) = (p-1)(q-1)$, so $e \cdot d \equiv 1 \pmod{\phi(n)}$. This guarantees that $(m^e)^d \equiv m \pmod{n}$ for any message $m$, enabling decryption and signature verification."
+                },
+                {
+                    "id": 2,
+                    "question": "RSA encryption computes $c = m^e \bmod n$. Why is it insecure to encrypt the same message $m$ with many different public keys that all share the same small exponent $e = 3$?",
+                    "options": {
+                        "A": "The Chinese Remainder Theorem lets an attacker recover $m^3$, and since $m^3 < n$, taking the integer cube root recovers $m$",
+                        "B": "Small exponents make the modular reduction trivial to invert",
+                        "C": "The same ciphertext is produced for all recipients, leaking the plaintext directly",
+                        "D": "Small $e$ values violate the group structure of $\mathbb{Z}_n^*$"
+                    },
+                    "correct": "A",
+                    "explanation": "Hastad's broadcast attack: if the same $m$ is encrypted under $e=3$ different moduli $n_1, n_2, n_3$, the CRT reconstructs $m^3 \bmod (n_1 n_2 n_3)$. Since $m^3 < n_1 n_2 n_3$ when $m$ is small, the attacker takes the integer cube root to recover $m$. OAEP padding prevents this."
+                },
+                {
+                    "id": 3,
+                    "question": "What does the RSA problem reduce to, and what is its assumed hardness?",
+                    "options": {
+                        "A": "Computing discrete logarithms in $\mathbb{Z}_n^*$; assumed hard for $n > 1024$ bits",
+                        "B": "Factoring the modulus $n = p \cdot q$; assumed sub-exponentially hard for large $n$",
+                        "C": "Solving the shortest vector problem in a lattice; assumed NP-hard",
+                        "D": "Finding elliptic curve discrete logarithms; assumed exponentially hard"
+                    },
+                    "correct": "B",
+                    "explanation": "Breaking RSA requires computing $e$-th roots modulo $n$, which is believed to be as hard as factoring $n = p \cdot q$. The best known classical algorithm (GNFS) runs in sub-exponential time $L_n[1/3]$. This is why RSA requires key sizes of 2048+ bits, while Shor's algorithm factors in polynomial time on a quantum computer."
+                },
+                {
+                    "id": 4,
+                    "question": "An elliptic curve over a prime field $\mathbb{F}_p$ is defined by $y^2 \equiv x^3 + ax + b \pmod{p}$. What additional condition must be satisfied for the curve to be non-singular?",
+                    "options": {
+                        "A": "$a > 0$ and $b > 0$",
+                        "B": "$4a^3 + 27b^2 \not\equiv 0 \pmod{p}$",
+                        "C": "$a^2 + b^2 \equiv 1 \pmod{p}$",
+                        "D": "$p \nmid ab$"
+                    },
+                    "correct": "B",
+                    "explanation": "The discriminant $\Delta = -16(4a^3 + 27b^2)$ must be non-zero for the curve to be non-singular (no cusps or self-intersections). If $4a^3 + 27b^2 \equiv 0 \pmod{p}$, the curve has singular points where the group law is undefined. Bitcoin's secp256k1 uses $a=0, b=7$, giving $\Delta = -16 \cdot 27 \cdot 49 \neq 0$."
+                },
+                {
+                    "id": 5,
+                    "question": "On an elliptic curve, how is the sum of a point $P$ and its negation $-P$ defined?",
+                    "options": {
+                        "A": "The result is the point with doubled $x$-coordinate",
+                        "B": "The result is the point at infinity $\mathcal{O}$, the group identity",
+                        "C": "The result is the generator point $G$",
+                        "D": "The result is undefined since $P$ and $-P$ are the same point"
+                    },
+                    "correct": "B",
+                    "explanation": "On an elliptic curve, $-P$ is the reflection of $P$ over the $x$-axis. The line through $P$ and $-P$ is vertical and does not intersect the curve at a third finite point, so by convention $P + (-P) = \mathcal{O}$, the point at infinity, which is the group identity element."
+                },
+                {
+                    "id": 6,
+                    "question": "In elliptic curve cryptography, the public key is $Q = dG$ where $d$ is the private key scalar and $G$ is the generator. Why is recovering $d$ from $Q$ and $G$ hard?",
+                    "options": {
+                        "A": "Elliptic curve point addition is not closed under scalar multiplication",
+                        "B": "This is the Elliptic Curve Discrete Logarithm Problem (ECDLP), for which no sub-exponential algorithm is known over generic curves",
+                        "C": "The group order of the curve is secret and unknown to the attacker",
+                        "D": "The generator point $G$ changes with every computation, preventing inversion"
+                    },
+                    "correct": "B",
+                    "explanation": "Recovering $d$ from $Q = dG$ is the ECDLP. Unlike integer factoring (which has sub-exponential algorithms), no sub-exponential classical algorithm is known for ECDLP over well-chosen curves. This allows ECC to achieve the same security as RSA-3072 with only a 256-bit key, making it far more efficient."
+                },
+                {
+                    "id": 7,
+                    "question": "In ECDSA, to sign a message hash $z$ with private key $d$ and curve generator $G$ of order $n$, the signer picks a random nonce $k$ and computes $R = kG$. What is the signature $(r, s)$?",
+                    "options": {
+                        "A": "$r = R_x \bmod n$, $\quad s = k^{-1}(z + rd) \bmod n$",
+                        "B": "$r = k \bmod n$, $\quad s = (z + rd) \bmod n$",
+                        "C": "$r = R_x \bmod n$, $\quad s = d^{-1}(z + rk) \bmod n$",
+                        "D": "$r = H(R) \bmod n$, $\quad s = k(z + rd)^{-1} \bmod n$"
+                    },
+                    "correct": "A",
+                    "explanation": "ECDSA signing: choose random $k \in [1, n-1]$, compute $R = kG$, set $r = R_x \bmod n$. Then $s = k^{-1}(z + rd) \bmod n$. Verification checks that $R' = s^{-1}(zG + rQ)$ yields $R'_x \equiv r \pmod{n}$, which holds because $s^{-1}z G + s^{-1}r Q = k^{-1}\cdot k \cdot G = G \cdot k = R$."
+                },
+                {
+                    "id": 8,
+                    "question": "In ECDSA verification, the verifier has public key $Q$, signature $(r, s)$, and message hash $z$. What computation verifies the signature?",
+                    "options": {
+                        "A": "Compute $R' = s^{-1}(zG + rQ)$ and check that $R'_x \equiv r \pmod{n}$",
+                        "B": "Compute $R' = s \cdot z \cdot G$ and check that $R'_x \equiv r \pmod{n}$",
+                        "C": "Compute $Q' = r^{-1}(sG - zG)$ and check that $Q' = Q$",
+                        "D": "Compute $R' = (r + s) G$ and check that $R'_x \equiv z \pmod{n}$"
+                    },
+                    "correct": "A",
+                    "explanation": "Verification: let $u_1 = s^{-1}z \bmod n$ and $u_2 = s^{-1}r \bmod n$, then compute $R' = u_1 G + u_2 Q$. Accept if $R'_x \equiv r \pmod{n}$. This works because $u_1 G + u_2 Q = s^{-1}z G + s^{-1}r \cdot dG = s^{-1}(z + rd)G = kG = R$."
+                },
+                {
+                    "id": 9,
+                    "question": "Bitcoin uses the secp256k1 curve. What are its defining parameters $a$ and $b$ in $y^2 = x^3 + ax + b$?",
+                    "options": {
+                        "A": "$a = -3$, $b = 0$",
+                        "B": "$a = 1$, $b = 7$",
+                        "C": "$a = 0$, $b = 7$",
+                        "D": "$a = 0$, $b = 0$"
+                    },
+                    "correct": "C",
+                    "explanation": "Bitcoin's secp256k1 curve has $a = 0$ and $b = 7$, giving $y^2 = x^3 + 7$ over the prime field $\mathbb{F}_p$ where $p = 2^{256} - 2^{32} - 977$. The name 'secp256k1' indicates: SEC standard, 256-bit prime, Koblitz-type ($a=0$), first curve of this form. The $a=0$ case simplifies point doubling formulas."
+                },
+                {
+                    "id": 10,
+                    "question": "The discrete logarithm problem (DLP) in a group $G$ asks: given $g$ and $h = g^x$, find $x$. Which statement about DLP hardness is correct?",
+                    "options": {
+                        "A": "DLP is NP-complete, so it cannot be solved in polynomial time on any computer",
+                        "B": "DLP over $\mathbb{Z}_p^*$ can be solved in sub-exponential time using index calculus, but no such algorithm is known for generic elliptic curve groups",
+                        "C": "DLP over elliptic curves is easier than over $\mathbb{Z}_p^*$ because point coordinates are bounded",
+                        "D": "DLP hardness is equivalent to integer factoring hardness"
+                    },
+                    "correct": "B",
+                    "explanation": "The index calculus algorithm solves DLP over $\mathbb{Z}_p^*$ in sub-exponential time $L_p[1/2]$, requiring large key sizes (2048+ bits). For elliptic curve groups, no analogous sub-exponential algorithm is known (for curves without special structure), so 256-bit ECC keys offer comparable security to 3072-bit RSA/DH keys."
+                },
+                {
+                    "id": 11,
+                    "question": "Pollard's rho algorithm finds discrete logarithms in a group of order $n$. What is its time complexity?",
+                    "options": {
+                        "A": "$O(n)$",
+                        "B": "$O(n^2)$",
+                        "C": "$O(\sqrt{n})$",
+                        "D": "$O(\log n)$"
+                    },
+                    "correct": "C",
+                    "explanation": "Pollard's rho algorithm uses a pseudo-random walk and Floyd's cycle detection to find a collision in the group, solving ECDLP in $O(\sqrt{n})$ time and $O(1)$ space (or $O(\sqrt{n})$ time with $O(1)$ storage using distinguished points). This is the best known algorithm for generic groups and sets the lower bound for ECC key sizes."
+                },
+                {
+                    "id": 12,
+                    "question": "In a Schnorr signature over a group of prime order $q$ with generator $G$, the prover has private key $x$ and public key $X = xG$. After committing $R = kG$ and receiving challenge $c$, what is the response $s$?",
+                    "options": {
+                        "A": "$s = k - cx \bmod q$",
+                        "B": "$s = k + cx \bmod q$",
+                        "C": "$s = k \cdot x \cdot c \bmod q$",
+                        "D": "$s = c^{-1}(k + x) \bmod q$"
+                    },
+                    "correct": "B",
+                    "explanation": "In Schnorr signatures (and the underlying Sigma protocol), the response is $s = k + cx \bmod q$. Verification checks $sG = R + cX$ since $sG = (k+cx)G = kG + cxG = R + cX$. The sign convention $s = k + cx$ (vs. $k - cx$) varies by implementation, but $s = k + cx$ is the most common Schnorr convention."
+                },
+                {
+                    "id": 13,
+                    "question": "Schnorr signatures have a key advantage over ECDSA for blockchain applications. What is it?",
+                    "options": {
+                        "A": "Schnorr signatures require no hash function, reducing computation",
+                        "B": "Schnorr signatures are linearly homomorphic: multiple signatures can be aggregated into one",
+                        "C": "Schnorr signatures use smaller nonces, reducing signature size to 32 bytes",
+                        "D": "Schnorr signatures are provably secure without the random oracle model"
+                    },
+                    "correct": "B",
+                    "explanation": "Schnorr signatures are linearly homomorphic, enabling key and signature aggregation (MuSig, BIP340). For $n$ co-signers with keys $X_1, \ldots, X_n$ and signatures $(R_i, s_i)$, the aggregate public key $\tilde{X} = \sum X_i$ and aggregate signature $(\sum R_i, \sum s_i)$ is a valid Schnorr signature under $\tilde{X}$. This is impossible with ECDSA due to its division operation."
+                },
+                {
+                    "id": 14,
+                    "question": "BIP340 (Taproot) adopts Schnorr signatures for Bitcoin. What is one reason Schnorr was NOT used in Bitcoin's original design?",
+                    "options": {
+                        "A": "Schnorr signatures were patented until 2008, and Bitcoin launched just after the patent expired",
+                        "B": "Schnorr signatures require a trusted setup phase that was unavailable in 2009",
+                        "C": "Schnorr signatures are slower than ECDSA on constrained hardware",
+                        "D": "Schnorr signatures produce 128-byte outputs, too large for Bitcoin's block size"
+                    },
+                    "correct": "A",
+                    "explanation": "Claus Schnorr's patent on Schnorr signatures expired in February 2008 (US Patent 4,995,082). Bitcoin launched in January 2009, but Satoshi opted for ECDSA which was already standardized (ANSI X9.62, SEC) and more widely implemented. BIP340 introduced Schnorr to Bitcoin in the Taproot upgrade (November 2021)."
+                },
+                {
+                    "id": 15,
+                    "question": "In MuSig2 (signature aggregation for Schnorr), $n$ signers each contribute a partial signature. What is the critical security requirement during the signing rounds?",
+                    "options": {
+                        "A": "Each signer must use the same nonce to ensure the aggregate is consistent",
+                        "B": "Each signer must commit to their nonce before seeing others' nonces to prevent rogue-key and Wagner attacks",
+                        "C": "Signers must share their private keys with a trusted aggregator",
+                        "D": "The number of signers must be a prime number for the math to work"
+                    },
+                    "correct": "B",
+                    "explanation": "MuSig2 requires a commitment round where each signer commits to their nonces before exchanging them. Without this, a Wagner's generalized birthday attack allows a malicious co-signer to adaptively choose their nonce to forge signatures. MuSig2 uses two nonces per signer and a deterministic binding coefficient to resist this in just 2 rounds."
+                },
+                {
+                    "id": 16,
+                    "question": "A 2-of-3 multisig Bitcoin address requires signatures from 2 of 3 keys. What is a privacy and efficiency advantage of using Schnorr-based threshold signatures (e.g., FROST) over traditional Bitcoin multisig (OP_CHECKMULTISIG)?",
+                    "options": {
+                        "A": "FROST requires all 3 signers to be online simultaneously",
+                        "B": "FROST produces a single aggregated signature indistinguishable on-chain from a single-key signature, saving fees and hiding the multisig policy",
+                        "C": "Traditional multisig puts the threshold condition on-chain as a single hash, hiding it from validators",
+                        "D": "FROST requires a larger script than OP_CHECKMULTISIG, providing more security"
+                    },
+                    "correct": "B",
+                    "explanation": "With OP_CHECKMULTISIG, all $m$ signatures and $n$ public keys appear on-chain, revealing the multisig policy and costing more in fees. FROST/Taproot threshold signatures aggregate into a single $(R, s)$ pair and a single public key, occupying the same 64 bytes as any Schnorr signature. The threshold policy is completely hidden from on-chain observers."
+                },
+                {
+                    "id": 17,
+                    "question": "In a traditional Bitcoin $m$-of-$n$ multisig using P2SH, what must be revealed on-chain when spending?",
+                    "options": {
+                        "A": "Only the aggregate public key and a single signature",
+                        "B": "The redeem script (listing all $n$ public keys), plus $m$ valid signatures",
+                        "C": "Only the hash of the redeem script",
+                        "D": "The private keys of the $m$ signing parties"
+                    },
+                    "correct": "B",
+                    "explanation": "Spending a P2SH multisig requires providing the full redeem script (revealing all $n$ public keys and the threshold $m$) plus $m$ valid signatures. This reveals the wallet's security policy on-chain. P2WSH (SegWit) moves the script to the witness, reducing the base fee but still revealing the structure. Taproot/FROST can hide this completely."
+                },
+                {
+                    "id": 18,
+                    "question": "The PlayStation 3 was broken by hackers in 2010 due to a critical ECDSA implementation flaw. What was the flaw?",
+                    "options": {
+                        "A": "Sony used a 128-bit curve instead of a 256-bit curve",
+                        "B": "Sony reused the same nonce $k$ for every signature, allowing the private key to be recovered",
+                        "C": "Sony used RSA instead of ECDSA, which is vulnerable to the index calculus attack",
+                        "D": "Sony signed with the wrong hash function, enabling collision attacks"
+                    },
+                    "correct": "B",
+                    "explanation": "Sony used a constant nonce $k$ for all PS3 ECDSA signatures. Since $s = k^{-1}(z + rd) \bmod n$, two signatures with the same $k$ give $s_1 - s_2 = k^{-1}(z_1 - z_2)$, so $k = (z_1 - z_2)(s_1 - s_2)^{-1} \bmod n$, and then $d = (s \cdot k - z) r^{-1} \bmod n$. Fail0verflow demonstrated this at 27C3 in 2010."
+                },
+                {
+                    "id": 19,
+                    "question": "Ed25519 is a digital signature scheme based on the Edwards curve $-x^2 + y^2 = 1 - (121665/121666)x^2y^2$ over $\mathbb{F}_{2^{255}-19}$. How does Ed25519 derive its signing nonce to prevent nonce-reuse vulnerabilities?",
+                    "options": {
+                        "A": "It uses a hardware random number generator for each signature",
+                        "B": "It derives the nonce deterministically as $k = H(\text{private key prefix} \| m)$, eliminating randomness",
+                        "C": "It reuses the same nonce for efficiency, compensating with a longer key",
+                        "D": "It derives the nonce from the current timestamp"
+                    },
+                    "correct": "B",
+                    "explanation": "Ed25519 uses deterministic nonce generation: $k = H(b \| m)$ where $b$ is the second half of the SHA-512 hash of the private key. This eliminates the need for a random number generator and prevents nonce-reuse attacks (since the nonce depends on the message). The same message always produces the same signature, making it safe even on systems with poor entropy."
+                },
+                {
+                    "id": 20,
+                    "question": "Batch verification of $n$ Schnorr signatures can be faster than $n$ individual verifications. What technique enables this speedup?",
+                    "options": {
+                        "A": "Caching the generator point $G$ across all verifications",
+                        "B": "Combining all $n$ verification equations into a single multi-scalar multiplication using random linear combinations",
+                        "C": "Pre-computing all public keys' negations and storing them in a lookup table",
+                        "D": "Parallelising the hash computations on a GPU"
+                    },
+                    "correct": "B",
+                    "explanation": "Batch verification picks random scalars $a_1, \ldots, a_n$ and checks $\sum_i a_i s_i G = \sum_i a_i R_i + \sum_i a_i c_i X_i$ in one multi-scalar multiplication (MSM). MSM with $n$ points is faster than $n$ separate double-and-add operations due to Pippenger's algorithm ($O(n / \log n)$ group operations). BIP340 specifies batch verification for block validation efficiency."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

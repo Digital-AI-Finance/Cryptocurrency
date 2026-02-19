@@ -80,15 +80,26 @@ a{color:#0366d6;text-decoration:none}
 .foot{text-align:center;padding:12px;font-size:10px;color:#586069;margin-top:12px}
 .foot a{margin:0 8px}
 [id]{scroll-margin-top:48px}
-@media(max-width:1400px){.lgrid{grid-template-columns:repeat(3,1fr)}.nb-grid{grid-template-columns:repeat(3,1fr)}.quiz-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:1000px){.lgrid{grid-template-columns:repeat(2,1fr)}.nb-grid{grid-template-columns:repeat(2,1fr)}.quiz-grid{grid-template-columns:repeat(2,1fr)}.side{width:160px}}
+@media(max-width:1400px){.lgrid{grid-template-columns:repeat(3,1fr)}.nb-grid{grid-template-columns:repeat(3,1fr)}.quiz-grid{grid-template-columns:repeat(3,1fr)}.lec-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1000px){.lgrid{grid-template-columns:repeat(2,1fr)}.nb-grid{grid-template-columns:repeat(2,1fr)}.quiz-grid{grid-template-columns:repeat(2,1fr)}.lec-grid{grid-template-columns:repeat(2,1fr)}.side{width:160px}}
 @media(max-width:800px){.wrap{flex-direction:column}.side{width:100%;height:auto;max-height:200px;position:relative;top:0}.lgrid{grid-template-columns:repeat(2,1fr)}}
+.d5 summary{border-left:3px solid #e11d48}
+.section-head.d5 span{background:#e11d48}
+.deck-link.d5{background:#e11d48}
+.d5 .lcard-num{background:#fff1f2;color:#e11d48}
+.lec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.lec-card{display:block;background:#fff;border:1px solid #e1e4e8;border-radius:4px;padding:8px 10px;cursor:pointer;transition:all 0.15s;border-left:3px solid #e11d48}
+.lec-card:hover{border-color:#0366d6;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.lec-num{font-size:10px;font-weight:700;padding:2px 5px;border-radius:3px;margin-right:4px;background:#fff1f2;color:#e11d48}
+.lec-title{font-size:11px;font-weight:500;color:#24292e;margin-bottom:2px}
+.lec-meta{font-size:9px;color:#586069}
+.lec-subsection{font-size:10px;font-weight:600;color:#586069;margin:8px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px}
 </style>
 </head>
 <body>
 <nav class="nav">
 <span class="nav-title">Build Your Own Cryptocurrency</span>
-<div class="nav-links"><a href="#lessons">Lessons</a><a href="#topics">Topics</a><a href="#notebooks">Notebooks</a><a href="#quizzes">Quizzes</a><a href="#notes">Notes</a><a href="#resources">Resources</a><a href="https://github.com/Digital-AI-Finance/Cryptocurrency">GitHub</a></div>
+<div class="nav-links"><a href="#lessons">Lessons</a><a href="#topics">Topics</a><a href="#standalone-lectures">Lectures</a><a href="#notebooks">Notebooks</a><a href="#quizzes">Quizzes</a><a href="#notes">Notes</a><a href="#resources">Resources</a><a href="https://github.com/Digital-AI-Finance/Cryptocurrency">GitHub</a></div>
 </nav>
 <div class="wrap">
 <aside class="side">
@@ -121,11 +132,21 @@ a{color:#0366d6;text-decoration:none}
 <a href="#t4-4">4.4 Deployment Steps</a>
 <a href="#t4-5">4.5 Token Economics</a>
 </details>
+<details class="d5" open><summary>Standalone Lectures</summary>
+<a href="#sl-mini">Mini-Lecture: Blockchain</a>
+<a href="#sl-intro">INTRO Preview</a>
+<a href="#sl-pre">Pre-Class Handout</a>
+<a href="#sl-main">Technical Lecture</a>
+<a href="#sl-cs-mini">Mini-Lecture: Crypto</a>
+<a href="#sl-cs-intro">CS INTRO Preview</a>
+<a href="#sl-cs-pre">CS Pre-Class Handout</a>
+<a href="#sl-cs-main">CS Technical Lecture</a>
+</details>
 </aside>
 <main class="main">
 <div class="hero">
 <div class="hero-left"><h1>Build Your Own Cryptocurrency</h1><p>BSc Level Course &mdash; 4 Lessons</p></div>
-<div class="hero-stats"><span><b>4</b><small>Lessons</small></span><span><b>20</b><small>Topics</small></span><span><b>7</b><small>Notebooks</small></span><span><b>4</b><small>Quizzes</small></span></div>
+<div class="hero-stats"><span><b>4</b><small>Lessons</small></span><span><b>20</b><small>Topics</small></span><span><b>8</b><small>Lectures</small></span><span><b>7</b><small>Notebooks</small></span><span><b>12</b><small>Quizzes</small></span></div>
 </div>
 
 <section class="section d1" id="lessons">
@@ -256,6 +277,100 @@ a{color:#0366d6;text-decoration:none}
 </div>
 </section>
 
+<section class="section d5" id="standalone-lectures">
+<div class="section-head d5"><span>BF</span><h2>Standalone Lectures: Blockchain Fundamentals</h2></div>
+
+<div class="lec-subsection">Mini-Lecture</div>
+<div class="lec-grid">
+<a href="lectures/blockchain_intro.pdf" class="lec-card" id="sl-mini">
+<div><span class="lec-num">BF</span><span class="lec-title">Blockchain Fundamentals</span></div>
+<div class="lec-meta">10-slide visual introduction with TikZ comics</div>
+</a>
+</div>
+
+<div class="lec-subsection">Technical Lecture Bundle</div>
+<div class="lec-grid">
+<a href="lectures/blockchain_fundamentals_intro.pdf" class="lec-card" id="sl-intro">
+<div><span class="lec-num">INTRO</span><span class="lec-title">BF Course Preview</span></div>
+<div class="lec-meta">6-slide preview deck with charts</div>
+</a>
+<a href="lectures/blockchain_fundamentals_preclass.pdf" class="lec-card" id="sl-pre">
+<div><span class="lec-num">PRE</span><span class="lec-title">Pre-Class Handout</span></div>
+<div class="lec-meta">2-page discovery activities</div>
+</a>
+<a href="lectures/blockchain_fundamentals.pdf" class="lec-card" id="sl-main">
+<div><span class="lec-num">90min</span><span class="lec-title">Blockchain Fundamentals</span></div>
+<div class="lec-meta">50+ frame quantitative deep dive</div>
+</a>
+</div>
+
+<div class="lec-subsection">Associated Quizzes</div>
+<div class="quiz-grid">
+<a href="quiz/quiz_bf_part1.html" class="quiz-card">
+<div><span class="quiz-num">BF-1</span><span class="quiz-title">Block Anatomy &amp; Hash Chains</span></div>
+<div class="quiz-meta">20 questions</div>
+</a>
+<a href="quiz/quiz_bf_part2.html" class="quiz-card">
+<div><span class="quiz-num">BF-2</span><span class="quiz-title">Merkle Trees &amp; Data Structures</span></div>
+<div class="quiz-meta">20 questions</div>
+</a>
+<a href="quiz/quiz_bf_part3.html" class="quiz-card">
+<div><span class="quiz-num">BF-3</span><span class="quiz-title">Consensus Mechanisms</span></div>
+<div class="quiz-meta">20 questions</div>
+</a>
+<a href="quiz/quiz_bf_part4.html" class="quiz-card">
+<div><span class="quiz-num">BF-4</span><span class="quiz-title">Decentralization &amp; Security</span></div>
+<div class="quiz-meta">20 questions</div>
+</a>
+</div>
+
+<div class="section-head d5" style="margin-top:16px"><span>CS</span><h2>Standalone Lectures: Cryptography &amp; Security</h2></div>
+
+<div class="lec-subsection">Mini-Lecture</div>
+<div class="lec-grid">
+<a href="lectures/cryptography_intro.pdf" class="lec-card" id="sl-cs-mini">
+<div><span class="lec-num">CS</span><span class="lec-title">Cryptography &amp; Security</span></div>
+<div class="lec-meta">10-slide visual introduction with TikZ comics</div>
+</a>
+</div>
+
+<div class="lec-subsection">Technical Lecture Bundle</div>
+<div class="lec-grid">
+<a href="lectures/cryptography_security_intro.pdf" class="lec-card" id="sl-cs-intro">
+<div><span class="lec-num">INTRO</span><span class="lec-title">CS Course Preview</span></div>
+<div class="lec-meta">6-slide preview deck with charts</div>
+</a>
+<a href="lectures/cryptography_security_preclass.pdf" class="lec-card" id="sl-cs-pre">
+<div><span class="lec-num">PRE</span><span class="lec-title">Pre-Class Handout</span></div>
+<div class="lec-meta">2-page discovery activities</div>
+</a>
+<a href="lectures/cryptography_security.pdf" class="lec-card" id="sl-cs-main">
+<div><span class="lec-num">90min</span><span class="lec-title">Cryptography &amp; Security</span></div>
+<div class="lec-meta">55+ frame quantitative deep dive</div>
+</a>
+</div>
+
+<div class="lec-subsection">Associated Quizzes</div>
+<div class="quiz-grid">
+<a href="quiz/quiz_cs_part1.html" class="quiz-card">
+<div><span class="quiz-num">CS-1</span><span class="quiz-title">Hash Functions &amp; Symmetric Crypto</span></div>
+<div class="quiz-meta">20 questions</div>
+</a>
+<a href="quiz/quiz_cs_part2.html" class="quiz-card">
+<div><span class="quiz-num">CS-2</span><span class="quiz-title">Asymmetric Crypto &amp; Digital Signatures</span></div>
+<div class="quiz-meta">20 questions</div>
+</a>
+<a href="quiz/quiz_cs_part3.html" class="quiz-card">
+<div><span class="quiz-num">CS-3</span><span class="quiz-title">Key Management &amp; Wallets</span></div>
+<div class="quiz-meta">20 questions</div>
+</a>
+<a href="quiz/quiz_cs_part4.html" class="quiz-card">
+<div><span class="quiz-num">CS-4</span><span class="quiz-title">Protocols, Attacks &amp; Post-Quantum</span></div>
+<div class="quiz-meta">20 questions</div>
+</a>
+</div>
+</section>
+
 <section class="section" id="notebooks">
 <div class="section-head notebooks"><span>7</span><h2>Interactive Notebooks</h2></div>
 <div class="nb-grid">
@@ -291,7 +406,7 @@ a{color:#0366d6;text-decoration:none}
 </section>
 
 <section class="section" id="quizzes">
-<div class="section-head quizzes"><span>4</span><h2>Interactive Quizzes</h2></div>
+<div class="section-head quizzes"><span>8</span><h2>Interactive Quizzes</h2></div>
 <div class="quiz-grid">
 <a href="quiz/quiz1.html" class="quiz-card">
 <div><span class="quiz-num">Q1</span><span class="quiz-title">Blockchain Fundamentals</span></div>

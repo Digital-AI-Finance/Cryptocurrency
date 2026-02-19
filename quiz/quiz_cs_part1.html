@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz CS-1: Hash Functions &amp; Symmetric Crypto | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz CS-1: Hash Functions &amp; Symmetric Crypto</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz CS-1: Hash Functions &amp; Symmetric Crypto</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Which of the following is NOT a required property of a cryptographic hash function?",
+                    "options": {
+                        "A": "Pre-image resistance: given $H(m)$, it is computationally infeasible to find $m$",
+                        "B": "Collision resistance: it is computationally infeasible to find $m_1 \neq m_2$ with $H(m_1)=H(m_2)$",
+                        "C": "Reversibility: given $H(m)$, one can efficiently recover $m$",
+                        "D": "Second pre-image resistance: given $m_1$, it is hard to find $m_2 \neq m_1$ with $H(m_1)=H(m_2)$"
+                    },
+                    "correct": "C",
+                    "explanation": "Cryptographic hash functions must be one-way (pre-image resistant), not reversible. Reversibility would break all security guarantees. The three standard properties are pre-image resistance, second pre-image resistance, and collision resistance."
+                },
+                {
+                    "id": 2,
+                    "question": "For a hash function with $n$-bit output, what is the generic complexity of finding a collision using the birthday attack?",
+                    "options": {
+                        "A": "$O(2^n)$",
+                        "B": "$O(2^{n/2})$",
+                        "C": "$O(n^2)$",
+                        "D": "$O(2^{n/3})$"
+                    },
+                    "correct": "B",
+                    "explanation": "The birthday paradox shows that after hashing approximately $2^{n/2}$ random messages, a collision is found with probability roughly $1/2$. This is the birthday bound and explains why SHA-256 (256-bit output) offers 128-bit collision security."
+                },
+                {
+                    "id": 3,
+                    "question": "Which statement correctly describes the avalanche effect in hash functions?",
+                    "options": {
+                        "A": "A large input always produces a larger hash output",
+                        "B": "A single-bit change in the input causes approximately half the output bits to flip",
+                        "C": "The hash output grows linearly with input length",
+                        "D": "Multiple inputs can produce the same hash only with exponential effort"
+                    },
+                    "correct": "B",
+                    "explanation": "The avalanche effect means that flipping even one bit of the input drastically changes the output — ideally about 50% of output bits change unpredictably. This ensures that similar inputs produce completely different hashes, preventing partial information leakage."
+                },
+                {
+                    "id": 4,
+                    "question": "The Merkle-Damgard construction iterates a fixed-length compression function. What is a known weakness of this design?",
+                    "options": {
+                        "A": "It cannot process inputs longer than the block size",
+                        "B": "It is vulnerable to length-extension attacks",
+                        "C": "It requires a secret key to operate correctly",
+                        "D": "It produces variable-length outputs"
+                    },
+                    "correct": "B",
+                    "explanation": "Merkle-Damgard constructions (used in MD5, SHA-1, SHA-2) are vulnerable to length-extension attacks: given $H(m)$, an attacker can compute $H(m \| \text{padding} \| m')$ without knowing $m$. SHA-3 (sponge construction) was designed to avoid this."
+                },
+                {
+                    "id": 5,
+                    "question": "SHA-256 produces a digest of how many bits, and uses a block size of how many bits?",
+                    "options": {
+                        "A": "128-bit digest, 512-bit block",
+                        "B": "256-bit digest, 512-bit block",
+                        "C": "256-bit digest, 256-bit block",
+                        "D": "512-bit digest, 1024-bit block"
+                    },
+                    "correct": "B",
+                    "explanation": "SHA-256 produces a 256-bit (32-byte) message digest. It processes data in 512-bit (64-byte) blocks and uses 64 rounds of compression. SHA-512 uses a 1024-bit block and produces a 512-bit output."
+                },
+                {
+                    "id": 6,
+                    "question": "In SHA-256, what are the main operations applied per round to the eight working variables $a$ through $h$?",
+                    "options": {
+                        "A": "Modular multiplication and polynomial evaluation",
+                        "B": "Bitwise AND, XOR, rotation, and modular addition",
+                        "C": "Substitution boxes (S-boxes) applied to each byte independently",
+                        "D": "Elliptic curve point addition over a finite field"
+                    },
+                    "correct": "B",
+                    "explanation": "Each of SHA-256's 64 rounds uses bitwise operations (AND, XOR, NOT), circular bit rotations (ROTR), and 32-bit modular addition to update the eight working variables. No S-boxes are used — SHA-256 relies entirely on bitwise mixing and addition."
+                },
+                {
+                    "id": 7,
+                    "question": "SHA-256 uses 64 round constants $K_i$. How are these constants derived?",
+                    "options": {
+                        "A": "They are chosen arbitrarily to fill the schedule",
+                        "B": "They are the first 32 bits of the fractional parts of cube roots of the first 64 primes",
+                        "C": "They are the first 32 bits of the fractional parts of square roots of the first 64 primes",
+                        "D": "They are derived from a master secret key"
+                    },
+                    "correct": "B",
+                    "explanation": "The 64 SHA-256 round constants are the first 32 bits of the fractional parts of the cube roots of the first 64 prime numbers (2, 3, 5, ..., 311). The 8 initial hash values are similarly derived from the fractional parts of square roots of the first 8 primes."
+                },
+                {
+                    "id": 8,
+                    "question": "You change the message 'Hello' to 'hello' (lowercase h) and recompute SHA-256. What happens?",
+                    "options": {
+                        "A": "The hash changes by exactly 1 bit due to the single-bit change in ASCII",
+                        "B": "The hash changes by exactly 8 bits (one byte) since only one character differs",
+                        "C": "The hash output is completely different, with roughly half the bits flipped",
+                        "D": "The hash is unchanged because single-character changes are absorbed by padding"
+                    },
+                    "correct": "C",
+                    "explanation": "Due to the avalanche effect, even a 1-bit change (ASCII 'H' vs 'h' differ in one bit) causes approximately 128 of the 256 output bits to change unpredictably. The two hashes appear completely unrelated, which is a core design requirement."
+                },
+                {
+                    "id": 9,
+                    "question": "Which of the following best explains why the avalanche effect is security-critical in a hash function used for password storage?",
+                    "options": {
+                        "A": "It ensures short passwords produce longer hashes",
+                        "B": "It prevents an attacker from learning anything about a password even if a similar password's hash is known",
+                        "C": "It guarantees that brute-force search runs in $O(2^n)$ time",
+                        "D": "It makes the hash function deterministic"
+                    },
+                    "correct": "B",
+                    "explanation": "Without the avalanche effect, an attacker who knows the hash of 'password123' might deduce information about the hash of 'password124'. The avalanche effect ensures that hashes of similar inputs are statistically independent, preventing such inference attacks."
+                },
+                {
+                    "id": 10,
+                    "question": "Why is a 64-bit hash output considered insecure against birthday attacks even if pre-image attacks require $2^{64}$ work?",
+                    "options": {
+                        "A": "Because 64-bit outputs are too short to store on modern hardware",
+                        "B": "Because a birthday collision can be found in $O(2^{32})$ operations, which is feasible",
+                        "C": "Because all 64-bit hash functions have known algebraic weaknesses",
+                        "D": "Because pre-image resistance implies collision resistance for short hashes"
+                    },
+                    "correct": "B",
+                    "explanation": "For a 64-bit hash, the birthday bound is $2^{64/2} = 2^{32} \approx 4$ billion operations — easily achieved with modern hardware. This is why collision-resistant hash functions need outputs of at least 256 bits, giving a birthday bound of $2^{128}$."
+                },
+                {
+                    "id": 11,
+                    "question": "The birthday paradox tells us: in a group of 23 people, the probability that two share a birthday exceeds 50%. Which probability calculation does this mirror in hash security?",
+                    "options": {
+                        "A": "The probability of finding a pre-image after $2^n$ queries",
+                        "B": "The probability of a random collision after $O(\sqrt{N})$ samples from a space of size $N$",
+                        "C": "The probability that two different keys encrypt the same plaintext",
+                        "D": "The probability that a hash chain cycle occurs after $2^n$ steps"
+                    },
+                    "correct": "B",
+                    "explanation": "The birthday paradox generalises to: in a space of $N$ values, a collision occurs with probability ~50% after $O(\sqrt{N})$ random samples. For a hash with $N = 2^n$ outputs, this gives the birthday bound of $O(2^{n/2})$ evaluations."
+                },
+                {
+                    "id": 12,
+                    "question": "SHA-3 uses the Keccak sponge construction. What are the two phases of a sponge function?",
+                    "options": {
+                        "A": "Expand and compress",
+                        "B": "Absorb and squeeze",
+                        "C": "Mix and permute",
+                        "D": "Hash and verify"
+                    },
+                    "correct": "B",
+                    "explanation": "A sponge function has two phases: the absorb phase, where input blocks are XORed into the state and a permutation is applied; and the squeeze phase, where output blocks are read from the state (with permutations between blocks). This avoids Merkle-Damgard length-extension vulnerabilities."
+                },
+                {
+                    "id": 13,
+                    "question": "In the Keccak sponge, the state is divided into a 'rate' $r$ and 'capacity' $c$. Which part directly determines the security level against generic attacks?",
+                    "options": {
+                        "A": "The rate $r$, because it sets the throughput",
+                        "B": "The capacity $c$, because security is bounded by $2^{c/2}$ for collision attacks",
+                        "C": "The sum $r + c$, because total state size determines all security parameters",
+                        "D": "The ratio $r/c$, because efficiency and security are traded off linearly"
+                    },
+                    "correct": "B",
+                    "explanation": "In the sponge construction, the capacity $c$ determines security: collision resistance is bounded by $O(2^{c/2})$ and pre-image resistance by $O(2^c)$. SHA3-256 uses $c = 512$ bits, giving 256-bit collision security. The rate $r$ only affects throughput."
+                },
+                {
+                    "id": 14,
+                    "question": "In AES-128, how many rounds are performed and what is the block size?",
+                    "options": {
+                        "A": "10 rounds, 128-bit block",
+                        "B": "12 rounds, 128-bit block",
+                        "C": "14 rounds, 256-bit block",
+                        "D": "16 rounds, 128-bit block"
+                    },
+                    "correct": "A",
+                    "explanation": "AES always uses a 128-bit block size. The number of rounds depends on the key size: AES-128 uses 10 rounds, AES-192 uses 12 rounds, and AES-256 uses 14 rounds. Each round consists of SubBytes, ShiftRows, MixColumns, and AddRoundKey."
+                },
+                {
+                    "id": 15,
+                    "question": "Which AES operation provides diffusion by treating the state as a matrix and mixing columns using polynomial multiplication in $GF(2^8)$?",
+                    "options": {
+                        "A": "SubBytes",
+                        "B": "ShiftRows",
+                        "C": "MixColumns",
+                        "D": "AddRoundKey"
+                    },
+                    "correct": "C",
+                    "explanation": "MixColumns multiplies each column of the 4x4 state matrix by a fixed polynomial matrix over $GF(2^8)$, spreading the influence of each byte across the entire column. This provides diffusion. SubBytes provides non-linearity (confusion), ShiftRows provides inter-column diffusion, and AddRoundKey applies the round key."
+                },
+                {
+                    "id": 16,
+                    "question": "In AES, why is the SubBytes step (S-box substitution) essential to the cipher's security?",
+                    "options": {
+                        "A": "It increases the key size from 128 to 256 bits",
+                        "B": "It provides non-linearity, making the cipher resistant to linear and differential cryptanalysis",
+                        "C": "It mixes the state columns to achieve diffusion",
+                        "D": "It applies the round key to the state"
+                    },
+                    "correct": "B",
+                    "explanation": "SubBytes applies a non-linear S-box (constructed as a multiplicative inverse in $GF(2^8)$ followed by an affine transform) to each byte. Non-linearity is critical: without it, AES would be a linear transformation, breakable with linear algebra. It provides confusion in Shannon's confusion-diffusion paradigm."
+                },
+                {
+                    "id": 17,
+                    "question": "In CBC (Cipher Block Chaining) mode, how is each plaintext block $P_i$ encrypted?",
+                    "options": {
+                        "A": "$C_i = E_k(P_i)$",
+                        "B": "$C_i = E_k(P_i \oplus C_{i-1})$",
+                        "C": "$C_i = E_k(P_i) \oplus C_{i-1}$",
+                        "D": "$C_i = E_k(C_{i-1}) \oplus P_i$"
+                    },
+                    "correct": "B",
+                    "explanation": "In CBC mode, each plaintext block is XORed with the previous ciphertext block before encryption: $C_i = E_k(P_i \oplus C_{i-1})$. The first block uses a random initialization vector (IV): $C_1 = E_k(P_1 \oplus \text{IV})$. This creates data-dependency that hides patterns in the plaintext."
+                },
+                {
+                    "id": 18,
+                    "question": "CTR (Counter) mode turns a block cipher into a stream cipher. What is a critical requirement for security in CTR mode?",
+                    "options": {
+                        "A": "The counter must start at zero for every message",
+                        "B": "The same nonce-counter pair must never be reused with the same key",
+                        "C": "Each message must be padded to a multiple of the block size",
+                        "D": "The key must be as long as the plaintext"
+                    },
+                    "correct": "B",
+                    "explanation": "In CTR mode, $C_i = P_i \oplus E_k(\text{nonce} \| i)$. If the same key and nonce are reused, the keystream is identical for both messages. An attacker who obtains both ciphertexts can XOR them to eliminate the keystream: $C_1 \oplus C_2 = P_1 \oplus P_2$, revealing the XOR of plaintexts."
+                },
+                {
+                    "id": 19,
+                    "question": "In Diffie-Hellman key exchange over a cyclic group of prime order $q$, Alice sends $g^a \bmod p$ and Bob sends $g^b \bmod p$. What shared secret do they compute?",
+                    "options": {
+                        "A": "$g^{a+b} \bmod p$",
+                        "B": "$g^{a \cdot b} \bmod p$",
+                        "C": "$g^{a \oplus b} \bmod p$",
+                        "D": "$(g^a + g^b) \bmod p$"
+                    },
+                    "correct": "B",
+                    "explanation": "Alice computes $(g^b)^a = g^{ab} \bmod p$ and Bob computes $(g^a)^b = g^{ab} \bmod p$. Both arrive at the same value $g^{ab} \bmod p$ without ever transmitting it. Security relies on the hardness of the discrete logarithm problem: recovering $a$ from $g^a \bmod p$."
+                },
+                {
+                    "id": 20,
+                    "question": "An attacker performs a man-in-the-middle attack on unauthenticated Diffie-Hellman. What does the attacker achieve?",
+                    "options": {
+                        "A": "They learn the discrete logarithm of $g^a \bmod p$",
+                        "B": "They establish separate shared secrets with Alice and Bob, relaying messages between them",
+                        "C": "They can break AES encryption used after the key exchange",
+                        "D": "They can forge digital signatures on the exchanged public values"
+                    },
+                    "correct": "B",
+                    "explanation": "In a MitM attack, the adversary intercepts Alice's $g^a$ and sends their own $g^m$ to Bob, and vice versa. They share $g^{am}$ with Alice and $g^{bm}$ with Bob. Both parties believe they share a secret with each other, but the attacker can decrypt and re-encrypt all traffic. Authentication (e.g., certificates) is needed to prevent this."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

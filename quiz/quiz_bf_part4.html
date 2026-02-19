@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz BF-4: Decentralization &amp; Security | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz BF-4: Decentralization &amp; Security</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz BF-4: Decentralization &amp; Security</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+        <div class="questions-row" id="questionsRow"></div>
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "A 51% attack on a Proof-of-Work blockchain allows an attacker who controls the majority of hash rate to do which of the following?",
+                    "options": {
+                        "A": "Steal coins directly from any wallet address",
+                        "B": "Change the protocol rules and increase the total supply of coins",
+                        "C": "Reverse their own previously confirmed transactions by mining a longer private chain and broadcasting it",
+                        "D": "Decrypt private keys of other users using the extra computation"
+                    },
+                    "correct": "C",
+                    "explanation": "A 51% attacker controls block production and can build a longer private chain that omits or reverses their own transactions — enabling double-spending. However, they cannot steal others' coins, alter transaction history belonging to third parties, forge signatures, or change protocol rules. The full node network enforces consensus rules regardless of hash rate."
+                },
+                {
+                    "id": 2,
+                    "question": "The economic cost to execute a 1-hour 51% attack on a PoW network is approximately proportional to which quantity?",
+                    "options": {
+                        "A": "The square root of the total number of nodes on the network",
+                        "B": "The market capitalisation of the native token divided by the block time",
+                        "C": "The total network hash rate multiplied by the cost per hash (hardware + energy) for the attack duration",
+                        "D": "The number of unconfirmed transactions in the mempool"
+                    },
+                    "correct": "C",
+                    "explanation": "Attack cost ≈ (attack hash rate needed) × (cost per hash) × (duration). The attacker must rent or own hardware exceeding 50% of network hash rate, then pay energy costs for the duration. Sites like crypto51.app estimate this cost using NiceHash rental prices. For large networks like Bitcoin the cost is billions of dollars per hour, making attacks economically irrational when the expected gain is less than the cost."
+                },
+                {
+                    "id": 3,
+                    "question": "Why are smaller altcoins with low total hash rate particularly vulnerable to 51% attacks compared to Bitcoin?",
+                    "options": {
+                        "A": "Smaller coins use weaker cryptographic hash functions",
+                        "B": "The hash rate required to attack is small, can be rented cheaply on mining marketplaces, and the attack cost is often a fraction of the potential double-spend profit",
+                        "C": "Smaller coins have fewer full nodes, so 34% hash rate is sufficient",
+                        "D": "Altcoins run on a different PoW variant that has no attack resistance"
+                    },
+                    "correct": "B",
+                    "explanation": "The security of PoW scales with total hash rate. Low-cap coins using GPU-minable algorithms (e.g., Ethash, Equihash) can have their 51% rented for hours on NiceHash for a few thousand dollars. Successful attacks on Ethereum Classic (2020), Bitcoin Gold, and Vertcoin have demonstrated this. Defences include using unique algorithms not available for rent and requiring more confirmations for high-value transfers."
+                },
+                {
+                    "id": 4,
+                    "question": "The Byzantine Generals Problem models distributed consensus under what adversarial condition?",
+                    "options": {
+                        "A": "Generals whose messages are always delayed but never corrupted",
+                        "B": "Some fraction of participants may be arbitrarily malicious — sending conflicting, false, or selectively withheld messages",
+                        "C": "All generals are honest but communicate over an unreliable channel that drops packets",
+                        "D": "A single traitor general who controls all communication channels"
+                    },
+                    "correct": "B",
+                    "explanation": "The BGP, formalised by Lamport, Shostak, and Pease (1982), asks: can loyal generals reach agreement when some traitors may send arbitrary (Byzantine) messages? This maps directly to blockchain consensus — can honest nodes agree on the correct transaction history when some nodes are malicious? The answer depends critically on the fraction of faulty nodes and the communication model."
+                },
+                {
+                    "id": 5,
+                    "question": "Classical Byzantine Fault Tolerant (BFT) consensus algorithms can tolerate up to what fraction of faulty nodes, and what is the mathematical condition?",
+                    "options": {
+                        "A": "Up to 1/2 faulty nodes; requires $n > 2f$",
+                        "B": "Up to 1/3 faulty nodes; requires $n > 3f$ (i.e., $f < n/3$)",
+                        "C": "Up to 2/3 faulty nodes; requires $n > f/2$",
+                        "D": "Up to 1/4 faulty nodes; requires $n > 4f$"
+                    },
+                    "correct": "B",
+                    "explanation": "The fundamental BFT result states that with $n$ total nodes and $f$ Byzantine (malicious) nodes, agreement is achievable if and only if $f < n/3$, i.e., fewer than one-third of nodes are faulty. With $f \\geq n/3$, an adversary can split the honest nodes into two groups that cannot distinguish honest from malicious messages. PBFT, Tendermint, and HotStuff all operate under this $f < n/3$ bound."
+                },
+                {
+                    "id": 6,
+                    "question": "How does Nakamoto consensus (PoW longest-chain rule) relate to the Byzantine Generals Problem compared to classical BFT protocols?",
+                    "options": {
+                        "A": "Nakamoto consensus solves BFT exactly the same way as PBFT with identical fault tolerance",
+                        "B": "Nakamoto consensus achieves probabilistic BFT in a permissionless setting by making Byzantine behaviour computationally expensive rather than relying on a known fixed set of participants",
+                        "C": "Nakamoto consensus tolerates up to 2/3 Byzantine nodes, making it strictly superior to classical BFT",
+                        "D": "Nakamoto consensus does not address the Byzantine Generals Problem at all"
+                    },
+                    "correct": "B",
+                    "explanation": "Classical BFT assumes a closed, known set of $n$ identified participants and provides deterministic safety with $f < n/3$. Nakamoto consensus works in an open, permissionless setting with an unknown number of participants by anchoring consensus to computational work — Byzantine behaviour requires spending real resources. The trade-off is probabilistic (not deterministic) finality and a higher fault tolerance threshold (up to 50% hash rate rather than 33% of nodes)."
+                },
+                {
+                    "id": 7,
+                    "question": "What is a Sybil attack in the context of peer-to-peer networks?",
+                    "options": {
+                        "A": "An attack where an adversary injects malicious data into a DNS server to redirect users to fake nodes",
+                        "B": "An adversary creates a large number of fake identities (nodes) to gain disproportionate influence over the network — e.g., to manipulate routing, voting, or data availability",
+                        "C": "A replay attack where a signed transaction from one chain is rebroadcast on another chain",
+                        "D": "An eclipse attack where a single node is isolated from the honest network"
+                    },
+                    "correct": "B",
+                    "explanation": "Named after the book about multiple personality disorder, a Sybil attack exploits the cheap creation of digital identities. An attacker running 1,000 fake nodes could constitute the majority of a peer-to-peer overlay, controlling routing, eclipse-attacking victims, or outvoting honest participants. PoW and PoS resist Sybil attacks by binding influence to scarce resources (computation or stake) rather than identities."
+                },
+                {
+                    "id": 8,
+                    "question": "How do Proof-of-Work and Proof-of-Stake each provide Sybil resistance?",
+                    "options": {
+                        "A": "Both require participants to register real-world identities with a certificate authority",
+                        "B": "PoW ties influence to computational work (energy/hardware cost); PoS ties influence to locked capital (staked tokens) — both make fake identity creation expensive",
+                        "C": "PoW uses IP address whitelisting; PoS uses cryptographic certificates",
+                        "D": "Neither provides Sybil resistance; they rely on social reputation instead"
+                    },
+                    "correct": "B",
+                    "explanation": "Sybil resistance requires that creating additional identities has a real cost. In PoW, voting power = hash rate, so 1,000 fake nodes with no hardware have zero influence. In PoS, voting power = stake, so fake validators without locked tokens cannot participate. Both systems convert identity-based attacks into resource-based attacks, dramatically raising the cost of Sybil-style manipulation."
+                },
+                {
+                    "id": 9,
+                    "question": "Bitcoin's peer-to-peer network uses a gossip (epidemic) protocol for transaction and block propagation. What is the key characteristic of gossip protocols?",
+                    "options": {
+                        "A": "Each message is routed through a central relay server for guaranteed delivery",
+                        "B": "Each node forwards received messages to a random subset of its peers, causing information to spread exponentially through the network",
+                        "C": "Messages travel along a deterministic spanning tree computed from node IP addresses",
+                        "D": "Nodes only send messages to geographically closest peers to minimise latency"
+                    },
+                    "correct": "B",
+                    "explanation": "In gossip (epidemic) propagation, each node that receives a new message forwards it to $k$ randomly chosen peers (Bitcoin uses 8 outbound connections). Information spreads exponentially: after $r$ rounds, approximately $k^r$ nodes have the message. This achieves high reliability and decentralisation without a central coordinator, though at the cost of redundant traffic. Bitcoin uses an INV/GETDATA handshake to avoid resending already-known inventory."
+                },
+                {
+                    "id": 10,
+                    "question": "In Bitcoin's P2P network topology, what is the distinction between full nodes and SPV (Simplified Payment Verification) nodes?",
+                    "options": {
+                        "A": "Full nodes mine blocks; SPV nodes only validate transactions",
+                        "B": "Full nodes download and verify the entire blockchain and enforce all consensus rules; SPV nodes only download block headers and verify transaction inclusion via Merkle proofs without checking all consensus rules",
+                        "C": "SPV nodes store the complete UTXO set; full nodes only store block headers",
+                        "D": "Full nodes are run by exchanges; SPV nodes are run by miners"
+                    },
+                    "correct": "B",
+                    "explanation": "Full nodes independently verify every transaction and block against all consensus rules, maintaining the complete UTXO set and blockchain. SPV nodes (as described in Satoshi's whitepaper Section 8) download only 80-byte block headers (~50 MB for all of Bitcoin history) and request Merkle branch proofs from peers to verify specific transactions. SPV is lighter but trusts that the longest PoW chain is valid without independently checking all rules."
+                },
+                {
+                    "id": 11,
+                    "question": "What is a 'soft fork' in blockchain protocol upgrades?",
+                    "options": {
+                        "A": "A backward-incompatible rule change that splits the network into two separate chains",
+                        "B": "A backward-compatible tightening of consensus rules where blocks valid under the new rules are also valid under the old rules, so non-upgraded nodes can still follow the chain",
+                        "C": "A temporary suspension of consensus rules to allow protocol development",
+                        "D": "A fork that affects only smart contract execution, not the base layer"
+                    },
+                    "correct": "B",
+                    "explanation": "A soft fork introduces stricter rules: new-rule blocks are a subset of old-rule valid blocks. Old nodes see the new blocks as valid (though they may not understand new features). Examples: Bitcoin's BIP 66 (strict DER signatures), SegWit (BIP 141), and Taproot. Activation requires only a majority of miners to enforce the new rules. Non-upgraded full nodes remain compatible but may follow an invalid chain if a fork occurs."
+                },
+                {
+                    "id": 12,
+                    "question": "What is a 'hard fork' and why does it risk permanently splitting the network?",
+                    "options": {
+                        "A": "A software update that improves performance without changing consensus rules",
+                        "B": "A backward-incompatible expansion of consensus rules where blocks valid under new rules are rejected by old nodes, potentially creating two divergent chains with separate communities",
+                        "C": "A fork that only affects the mempool policy and does not touch block validation",
+                        "D": "An emergency rollback to a previous block due to a critical bug"
+                    },
+                    "correct": "B",
+                    "explanation": "Hard forks relax or change rules in a backward-incompatible way: new-rule blocks may be invalid under old rules. If not all nodes upgrade, the network splits into two chains (e.g., Bitcoin vs. Bitcoin Cash in 2017, Ethereum vs. Ethereum Classic in 2016). Both chains share history up to the fork block, and users holding the original coin receive coins on both chains. Social coordination for near-universal adoption is required to avoid a lasting split."
+                },
+                {
+                    "id": 13,
+                    "question": "The Nakamoto coefficient measures decentralisation by asking: what is the minimum number of entities whose collusion would be necessary to compromise a specific subsystem (e.g., mining)?",
+                    "options": {
+                        "A": "The total number of nodes on the network",
+                        "B": "The number of mining pools controlling more than 50% of hash rate combined — a higher coefficient means better decentralisation",
+                        "C": "The ratio of full nodes to light clients",
+                        "D": "The geographic distribution of nodes across continents"
+                    },
+                    "correct": "B",
+                    "explanation": "Proposed by Balaji Srinivasan and Leland Lee (2017), the Nakamoto coefficient for a subsystem is the minimum number of entities that together control more than 50% (or a protocol-relevant threshold). For mining, it counts how many pools must collude to reach 51%. A coefficient of 3 means only 3 pools could attack the network — dangerously centralised. Bitcoin historically ranges between 3–5 for mining. Different subsystems (exchanges, developers, nodes) are evaluated separately."
+                },
+                {
+                    "id": 14,
+                    "question": "Which of the following metrics best captures mining centralisation risk from an economic perspective?",
+                    "options": {
+                        "A": "The total number of active wallet addresses",
+                        "B": "The Herfindahl-Hirschman Index (HHI) of mining pool hash rate shares, where higher HHI indicates greater concentration",
+                        "C": "The block propagation latency across the globe",
+                        "D": "The ratio of transaction fees to block subsidies"
+                    },
+                    "correct": "B",
+                    "explanation": "The HHI, standard in antitrust economics, equals the sum of squared market share percentages: $HHI = \\sum_i s_i^2$. For mining pools with shares $s_i$, HHI ranges from near 0 (perfect fragmentation) to 10,000 (monopoly). An HHI above 2,500 indicates high concentration. Unlike the Nakamoto coefficient (which counts entities to a threshold), HHI captures the full distribution of power across all participants, penalising large shares more heavily."
+                },
+                {
+                    "id": 15,
+                    "question": "The blockchain scalability trilemma, as articulated by Vitalik Buterin, states that a system can simultaneously achieve at most two of three properties. What are those three properties?",
+                    "options": {
+                        "A": "Speed, Security, and Privacy",
+                        "B": "Decentralization, Security, and Scalability",
+                        "C": "Throughput, Finality, and Censorship Resistance",
+                        "D": "Interoperability, Programmability, and Efficiency"
+                    },
+                    "correct": "B",
+                    "explanation": "The trilemma posits that optimising for any two of Decentralisation (many independent validators), Security (resistance to attacks), and Scalability (high throughput) comes at the expense of the third. Bitcoin prioritises decentralisation and security at the cost of throughput (~7 TPS). Traditional databases prioritise scalability and security at the cost of decentralisation. Layer 2 solutions attempt to relax the trilemma by moving computation off-chain while anchoring security on-chain."
+                },
+                {
+                    "id": 16,
+                    "question": "In the context of the scalability trilemma, why does simply increasing the block size improve throughput but harm decentralisation?",
+                    "options": {
+                        "A": "Larger blocks require more memory for the UTXO set, pricing out small validators",
+                        "B": "Larger blocks take longer to propagate through the network, increasing orphan rates and favouring large mining pools with better connectivity, and require more bandwidth and storage to run a full node",
+                        "C": "Larger blocks weaken the cryptographic hash function used for mining",
+                        "D": "Larger blocks increase transaction fees, reducing the number of users who can afford to transact"
+                    },
+                    "correct": "B",
+                    "explanation": "Propagation delay for larger blocks increases the probability that two miners find blocks simultaneously (orphan/uncle rate). Large pools with fast inter-pool connections have a lower orphan rate, gaining a competitive advantage and driving out smaller miners. Additionally, running a full node requires more bandwidth, storage, and CPU to process larger blocks, raising the cost of participation and reducing the number of independent validators — directly reducing decentralisation."
+                },
+                {
+                    "id": 17,
+                    "question": "What is a payment channel in the context of Layer 2 scaling, and how does it reduce on-chain transaction load?",
+                    "options": {
+                        "A": "A dedicated fast lane in the base layer blockchain for high-priority transactions",
+                        "B": "A bilateral off-chain ledger where two parties lock funds on-chain and exchange signed balance updates off-chain, settling the final state on-chain only when the channel is closed",
+                        "C": "A smart contract that batches transactions and submits them in a single block every hour",
+                        "D": "A separate blockchain that periodically checkpoints its state to the main chain"
+                    },
+                    "correct": "B",
+                    "explanation": "Payment channels (e.g., Bitcoin Lightning Network) work in three phases: (1) open — an on-chain funding transaction locks coins in a 2-of-2 multisig; (2) update — parties exchange signed commitment transactions off-chain, each reflecting the latest balance, without broadcasting to the chain; (3) close — one party broadcasts the latest commitment, settling the final balance on-chain. The thousands of off-chain updates require only two on-chain transactions total, drastically reducing base-layer congestion."
+                },
+                {
+                    "id": 18,
+                    "question": "Optimistic rollups and ZK-rollups are both Layer 2 scaling techniques. What is the key difference in how they verify the correctness of off-chain transactions?",
+                    "options": {
+                        "A": "ZK-rollups are faster but less secure; optimistic rollups are slower but more secure",
+                        "B": "Optimistic rollups assume transactions are valid and use a fraud-proof challenge window (~7 days) for detection; ZK-rollups post a cryptographic validity proof (SNARK/STARK) on-chain that mathematically guarantees correctness with no challenge period",
+                        "C": "Optimistic rollups use zero-knowledge proofs; ZK-rollups use economic incentives",
+                        "D": "Both use the same verification mechanism but differ in their data availability approach"
+                    },
+                    "correct": "B",
+                    "explanation": "Optimistic rollups (e.g., Optimism, Arbitrum) batch transactions and post state roots on-chain, optimistically assuming validity. Anyone can challenge within ~7 days by submitting a fraud proof, which triggers a dispute game. ZK-rollups (e.g., zkSync, StarkNet) generate a SNARK or STARK proof off-chain that proves the state transition is correct; this proof is verified on-chain in one transaction, enabling near-instant finality but requiring expensive proof generation."
+                },
+                {
+                    "id": 19,
+                    "question": "Which widely-used digital signature algorithm in current blockchains is most threatened by Shor's algorithm running on a sufficiently large quantum computer?",
+                    "options": {
+                        "A": "SHA-256 (used for PoW mining)",
+                        "B": "ECDSA (Elliptic Curve Digital Signature Algorithm) over secp256k1, which underlies Bitcoin and Ethereum transaction signing",
+                        "C": "BLAKE3 (used in Zcash proofs)",
+                        "D": "Keccak-256 (Ethereum's hash function)"
+                    },
+                    "correct": "B",
+                    "explanation": "Shor's algorithm (1994) can solve the discrete logarithm problem on elliptic curves in polynomial time on a quantum computer, breaking ECDSA. An attacker could derive private keys from public keys exposed in transactions. SHA-256 and Keccak are hash functions threatened by Grover's algorithm, which provides only a quadratic speedup (effectively halving bit security to 128 bits for SHA-256) — still considered secure with appropriate key lengths. ECDSA's discrete log problem has no classical sub-exponential algorithm but falls to Shor's."
+                },
+                {
+                    "id": 20,
+                    "question": "What is the proposed post-quantum cryptographic approach being standardised by NIST to replace ECDSA in future blockchain systems?",
+                    "options": {
+                        "A": "Increasing ECDSA key sizes to 4096 bits, which is quantum-resistant",
+                        "B": "Lattice-based signature schemes (e.g., CRYSTALS-Dilithium) and hash-based signatures (e.g., XMSS), which rely on mathematical problems believed to be hard for both classical and quantum computers",
+                        "C": "Symmetric-key cryptography used directly as a signature scheme",
+                        "D": "Fully homomorphic encryption to hide all transaction data"
+                    },
+                    "correct": "B",
+                    "explanation": "NIST's Post-Quantum Cryptography standardisation (finalised 2024) selected CRYSTALS-Dilithium (lattice-based) and SPHINCS+ (hash-based) as primary digital signature standards. Lattice problems (shortest vector, learning with errors) have no known efficient quantum algorithms. Hash-based schemes like XMSS and LMS rely only on the security of the underlying hash function. Ethereum researchers are exploring stateless hash-based signatures; Bitcoin's Taproot/Tapscript design could accommodate future signature scheme upgrades via soft fork."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+
+% Course color palette (copied from beamer preamble)
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Blockchain Fundamentals} \textcolor{mlgray}{|} Lesson 01 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+% ──────────────────────────────────────────────────────────────────────────────
+%  PAGE 1
+% ──────────────────────────────────────────────────────────────────────────────
+
+\section*{\color{mlpurple}What Makes a Digital Ledger Trustworthy?}
+
+\vspace{-2pt}
+\noindent\textcolor{mlgray}{\small Work through the activities below \emph{before} our first session.
+Bring your notes and answers to class.}
+\vspace{4pt}
+
+% ── Activity 1 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 1 — The Broken Telephone}{$\sim$5 min | 3--5 students}{%
+\textbf{Instructions:}
+\begin{enumerate}
+  \item One student writes a short sentence (e.g., \textit{"Send 10 coins to Alice on Tuesday"}) and shows it only to the next student.
+  \item Each student reads the message silently and whispers it to the next, \emph{without re-reading}.
+  \item The last student writes down what they heard.
+\end{enumerate}
+\textbf{Observe:} Compare the original message with the final version.
+Even a single changed word can alter meaning completely.
+
+\vspace{3pt}
+\textbf{Debrief question:} \textit{What mechanism could automatically detect whether a message was altered in transit?} Write your answer below.
+
+\vspace{10pt}
+\noindent\rule{\linewidth}{0.3pt}
+\vspace{6pt}
+}
+
+% ── Activity 2 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 2 — Hash It Yourself}{$\sim$8 min | individual}{%
+\textbf{Mini ASCII table:}
+\texttt{A=65 B=66 C=67 \ldots{} Z=90 \quad a=97 b=98 \ldots{} z=122 \quad (space)=32}
+
+\textbf{Simple checksum rule:} Add the ASCII values of all characters, then take the result \textbf{mod 256}.
+
+\vspace{4pt}
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Input string} & \textbf{Sum of ASCII values} & \textbf{Checksum (mod 256)} \\
+\hline
+\texttt{HELLO} & \fillcell & \fillcell \\
+\hline
+\texttt{HELLP} & \fillcell & \fillcell \\
+\hline
+\texttt{hello} & \fillcell & \fillcell \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{3pt}
+\textbf{Notice:} Changing just one character (\texttt{O}$\to$\texttt{P}) or the case changes the checksum entirely.
+This is the \emph{avalanche effect} — a key property of cryptographic hash functions.
+}
+
+% ── Activity 3 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 3 — Link the Chain}{$\sim$10 min | pairs}{%
+\textbf{Paper exercise:} Create three ``blocks'' on index cards using the checksum from Activity 2.
+
+\vspace{3pt}
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|p{3.2cm}|p{3.2cm}|p{3.2cm}|}
+\hline
+\textbf{Block \#1} & \textbf{Block \#2} & \textbf{Block \#3} \\
+\hline
+Data: \textit{``Alice $\to$ Bob: 5''} & Data: \textit{``Bob $\to$ Carol: 3''} & Data: \textit{``Carol $\to$ Alice: 1''} \\[4pt]
+Prev.\ hash: \textit{0000} (genesis) & Prev.\ hash: \rule{1.8cm}{0.3pt} & Prev.\ hash: \rule{1.8cm}{0.3pt} \\[4pt]
+\textbf{This hash:} \rule{1.8cm}{0.3pt} & \textbf{This hash:} \rule{1.8cm}{0.3pt} & \textbf{This hash:} \rule{1.8cm}{0.3pt} \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{3pt}
+\textbf{Tamper test:} Change the data in Block \#2 (e.g., \textit{"Bob $\to$ Carol: 99"}).
+Recompute its hash. Does Block \#3's ``Prev.\ hash'' field still match?
+\textit{Why does tampering with one block ``break'' all subsequent blocks?}
+}
+
+\newpage
+
+% ──────────────────────────────────────────────────────────────────────────────
+%  PAGE 2
+% ──────────────────────────────────────────────────────────────────────────────
+
+\section*{\color{mlpurple}How Do Strangers Agree?}
+
+\vspace{-2pt}
+\noindent\textcolor{mlgray}{\small Consensus is the heart of every blockchain. These activities explore why it is hard — and how it is solved.}
+\vspace{4pt}
+
+% ── Activity 4 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 4 — The Byzantine Generals}{$\sim$10 min | 6 students}{%
+\textbf{Setup:} Five students are \textcolor{mlgreen}{\textbf{loyal generals}}; one student is secretly a \textcolor{mlred}{\textbf{traitor}}.
+Generals can only communicate by passing written notes.
+The traitor may send \emph{different} messages to different generals.
+
+\textbf{Goal:} All loyal generals must agree on the \emph{same} decision: \textbf{ATTACK} or \textbf{RETREAT}.
+
+\vspace{3pt}
+\textbf{Round 1 (no majority rule):} Each general writes their preference on a card and passes it to every other general. The traitor sends ``ATTACK'' to some and ``RETREAT'' to others. Try to reach agreement.
+
+\vspace{2pt}
+\textbf{Round 2 (with majority rule):} Each general collects all received votes and acts on the majority. Does agreement hold now?
+
+\vspace{3pt}
+\textbf{Key result:} A Byzantine Fault-Tolerant (BFT) system can tolerate up to $\lfloor(n-1)/3\rfloor$ traitors.
+With $n=5$ generals, the system tolerates at most \textbf{1} traitor.
+
+\vspace{3pt}
+\textbf{Discussion:} How does Bitcoin's Proof of Work translate this problem into a computational puzzle? Who plays the role of ``general'' in a blockchain network?
+}
+
+\vspace{2pt}
+
+% ── Activity 5 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 5 — Staking vs.\ Mining}{$\sim$8 min | small groups}{%
+\textbf{Two consensus mechanisms — one goal:} select who gets to add the next block.
+
+\begin{itemize}
+  \item \textbf{Proof of Work (PoW) — Mining:} Validators compete to solve a computationally hard puzzle (find a nonce such that \texttt{hash(block + nonce)} starts with enough zeros). The first solver wins the right to append the block and earns a reward. \textit{Like a lottery where buying more ``tickets'' means running more hardware.}
+  \item \textbf{Proof of Stake (PoS) — Staking:} Validators lock up (\textit{stake}) cryptocurrency as collateral. The protocol pseudo-randomly selects a proposer weighted by stake size. Dishonest behavior is punished by \textit{slashing} their stake.
+\end{itemize}
+
+\vspace{3pt}
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{|l|p{4.2cm}|p{4.2cm}|}
+\hline
+\textbf{Dimension} & \textbf{Proof of Work} & \textbf{Proof of Stake} \\
+\hline
+Energy use & Very high (ASICs run 24/7) & Low (no computation race) \\
+\hline
+Equipment needed & Specialised hardware (ASICs/GPUs) & Cryptocurrency capital \\
+\hline
+Barrier to entry & High (hardware cost) & Moderate (capital requirement) \\
+\hline
+Security model & 51\% hash-rate attack & 33\% stake attack / slashing \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{2pt}
+\textbf{Group question:} Which mechanism is fairer? Which is more accessible to ordinary participants?
+}
+
+\vspace{4pt}
+
+% ── Reflection ────────────────────────────────────────────────────────────────
+\section{Reflection Questions — Bring Your Answers to Class}
+
+\begin{enumerate}[leftmargin=1.8em, label=\textbf{\color{mlpurple}\arabic*.}]
+  \item If you were designing a digital currency from scratch, would you choose Proof of Work or Proof of Stake? Justify your choice with at least two concrete reasons.
+
+  \vspace{8pt}\noindent\rule{\linewidth}{0.3pt}\vspace{2pt}\noindent\rule{\linewidth}{0.3pt}
+  \vspace{4pt}
+
+  \item What real-world systems already rely on consensus among multiple independent parties?
+  \textit{(Consider: national elections, trial juries, scientific peer review, international treaties.)}
+  What do they have in common with blockchain consensus?
+
+  \vspace{8pt}\noindent\rule{\linewidth}{0.3pt}\vspace{2pt}\noindent\rule{\linewidth}{0.3pt}
+  \vspace{4pt}
+
+  \item Can a blockchain be ``too decentralised''? Describe at least two trade-offs that arise when the number of independent validators grows very large.
+  \textit{(Hint: think about latency, coordination cost, and finality time.)}
+
+  \vspace{8pt}\noindent\rule{\linewidth}{0.3pt}\vspace{2pt}\noindent\rule{\linewidth}{0.3pt}
+\end{enumerate}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Blockchain Fundamentals — Lesson 01 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

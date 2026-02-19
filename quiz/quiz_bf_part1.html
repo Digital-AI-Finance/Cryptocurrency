@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz BF-1: Block Anatomy & Hash Chains | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz BF-1: Block Anatomy & Hash Chains</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz BF-1: Block Anatomy & Hash Chains</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Which field in a block uniquely identifies the block's position in the chain?",
+                    "options": {
+                        "A": "nonce",
+                        "B": "timestamp",
+                        "C": "Merkle root",
+                        "D": "index (block height)"
+                    },
+                    "correct": "D",
+                    "explanation": "The index (also called block height) is a sequential integer that records the block's position in the chain, starting at 0 for the genesis block. It uniquely identifies where in the chain a block sits."
+                },
+                {
+                    "id": 2,
+                    "question": "A block's timestamp field records which of the following?",
+                    "options": {
+                        "A": "The Unix time at which the miner claims to have created the block",
+                        "B": "The time the previous block was confirmed",
+                        "C": "The time the first transaction in the block was signed",
+                        "D": "The time the block was received by the majority of nodes"
+                    },
+                    "correct": "A",
+                    "explanation": "The timestamp in a block header is set by the miner and records the approximate time the block was created, expressed as Unix epoch time (seconds since Jan 1, 1970). Nodes accept timestamps within a tolerance window to allow for clock drift."
+                },
+                {
+                    "id": 3,
+                    "question": "In a simplified block structure, which field stores the set of financial transfers included in the block?",
+                    "options": {
+                        "A": "prevHash",
+                        "B": "nonce",
+                        "C": "transactions",
+                        "D": "index"
+                    },
+                    "correct": "C",
+                    "explanation": "The transactions field (or transaction list) stores all the validated transfers of value included in that block. It forms the body of the block, while fields like prevHash, nonce, and index form part of the header."
+                },
+                {
+                    "id": 4,
+                    "question": "What does the `prevHash` field in a block contain?",
+                    "options": {
+                        "A": "A checksum of all previous block indices",
+                        "B": "The public key of the previous miner",
+                        "C": "The hash of the current block's transactions",
+                        "D": "The hash digest of the immediately preceding block"
+                    },
+                    "correct": "D",
+                    "explanation": "The prevHash field stores the SHA-256 digest of the previous block's header. This cryptographic link is what makes the structure a chain: altering any past block changes its hash and breaks the prevHash reference in every subsequent block."
+                },
+                {
+                    "id": 5,
+                    "question": "Which two fields belong to the block HEADER rather than the block BODY?",
+                    "options": {
+                        "A": "script pubkeys and script sigs",
+                        "B": "prevHash and nonce",
+                        "C": "sender addresses and amounts",
+                        "D": "transactions and digital signatures"
+                    },
+                    "correct": "B",
+                    "explanation": "The block header contains metadata: prevHash, Merkle root, timestamp, difficulty target, and nonce. The block body contains the actual transaction data. The header is what gets hashed repeatedly during mining."
+                },
+                {
+                    "id": 6,
+                    "question": "Why do light-weight clients download only the block header and not the full block?",
+                    "options": {
+                        "A": "Headers are faster to mine than full blocks",
+                        "B": "Full blocks are encrypted and inaccessible to light clients",
+                        "C": "Headers contain all the transaction data needed for verification",
+                        "D": "Headers are much smaller and contain enough information to verify chain integrity and perform SPV proofs"
+                    },
+                    "correct": "D",
+                    "explanation": "Block headers (approximately 80 bytes in Bitcoin) are far smaller than full blocks (up to 4 MB). A light client can verify chain integrity by checking prevHash links and validate specific transactions using a Merkle proof, without downloading every transaction."
+                },
+                {
+                    "id": 7,
+                    "question": "Which property of a cryptographic hash function means you cannot recover the input from the output?",
+                    "options": {
+                        "A": "Collision resistance",
+                        "B": "Deterministic",
+                        "C": "Pre-image resistance (one-way)",
+                        "D": "Avalanche effect"
+                    },
+                    "correct": "C",
+                    "explanation": "Pre-image resistance (informally called the one-way property) means that given a hash output $h$, it is computationally infeasible to find any input $m$ such that $H(m) = h$. This protects passwords and ensures miners cannot reverse-engineer a valid nonce."
+                },
+                {
+                    "id": 8,
+                    "question": "The avalanche effect in hash functions means that:",
+                    "options": {
+                        "A": "Multiple inputs can produce the same hash with increasing probability",
+                        "B": "The hash function slows down as data size increases",
+                        "C": "Larger inputs produce longer hash outputs",
+                        "D": "A single-bit change in the input changes approximately half the output bits"
+                    },
+                    "correct": "D",
+                    "explanation": "The avalanche effect guarantees that even a minimal change to the input (flipping one bit) causes roughly 50% of the output bits to change unpredictably. This makes it impossible to make small adjustments to a block and keep its hash near a target."
+                },
+                {
+                    "id": 9,
+                    "question": "Collision resistance in a hash function means it is computationally infeasible to find:",
+                    "options": {
+                        "A": "The original input given only its hash",
+                        "B": "Two distinct inputs $m_1 \\neq m_2$ such that $H(m_1) = H(m_2)$",
+                        "C": "A hash that matches a given digital signature",
+                        "D": "Any input that produces a hash starting with zeros"
+                    },
+                    "correct": "B",
+                    "explanation": "Collision resistance means no efficient algorithm can find two different messages that hash to the same value. If SHA-256 were not collision resistant, an attacker could substitute a fraudulent transaction block for a legitimate one with the same hash."
+                },
+                {
+                    "id": 10,
+                    "question": "Which property guarantees that SHA-256 always produces the same 256-bit output for the identical input, making verification reproducible?",
+                    "options": {
+                        "A": "Determinism",
+                        "B": "Second pre-image resistance",
+                        "C": "Pre-image resistance",
+                        "D": "Collision resistance"
+                    },
+                    "correct": "A",
+                    "explanation": "Determinism means the hash function is a pure function: the same input always yields the same output, with no randomness. Every node in the network can independently recompute a block's hash and arrive at the exact same value, enabling trustless verification."
+                },
+                {
+                    "id": 11,
+                    "question": "SHA-256 produces a digest of exactly how many bits?",
+                    "options": {
+                        "A": "512 bits",
+                        "B": "128 bits",
+                        "C": "160 bits",
+                        "D": "256 bits"
+                    },
+                    "correct": "D",
+                    "explanation": "SHA-256 always outputs a fixed 256-bit (32-byte) digest regardless of input size. The output space of $2^{256}$ possible values makes brute-force collision search practically impossible with current or foreseeable technology."
+                },
+                {
+                    "id": 12,
+                    "question": "SHA-256 is based on which construction that processes data in fixed-size blocks by chaining compression rounds?",
+                    "options": {
+                        "A": "Davies-Meyer construction only",
+                        "B": "Sponge construction",
+                        "C": "Merkle-Damgard construction",
+                        "D": "Feistel network"
+                    },
+                    "correct": "C",
+                    "explanation": "SHA-256 uses the Merkle-Damgard construction: the message is padded and split into 512-bit blocks; each block is processed through a compression function that takes the current chaining value and the message block as input, producing a new chaining value. The final chaining value is the hash."
+                },
+                {
+                    "id": 13,
+                    "question": "A hash pointer in blockchain combines which two pieces of information?",
+                    "options": {
+                        "A": "A block index and a timestamp",
+                        "B": "A memory address and an encryption key",
+                        "C": "The location of a data block and the cryptographic hash of that data",
+                        "D": "A public key and a digital signature"
+                    },
+                    "correct": "C",
+                    "explanation": "A hash pointer stores both where to find the data and a cryptographic hash of that data. If the data is later altered, the hash no longer matches, making the tampering immediately detectable. The prevHash field in each block is effectively a hash pointer to the previous block."
+                },
+                {
+                    "id": 14,
+                    "question": "If block 500 is altered, which subsequent blocks must be rehashed to produce a valid chain?",
+                    "options": {
+                        "A": "Only the block immediately after block 500",
+                        "B": "Only block 500 itself",
+                        "C": "All blocks from 501 onward to the chain tip",
+                        "D": "Blocks 499 and 498 only"
+                    },
+                    "correct": "C",
+                    "explanation": "Altering block 500 changes its hash. Block 501's prevHash now points to the old (invalid) hash, so block 501 must be rehashed. This change invalidates block 502, and so on. Every block from 501 to the chain tip must be recomputed, requiring enormous computational work."
+                },
+                {
+                    "id": 15,
+                    "question": "In a blockchain hash chain, the genesis block's prevHash field is set to:",
+                    "options": {
+                        "A": "The hash of the first miner's address",
+                        "B": "The hash of the network's public key",
+                        "C": "The hash of a special initialization string",
+                        "D": "All zeros (or a null value), since there is no predecessor"
+                    },
+                    "correct": "D",
+                    "explanation": "Because the genesis block has no predecessor, its prevHash is conventionally set to all zeros (0x000...000). This is hardcoded in the protocol and serves as the anchor point from which the entire chain extends."
+                },
+                {
+                    "id": 16,
+                    "question": "Bitcoin's genesis block (block 0) was mined by Satoshi Nakamoto on which date, and contains a famous embedded message?",
+                    "options": {
+                        "A": "January 3, 2009 — a headline from The Times about bank bailouts",
+                        "B": "October 31, 2008 — the Bitcoin whitepaper publication date",
+                        "C": "January 1, 2009 — a New Year's message",
+                        "D": "December 25, 2008 — a Christmas message"
+                    },
+                    "correct": "A",
+                    "explanation": "Bitcoin's genesis block was mined on January 3, 2009. Satoshi embedded the headline 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks' in the coinbase data, proving no coins were pre-mined before that date and commenting on the traditional financial system."
+                },
+                {
+                    "id": 17,
+                    "question": "An attacker modifies a transaction in block 300 of a 700-block chain. What must happen for the attack to succeed?",
+                    "options": {
+                        "A": "The attacker needs to forge the digital signatures on the altered transactions only",
+                        "B": "The attacker must convince one mining pool to accept the change",
+                        "C": "The attacker must recompute valid proofs-of-work for blocks 300 through 700 faster than the honest network adds new blocks",
+                        "D": "The attacker only needs to recompute block 300's hash"
+                    },
+                    "correct": "C",
+                    "explanation": "Modifying block 300 invalidates all subsequent hash links. The attacker must redo the proof-of-work for blocks 300-700 (400 blocks) and outpace the honest chain. With less than 50% hash power this is statistically impossible as the honest chain grows faster."
+                },
+                {
+                    "id": 18,
+                    "question": "Which of the following best explains why changing even one byte of transaction data in a block makes the entire block invalid?",
+                    "options": {
+                        "A": "The timestamp becomes inconsistent with network time",
+                        "B": "The block's hash changes due to the avalanche effect, and the new hash no longer meets the difficulty target",
+                        "C": "The block's index changes when data is modified",
+                        "D": "Nodes automatically reject blocks with different transaction counts"
+                    },
+                    "correct": "B",
+                    "explanation": "Any change to block data changes the block's hash completely (avalanche effect). Because a valid block hash must satisfy the difficulty target (e.g., begin with a required number of leading zeros), the new hash almost certainly fails this check. The block becomes invalid and the proof-of-work must be redone."
+                },
+                {
+                    "id": 19,
+                    "question": "A Bitcoin block has a maximum size of 1 MB (legacy) or up to 4 MB weight units (SegWit). Approximately how many standard transactions fit in a 1 MB block?",
+                    "options": {
+                        "A": "Around 10 transactions",
+                        "B": "Around 100,000 transactions",
+                        "C": "Around 100 transactions",
+                        "D": "Around 1,000-2,000 transactions"
+                    },
+                    "correct": "D",
+                    "explanation": "A typical Bitcoin transaction is roughly 250-500 bytes. In a 1 MB (1,000,000 byte) block, this allows approximately 2,000-4,000 simple transactions. Complex multi-input/multi-output transactions are larger, reducing the count. This capacity constraint is central to the Bitcoin scalability debate."
+                },
+                {
+                    "id": 20,
+                    "question": "Block capacity limits affect throughput directly. If Bitcoin targets one 1 MB block every 10 minutes and the average transaction is 500 bytes, what is the approximate maximum transactions per second (TPS)?",
+                    "options": {
+                        "A": "Approximately 33 TPS",
+                        "B": "Approximately 3.3 TPS",
+                        "C": "Approximately 3,300 TPS",
+                        "D": "Approximately 333 TPS"
+                    },
+                    "correct": "B",
+                    "explanation": "At 500 bytes per transaction: 1,000,000 / 500 = 2,000 transactions per block. With one block every 600 seconds: 2,000 / 600 ≈ 3.3 TPS. This low throughput compared to Visa (~24,000 TPS) is a core motivation for layer-2 solutions like the Lightning Network."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

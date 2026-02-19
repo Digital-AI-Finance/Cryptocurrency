@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz CS-3: Key Management &amp; Wallets | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz CS-3: Key Management &amp; Wallets</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz CS-3: Key Management &amp; Wallets</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "How many words does a BIP-39 mnemonic phrase typically contain, and from how large a wordlist are they drawn?",
+                    "options": {
+                        "A": "12 or 24 words drawn from a 2048-word wordlist",
+                        "B": "16 words drawn from a 1024-word wordlist",
+                        "C": "12 words drawn from a 4096-word wordlist",
+                        "D": "24 words drawn from a 65536-word wordlist"
+                    },
+                    "correct": "A",
+                    "explanation": "BIP-39 defines mnemonic phrases of 12, 15, 18, 21, or 24 words (most commonly 12 or 24) selected from a fixed 2048-word wordlist. Each word encodes 11 bits, so 12 words encode 132 bits (128 bits entropy + 4-bit checksum)."
+                },
+                {
+                    "id": 2,
+                    "question": "In BIP-39, the mnemonic is converted to a 512-bit seed using which key-stretching function?",
+                    "options": {
+                        "A": "bcrypt with cost factor 12",
+                        "B": "PBKDF2 with HMAC-SHA512, 2048 iterations, and an optional passphrase as salt",
+                        "C": "scrypt with $N=2^{14}$, $r=8$, $p=1$",
+                        "D": "Argon2id with 3 iterations and 64 MB memory"
+                    },
+                    "correct": "B",
+                    "explanation": "BIP-39 specifies PBKDF2(mnemonic, 'mnemonic' + passphrase, 2048, SHA512) to derive the 512-bit master seed. The fixed salt prefix 'mnemonic' combined with an optional user passphrase provides additional security."
+                },
+                {
+                    "id": 3,
+                    "question": "A BIP-39 mnemonic of 24 words encodes how many bits of entropy (ignoring the checksum)?",
+                    "options": {
+                        "A": "128 bits",
+                        "B": "192 bits",
+                        "C": "256 bits",
+                        "D": "512 bits"
+                    },
+                    "correct": "C",
+                    "explanation": "24 words × 11 bits = 264 bits total. The last 8 bits are a checksum (SHA-256 of the entropy, take first 8 bits), leaving 256 bits of actual entropy. A 12-word mnemonic encodes 128 bits of entropy."
+                },
+                {
+                    "id": 4,
+                    "question": "What is the purpose of the optional BIP-39 passphrase (sometimes called the 25th word)?",
+                    "options": {
+                        "A": "It increases the wordlist size to improve entropy",
+                        "B": "It acts as a second factor: a different passphrase produces a completely different wallet",
+                        "C": "It is required by all BIP-39 implementations and has no optional status",
+                        "D": "It replaces the checksum word in the mnemonic sequence"
+                    },
+                    "correct": "B",
+                    "explanation": "The BIP-39 passphrase is mixed into the PBKDF2 salt. Any passphrase (including the empty string) is valid; different passphrases deterministically produce entirely different master seeds and thus different wallets, enabling plausible deniability."
+                },
+                {
+                    "id": 5,
+                    "question": "In BIP-32 Hierarchical Deterministic (HD) wallets, what are the two outputs produced by the master key generation step from a 512-bit seed?",
+                    "options": {
+                        "A": "A 256-bit master private key and a 256-bit master chain code",
+                        "B": "A 512-bit master private key and a 512-bit master public key",
+                        "C": "A 256-bit master public key and a 256-bit HMAC key",
+                        "D": "A 128-bit master key and a 384-bit extended key"
+                    },
+                    "correct": "A",
+                    "explanation": "BIP-32 passes the 512-bit seed through HMAC-SHA512 with key 'Bitcoin seed'. The left 256 bits become the master private key $k_m$, and the right 256 bits become the master chain code $c_m$. Together they form the extended master private key."
+                },
+                {
+                    "id": 6,
+                    "question": "What distinguishes a BIP-32 hardened child key derivation from a normal (non-hardened) derivation?",
+                    "options": {
+                        "A": "Hardened derivation uses the parent public key; normal derivation uses the parent private key",
+                        "B": "Hardened derivation uses the parent private key as input; normal derivation uses the parent public key, preventing xpub compromise from leaking child private keys",
+                        "C": "Hardened keys use SHA-256; normal keys use SHA-512",
+                        "D": "Hardened derivation produces longer keys; normal derivation produces shorter keys"
+                    },
+                    "correct": "B",
+                    "explanation": "In hardened derivation (index $i \geq 2^{31}$), the HMAC-SHA512 input includes the parent private key, so the child private key cannot be derived from the parent extended public key (xpub). In normal derivation the parent public key is used, enabling watch-only wallets but creating a vulnerability if both xpub and a child private key are leaked."
+                },
+                {
+                    "id": 7,
+                    "question": "What is the BIP-32 extended public key (xpub) used for in practice?",
+                    "options": {
+                        "A": "Signing transactions without exposing the private key",
+                        "B": "Generating a sequence of child public keys for a watch-only wallet without knowledge of any private key",
+                        "C": "Encrypting wallet backup files",
+                        "D": "Deriving hardened child keys from a public key"
+                    },
+                    "correct": "B",
+                    "explanation": "An xpub (extended public key = public key + chain code) allows a watch-only wallet to derive an unlimited sequence of child public keys and thus deposit addresses without ever holding a private key. This is used by hardware wallets and merchant systems to receive funds securely."
+                },
+                {
+                    "id": 8,
+                    "question": "In BIP-32, why is it dangerous to share both an extended public key (xpub) and any descendant private key with an attacker?",
+                    "options": {
+                        "A": "The attacker can derive all sibling public keys and spend funds",
+                        "B": "The attacker can combine the xpub's chain code with the child private key to recover the parent private key, compromising the entire subtree",
+                        "C": "The attacker gains access to the BIP-39 mnemonic directly",
+                        "D": "The xpub contains an encrypted copy of the master private key"
+                    },
+                    "correct": "B",
+                    "explanation": "For non-hardened children, knowing the parent xpub (which contains the chain code) and any child private key allows reconstruction of the parent private key. This is why sensitive accounts should use hardened derivation, breaking the public-key derivation chain."
+                },
+                {
+                    "id": 9,
+                    "question": "According to BIP-44, what does the derivation path $m/44'/0'/0'/0/5$ represent?",
+                    "options": {
+                        "A": "The 5th change address of the first Bitcoin account",
+                        "B": "The 6th external (receive) address of the first Bitcoin account",
+                        "C": "The 5th hardened account index for coin type 0",
+                        "D": "The master key at depth 5 in the Bitcoin hierarchy"
+                    },
+                    "correct": "B",
+                    "explanation": "BIP-44 path: $m / purpose' / coin\\_type' / account' / change / address\\_index$. Here: purpose=44' (BIP-44), coin_type=0' (Bitcoin), account=0' (first account), change=0 (external/receive chain), address_index=5 (sixth address, 0-indexed). So this is the 6th receive address of the first Bitcoin account."
+                },
+                {
+                    "id": 10,
+                    "question": "In the BIP-44 derivation path, what does the 'change' level value of 1 signify?",
+                    "options": {
+                        "A": "The second account in the wallet hierarchy",
+                        "B": "The internal chain used for change addresses returned to the wallet itself",
+                        "C": "A hardened derivation step",
+                        "D": "The coin type for Litecoin"
+                    },
+                    "correct": "B",
+                    "explanation": "BIP-44 defines change=0 as the external chain (public-facing receive addresses) and change=1 as the internal chain (change addresses). Change addresses receive the unspent remainder of a transaction and should not be reused for privacy."
+                },
+                {
+                    "id": 11,
+                    "question": "What coin type index does BIP-44 assign to Ethereum?",
+                    "options": {
+                        "A": "0'",
+                        "B": "2'",
+                        "C": "60'",
+                        "D": "195'"
+                    },
+                    "correct": "C",
+                    "explanation": "SLIP-0044 (which extends BIP-44) assigns coin type 0' to Bitcoin, 60' to Ethereum, 2' to Litecoin, and 195' to TRON. Ethereum's standard derivation path is therefore $m/44'/60'/0'/0/i$."
+                },
+                {
+                    "id": 12,
+                    "question": "What is the primary security advantage of a hardware wallet over a software wallet?",
+                    "options": {
+                        "A": "Hardware wallets support more cryptocurrencies",
+                        "B": "Private keys are generated and stored in a tamper-resistant secure element and never exposed to the host computer",
+                        "C": "Hardware wallets do not require a PIN or passphrase",
+                        "D": "Hardware wallets store keys in the cloud for easy recovery"
+                    },
+                    "correct": "B",
+                    "explanation": "Hardware wallets (e.g., Ledger, Trezor) keep private keys inside a secure element or microcontroller. Signing operations occur on-device; the host computer only sends unsigned transactions and receives signatures. Even if the host is compromised by malware, private keys are never exposed."
+                },
+                {
+                    "id": 13,
+                    "question": "What is a 'supply chain attack' in the context of hardware wallets?",
+                    "options": {
+                        "A": "An attack that steals the seed phrase during PBKDF2 computation",
+                        "B": "Tampering with the device before it reaches the user, e.g., pre-loading malicious firmware or extracting the secure element",
+                        "C": "Intercepting the USB connection to steal transaction data",
+                        "D": "Brute-forcing the hardware wallet PIN offline"
+                    },
+                    "correct": "B",
+                    "explanation": "A supply chain attack targets the device between manufacture and delivery: a malicious actor intercepts the device, installs modified firmware or hardware backdoors, and repackages it. Defenses include buying from official sources, verifying firmware signatures, and initialising the device oneself with a fresh seed."
+                },
+                {
+                    "id": 14,
+                    "question": "What is a hardware wallet attestation/verification check and why is it important?",
+                    "options": {
+                        "A": "It verifies the device's battery level before signing",
+                        "B": "It cryptographically confirms that the device firmware is genuine and unmodified, protecting against supply chain attacks",
+                        "C": "It checks the PIN length requirements",
+                        "D": "It synchronises the hardware clock with network time"
+                    },
+                    "correct": "B",
+                    "explanation": "Attestation uses a device-unique key provisioned at the factory to sign a challenge from the host application. If the signature verifies against the manufacturer's public key, the firmware and hardware are genuine. This detects tampering introduced during shipping or resale."
+                },
+                {
+                    "id": 15,
+                    "question": "What is the key difference between a hot wallet and a cold wallet?",
+                    "options": {
+                        "A": "Hot wallets hold more cryptocurrency; cold wallets hold less",
+                        "B": "Hot wallets are connected to the internet and thus more exposed to online attacks; cold wallets are kept offline",
+                        "C": "Hot wallets use symmetric encryption; cold wallets use asymmetric encryption",
+                        "D": "Hot wallets are hardware devices; cold wallets are software applications"
+                    },
+                    "correct": "B",
+                    "explanation": "A hot wallet maintains an active internet connection (e.g., exchange wallets, mobile apps), enabling quick transactions but exposing keys to remote attacks. A cold wallet (hardware wallet, paper wallet, air-gapped computer) is kept offline, eliminating remote attack surface at the cost of convenience."
+                },
+                {
+                    "id": 16,
+                    "question": "Which storage strategy is most appropriate for a cryptocurrency exchange holding customer funds?",
+                    "options": {
+                        "A": "Keep 100% of funds in a hot wallet for liquidity",
+                        "B": "Keep a small operational fraction in hot wallets and the majority in cold storage with multi-signature controls",
+                        "C": "Distribute all funds equally across hot and cold storage",
+                        "D": "Use a single hardware wallet for all funds"
+                    },
+                    "correct": "B",
+                    "explanation": "Best practice for exchanges (e.g., Coinbase, Kraken) is to hold ~95-98% of funds in air-gapped cold storage with multi-signature authorisation and keep only a small liquidity reserve in hot wallets. This minimises exposure from exchange hacks while maintaining withdrawal capability."
+                },
+                {
+                    "id": 17,
+                    "question": "What does a BIP-32 xpub (extended public key) consist of, and what does it NOT contain?",
+                    "options": {
+                        "A": "The compressed public key, the chain code, depth, fingerprint, and child index — it does NOT contain any private key material",
+                        "B": "The private key encrypted with a passphrase, plus the chain code",
+                        "C": "The public key only, with no additional data",
+                        "D": "The master seed and the public key concatenated"
+                    },
+                    "correct": "A",
+                    "explanation": "A serialised xpub (Base58Check, 78 bytes) contains: version (4 bytes), depth (1), parent fingerprint (4), child index (4), chain code (32), compressed public key (33). It contains no private key material, which is why it is safe to share for watch-only/receive purposes."
+                },
+                {
+                    "id": 18,
+                    "question": "An xpub at path $m/44'/0'/0'$ is shared with a watch-only wallet. At which level can the watch-only wallet derive keys without any private key?",
+                    "options": {
+                        "A": "Only at path $m/44'/0'/0'$ itself",
+                        "B": "At all non-hardened child paths below $m/44'/0'/0'$, such as $m/44'/0'/0'/0/i$ and $m/44'/0'/0'/1/i$",
+                        "C": "At all paths including hardened children of $m/44'/0'/0'$",
+                        "D": "The xpub cannot be used for key derivation at all"
+                    },
+                    "correct": "B",
+                    "explanation": "From an xpub at a given depth, a watch-only wallet can derive all non-hardened descendants. For BIP-44 this means the external (change=0) and internal (change=1) address chains. It cannot derive hardened children (index >= 2^31) because those require the private key."
+                },
+                {
+                    "id": 19,
+                    "question": "What is Shamir's Secret Sharing (SSS) and how is it applied to wallet seed backup?",
+                    "options": {
+                        "A": "SSS encrypts the seed with AES-256 and splits the ciphertext into equal parts",
+                        "B": "SSS splits the seed into $n$ shares using a polynomial over a finite field; any $k$ shares reconstruct the secret, but $k-1$ shares reveal nothing",
+                        "C": "SSS hashes the seed $n$ times and distributes the hash chain",
+                        "D": "SSS is a multi-signature scheme requiring $k$-of-$n$ hardware wallets to sign"
+                    },
+                    "correct": "B",
+                    "explanation": "Shamir's Secret Sharing (Shamir 1979) constructs a random degree-$(k-1)$ polynomial over $\mathbb{F}_p$ with the secret as the constant term, then distributes $n$ point evaluations as shares. Any $k$ shares interpolate the polynomial (Lagrange) to recover the secret; fewer than $k$ shares are information-theoretically useless. SLIP-39 applies this to HD wallet seeds."
+                },
+                {
+                    "id": 20,
+                    "question": "What is the difference between wallet recovery via a BIP-39 mnemonic and via SLIP-39 Shamir shares?",
+                    "options": {
+                        "A": "BIP-39 uses a single phrase; SLIP-39 splits the seed into multiple shares with a $k$-of-$n$ threshold, reducing single-point-of-failure risk",
+                        "B": "BIP-39 produces a 512-bit seed; SLIP-39 produces a 256-bit seed",
+                        "C": "SLIP-39 is compatible with BIP-32 but BIP-39 is not",
+                        "D": "BIP-39 mnemonics are split across multiple devices by default; SLIP-39 uses a single phrase"
+                    },
+                    "correct": "A",
+                    "explanation": "A BIP-39 mnemonic is a single secret: losing or exposing it is catastrophic. SLIP-39 (Satoshi Labs) applies Shamir's Secret Sharing to create $n$ share-phrases from the master secret with a $k$-of-$n$ recovery threshold. This allows geographic distribution of shares, tolerating up to $n-k$ lost shares while requiring compromise of $k$ shares to steal funds."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>
