@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz ES-2: Gas Mechanics &amp; EIP-1559 | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">ES-2: Gas Mechanics &amp; EIP-1559</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">ES-2: Gas Mechanics &amp; EIP-1559</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the fundamental purpose of gas in the Ethereum Virtual Machine?",
+                    "options": {
+                        "A": "Gas is a token earned by miners for validating transactions",
+                        "B": "Gas measures computational work to prevent infinite loops and allocate block space fairly",
+                        "C": "Gas is the unit of account for ETH denominated in wei",
+                        "D": "Gas tracks the number of signatures required to authorize a multisig transaction"
+                    },
+                    "correct": "B",
+                    "explanation": "Gas solves the halting problem on a decentralized network: since the EVM is Turing-complete, any program could potentially run forever. By assigning a gas cost to every opcode and requiring upfront payment, the EVM guarantees termination — when gas runs out, execution halts and state reverts. Gas also creates a price signal for block space, preventing spam and ensuring rational resource allocation across competing transactions."
+                },
+                {
+                    "id": 2,
+                    "question": "What is the gas cost of a simple ETH transfer between two EOAs (no contract interaction)?",
+                    "options": {
+                        "A": "10,000 gas",
+                        "B": "21,000 gas",
+                        "C": "32,000 gas",
+                        "D": "50,000 gas"
+                    },
+                    "correct": "B",
+                    "explanation": "A plain ETH transfer costs exactly 21,000 gas — a fixed base cost covering transaction validation overhead (signature verification, nonce check, balance check, state update). This number is hardcoded in the protocol. Any transaction with non-empty calldata or that triggers EVM execution costs more: each non-zero calldata byte adds 16 gas, each zero byte adds 4 gas, and EVM opcodes have their own costs on top."
+                },
+                {
+                    "id": 3,
+                    "question": "What is the gas cost of the ADD opcode in the EVM, and what does this reflect about EVM design?",
+                    "options": {
+                        "A": "100 gas, reflecting the high cost of 256-bit integer arithmetic",
+                        "B": "3 gas, reflecting that simple arithmetic is cheap relative to storage and I/O",
+                        "C": "1 gas, making arithmetic effectively free to encourage on-chain computation",
+                        "D": "21 gas, matching the base transaction cost per operation"
+                    },
+                    "correct": "B",
+                    "explanation": "ADD costs 3 gas. The EVM gas schedule reflects real computational cost: cheap opcodes (ADD, SUB, MUL at 3-5 gas) are fast CPU operations. Storage operations are expensive (SLOAD: 2100 gas cold, 100 gas warm; SSTORE: up to 22,100 gas cold write) because they touch persistent state that every full node must store and sync. This pricing hierarchy incentivizes developers to minimize storage access."
+                },
+                {
+                    "id": 4,
+                    "question": "A Solidity developer uses SSTORE to write a new non-zero value to a storage slot for the first time. What is the gas cost?",
+                    "options": {
+                        "A": "800 gas (the base write cost)",
+                        "B": "5,000 gas (the warm write cost)",
+                        "C": "20,000 gas (the cold, dirty write cost for setting a zero slot to non-zero)",
+                        "D": "100 gas (storage writes are subsidized by the protocol)"
+                    },
+                    "correct": "C",
+                    "explanation": "SSTORE gas costs vary by current and new value. Writing a non-zero value to a slot that was zero (first write) costs 22,100 gas: 2,100 gas for the cold access fee + 20,000 gas for the 'dirty' set operation. This high cost reflects the permanent state expansion imposed on all full nodes. If a slot is already warm (accessed in same transaction) and was previously non-zero, costs are much lower (100-2,900 gas depending on the transition)."
+                },
+                {
+                    "id": 5,
+                    "question": "What does 'gasLimit' mean in an Ethereum transaction, and what happens if execution exceeds it?",
+                    "options": {
+                        "A": "gasLimit is the maximum gas price the user is willing to pay; exceeding it causes the transaction to be dropped from the mempool",
+                        "B": "gasLimit is the maximum gas the user allows the transaction to consume; if exceeded, execution reverts but the gas is still charged",
+                        "C": "gasLimit is the block-level gas cap set by validators; individual transactions cannot set their own limit",
+                        "D": "gasLimit specifies the gas refund the user expects to receive back after execution"
+                    },
+                    "correct": "B",
+                    "explanation": "Every transaction includes a gasLimit set by the sender — the maximum gas units they authorize spending. The EVM tracks gas consumed opcode by opcode. If consumption hits the limit before execution finishes, an 'out of gas' exception fires: all state changes revert (as if the transaction never ran), but the sender still pays for all gas used up to the limit. This prevents griefing via infinite loops while ensuring validators are compensated for work done."
+                },
+                {
+                    "id": 6,
+                    "question": "In EIP-1559, what happens to the base fee portion of every transaction fee?",
+                    "options": {
+                        "A": "It goes to the block proposer (validator) as their primary reward",
+                        "B": "It is burned — permanently removed from the ETH supply",
+                        "C": "It goes to a protocol treasury that funds Ethereum development",
+                        "D": "It is redistributed to all stakers proportional to their stake"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-1559's defining feature is base fee burning. Every unit of gas consumed multiplied by the base fee is destroyed (sent to address(0) effectively). This creates deflationary pressure: when network demand is high and fees are elevated, ETH burns faster than it is issued to validators. During periods of heavy usage Ethereum has been net deflationary — total supply decreased. This fundamentally changed ETH's monetary policy."
+                },
+                {
+                    "id": 7,
+                    "question": "A transaction has maxFeePerGas = 50 gwei, maxPriorityFeePerGas = 3 gwei, and the current base fee is 40 gwei. How much ETH does the user actually pay per gas unit, and how much goes to the validator?",
+                    "options": {
+                        "A": "User pays 50 gwei; validator receives 50 gwei",
+                        "B": "User pays 43 gwei; validator receives 43 gwei",
+                        "C": "User pays 43 gwei; validator receives 3 gwei; 40 gwei is burned",
+                        "D": "User pays 40 gwei; validator receives 0 gwei; 40 gwei is burned"
+                    },
+                    "correct": "C",
+                    "explanation": "The effective gas price = min(maxFeePerGas, baseFee + maxPriorityFeePerGas) = min(50, 40+3) = 43 gwei. The user pays 43 gwei per gas. Of that: 40 gwei (base fee) is burned, and 3 gwei (priority fee/tip) goes to the validator. The maxFeePerGas cap protects users from paying more than 50 gwei even if the base fee spikes — the transaction would simply not be included if baseFee > maxFeePerGas."
+                },
+                {
+                    "id": 8,
+                    "question": "What is the Ethereum mempool, and how do transactions move from the mempool to a block?",
+                    "options": {
+                        "A": "A permanent on-chain registry of pending transactions maintained by smart contracts",
+                        "B": "A local in-memory pool of valid, unconfirmed transactions; validators select transactions (usually highest priority fee first) to include in their proposed block",
+                        "C": "A distributed database shared between all Ethereum nodes with global consensus on ordering",
+                        "D": "A Layer 2 sequencer queue that batches transactions before posting them to mainnet"
+                    },
+                    "correct": "B",
+                    "explanation": "The mempool (memory pool) is each node's local set of valid, unconfirmed transactions received from peers. There is no single global mempool — nodes propagate transactions via gossip, but each maintains its own view. When a validator is selected to propose a block, they choose from their mempool (subject to block gas limit), typically prioritizing highest priority fee (tip). After The Merge, MEV-Boost allows validators to outsource block construction to specialized builders who extract maximum extractable value."
+                },
+                {
+                    "id": 9,
+                    "question": "What is a transaction receipt in Ethereum, and which key fields does it contain?",
+                    "options": {
+                        "A": "A receipt is a signed acknowledgment from the recipient confirming they received ETH",
+                        "B": "A receipt is a post-execution record containing status (success/failure), gasUsed, logs, and bloom filter",
+                        "C": "A receipt is the calldata of the original transaction stored for future reference",
+                        "D": "A receipt is the block header hash proving the transaction was included in a specific block"
+                    },
+                    "correct": "B",
+                    "explanation": "After a transaction executes, the EVM produces a receipt containing: status (1 = success, 0 = revert), cumulativeGasUsed (total gas used in block up to this tx), logs (event emissions), and logsBloom (a 2048-bit Bloom filter for fast log queries). Receipts are stored in the receiptsRoot Merkle trie of the block header. They are essential for dApps: events (logs) are the primary mechanism for contracts to communicate off-chain state changes to frontends."
+                },
+                {
+                    "id": 10,
+                    "question": "What are Ethereum event logs, and why do smart contracts emit them instead of writing data to storage?",
+                    "options": {
+                        "A": "Logs are written to persistent contract storage at zero cost, making them cheaper than SSTORE",
+                        "B": "Logs are cheap one-way data emission (~375 gas base + 8 gas/byte) stored in transaction receipts but not accessible by contracts — ideal for off-chain notification",
+                        "C": "Logs are error messages emitted when a transaction reverts, containing the revert reason string",
+                        "D": "Logs are cryptographic proofs that allow Layer 2 systems to prove transaction inclusion on mainnet"
+                    },
+                    "correct": "B",
+                    "explanation": "The LOG0-LOG4 opcodes emit structured data to the transaction receipt at low cost: ~375 gas base + 375 gas per topic + 8 gas per data byte. Crucially, logs are NOT readable by other contracts (contracts cannot access receipt data). They serve as cheap notifications for off-chain consumers: frontends use eth_getLogs or event subscriptions to track Transfer events, NFT mints, governance votes, etc. Without logs, every state change would need expensive SSTORE reads to track history."
+                },
+                {
+                    "id": 11,
+                    "question": "What is the 'cold vs. warm' access distinction introduced by EIP-2929, and why does it matter for gas optimization?",
+                    "options": {
+                        "A": "Cold access means the storage slot was written in a previous block; warm means it was written in the current block",
+                        "B": "Cold access is the first time an address or storage slot is touched in a transaction (higher cost); warm access is subsequent touches (lower cost), incentivizing batching accesses to the same state",
+                        "C": "Cold access refers to L2 storage; warm access refers to L1 mainnet storage",
+                        "D": "Cold access applies to archived historical state; warm access applies to current state"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-2929 introduced access lists and cold/warm distinctions. The first time a transaction touches an address (2600 gas) or storage slot (2100 gas), it pays the cold access fee — the node must load it from disk. Subsequent accesses in the same transaction are warm (100 gas) — the value is cached in memory. Gas-conscious developers batch all operations on the same storage slot together, and use EIP-2930 access lists to pre-warm slots at discounted rates."
+                },
+                {
+                    "id": 12,
+                    "question": "A Solidity developer replaces a storage variable with a memory variable for intermediate calculations in a function. What is the approximate gas savings per access?",
+                    "options": {
+                        "A": "Minimal — memory (MLOAD) costs the same as storage (SLOAD) in the EVM",
+                        "B": "Significant — MLOAD costs 3 gas vs. warm SLOAD at 100 gas and cold SLOAD at 2100 gas",
+                        "C": "Negative — memory allocation (MSIZE expansion) costs more than storage reads",
+                        "D": "Complete — memory operations are free; only storage access costs gas"
+                    },
+                    "correct": "B",
+                    "explanation": "Memory access (MLOAD/MSTORE) costs 3 gas per operation. Cold SLOAD costs 2,100 gas and warm SLOAD costs 100 gas. A common optimization is: read a storage variable once into a local memory variable (uint256 _value = myStorageVar), perform all arithmetic on the local copy, then write back once. If you access the same value N times in a function, you pay 2100 + 3*(N-1) instead of 100*N (warm) or 2100*N (cold)."
+                },
+                {
+                    "id": 13,
+                    "question": "What does it mean for a transaction to 'run out of gas', and what state changes persist after an out-of-gas exception?",
+                    "options": {
+                        "A": "The transaction is invalid and removed from the blockchain with a full ETH refund",
+                        "B": "All EVM state changes revert completely, but the gas already consumed is charged to the sender and the failed transaction appears in the block",
+                        "C": "Execution pauses and resumes in the next block once the sender tops up their balance",
+                        "D": "The validator completes execution and absorbs the cost, but marks the transaction as failed"
+                    },
+                    "correct": "B",
+                    "explanation": "An out-of-gas exception causes an immediate revert of all EVM state changes within the failed execution context (storage writes, ETH transfers, contract creations are all undone). However, the failed transaction is still included in the block: the sender's nonce increments, ETH for all gas used is deducted, and the receipt shows status=0 (failure). Validators must be compensated for the computation they performed, so gas is non-refundable even on failure."
+                },
+                {
+                    "id": 14,
+                    "question": "What is Maximal Extractable Value (MEV), and how does it arise from the gas fee mechanism?",
+                    "options": {
+                        "A": "MEV is the maximum ETH a validator earns from block rewards and fees in a single epoch",
+                        "B": "MEV is profit extracted by reordering, inserting, or censoring transactions within a block — possible because block proposers control transaction ordering",
+                        "C": "MEV is the maximum gas refund a user can claim from a single transaction via SSTORE resets",
+                        "D": "MEV is a Layer 2 mechanism that batches transactions to minimize mainnet gas costs"
+                    },
+                    "correct": "B",
+                    "explanation": "Block proposers choose which transactions to include and in what order. This creates MEV opportunities: (1) Arbitrage — sandwich attacks where a bot front-runs a large DEX trade by inserting buy/sell transactions around it; (2) Liquidation — front-running liquidation calls in lending protocols; (3) NFT minting — front-running popular mints. Searchers (MEV bots) compete by paying higher priority fees. MEV-Boost separates block building (maximizing MEV extraction) from block proposing, creating a market for block space."
+                },
+                {
+                    "id": 15,
+                    "question": "How does Ethereum's gas limit per block relate to network throughput, and what is the approximate current block gas limit?",
+                    "options": {
+                        "A": "The block gas limit is fixed at 8 million gas and was set at genesis, unchangeable by validators",
+                        "B": "The block gas limit is approximately 30 million gas and validators can vote to adjust it by ±0.1% per block",
+                        "C": "The block gas limit is automatically adjusted every epoch to target a 12-second block time",
+                        "D": "The block gas limit is unlimited; throughput is constrained only by the 12-second slot time"
+                    },
+                    "correct": "B",
+                    "explanation": "Ethereum's block gas limit is currently around 30 million gas (with EIP-1559's elasticity allowing blocks up to 2x the 15M target). Validators vote to adjust the limit within a 1/1024 bound per block — a slow governance mechanism. At 30M gas limit: a block can hold ~1400 simple ETH transfers (21,000 gas each) or far fewer complex contract interactions. This limits mainnet to roughly 15-25 TPS for simple transfers, motivating Layer 2 scaling solutions."
+                },
+                {
+                    "id": 16,
+                    "question": "What is the gas refund mechanism for SSTORE, and how was it changed by EIP-3529?",
+                    "options": {
+                        "A": "SSTORE always refunds 50% of the storage cost, unchanged across all hard forks",
+                        "B": "Setting a storage slot to zero used to give a 15,000 gas refund; EIP-3529 cut refunds to max 20% of transaction gas used, eliminating gas token griefing",
+                        "C": "EIP-3529 increased SSTORE refunds from 5,000 to 15,000 gas to encourage storage cleanup",
+                        "D": "Gas refunds were fully eliminated in EIP-3529 and no SSTORE operations return any gas"
+                    },
+                    "correct": "B",
+                    "explanation": "Originally, setting a storage slot from non-zero to zero refunded 15,000 gas (incentivizing state cleanup). This spawned 'gas tokens' (CHI, GST2) that minted storage during cheap gas periods and burned it during expensive periods — generating refunds to subsidize transactions. EIP-3529 (London 2021) slashed the SSTORE zero refund from 15,000 to 4,800 gas and capped total refunds at 1/5 of transaction gas. This killed gas tokens and simplified the fee model."
+                },
+                {
+                    "id": 17,
+                    "question": "A developer wants to transfer data between an Ethereum L1 contract and an Optimism L2 rollup. How does the L2 reduce gas costs for users?",
+                    "options": {
+                        "A": "The L2 uses a different consensus mechanism with lower validator rewards, passing savings to users",
+                        "B": "The L2 batches many off-chain transactions into a single L1 calldata post, amortizing fixed L1 overhead across thousands of L2 transactions",
+                        "C": "The L2 uses a private blockchain that never settles to L1, avoiding all gas costs",
+                        "D": "The L2 compresses transactions to 256 bytes each, fitting 1000+ per Ethereum block"
+                    },
+                    "correct": "B",
+                    "explanation": "Optimistic rollups (Optimism, Arbitrum) execute transactions off-chain and post compressed transaction data as calldata to Ethereum L1 periodically. The dominant cost is L1 data posting: calldata costs 16 gas/non-zero byte on L1. By batching 1000+ L2 transactions into one L1 transaction, the fixed overhead (21,000 base gas + sequencer overhead) is shared. EIP-4844 (Dencun, March 2024) introduced blob transactions with ~10x cheaper data posting, cutting L2 fees by 10-100x further."
+                },
+                {
+                    "id": 18,
+                    "question": "What gas optimization technique does 'packing' struct variables in Solidity exploit?",
+                    "options": {
+                        "A": "Packing uses assembly to bypass gas metering for struct field access",
+                        "B": "Multiple variables smaller than 256 bits that fit in the same 32-byte storage slot share one SLOAD/SSTORE, reducing storage operations",
+                        "C": "Packing compresses struct data using run-length encoding before storing it",
+                        "D": "Packing moves struct data to memory instead of storage to avoid SLOAD costs entirely"
+                    },
+                    "correct": "B",
+                    "explanation": "EVM storage slots are 32 bytes (256 bits). Solidity packs consecutive state variables that fit in one slot — e.g., uint128 a + uint128 b share one slot (256 bits total). Reading either variable requires only one SLOAD (2100 gas cold), not two. If declared as two separate uint256 variables, both would need separate SLOADs. Ordering matters: always declare small variables consecutively. This single optimization can halve storage costs in struct-heavy contracts like ERC-20 tokens."
+                },
+                {
+                    "id": 19,
+                    "question": "What is the EVM's DELEGATECALL opcode, and what are its gas implications compared to CALL?",
+                    "options": {
+                        "A": "DELEGATECALL is identical to CALL but with a 50% gas discount for inter-contract communication",
+                        "B": "DELEGATECALL executes the callee's code in the caller's storage context; gas cost is similar to CALL but it enables proxy patterns where implementation logic is separate from state",
+                        "C": "DELEGATECALL is a static (read-only) call that reverts if the callee attempts any state changes",
+                        "D": "DELEGATECALL batches multiple sub-calls into one transaction to amortize the 21,000 base gas overhead"
+                    },
+                    "correct": "B",
+                    "explanation": "DELEGATECALL executes the target address's bytecode but in the caller's execution context: msg.sender and msg.value remain the original values, and SSTORE writes go to the caller's storage. This enables upgradeable proxy contracts (EIP-1967): a proxy stores state, a logic contract holds code, and DELEGATECALL routes all calls to the logic contract which operates on the proxy's storage. Gas cost is similar to CALL (base + forwarded gas) — the savings come from code reuse, not gas discounts."
+                },
+                {
+                    "id": 20,
+                    "question": "A user's transaction has gasLimit = 100,000 and spends 60,000 gas during execution. They set maxFeePerGas = 20 gwei and maxPriorityFeePerGas = 2 gwei with base fee = 15 gwei. What is the total ETH cost of this transaction?",
+                    "options": {
+                        "A": "2,000,000 gwei = 0.002 ETH (100,000 gas x 20 gwei)",
+                        "B": "1,020,000 gwei = 0.00102 ETH (60,000 gas x 17 gwei effective price)",
+                        "C": "1,200,000 gwei = 0.0012 ETH (60,000 gas x 20 gwei cap)",
+                        "D": "900,000 gwei = 0.0009 ETH (60,000 gas x 15 gwei base fee only)"
+                    },
+                    "correct": "B",
+                    "explanation": "Effective gas price = min(maxFeePerGas, baseFee + maxPriorityFeePerGas) = min(20, 15+2) = 17 gwei. Gas used = 60,000 (unused gas is refunded: 40,000 gas x 17 gwei = 680,000 gwei returned). Total cost = 60,000 x 17 gwei = 1,020,000 gwei = 0.00102 ETH. Of this: 60,000 x 15 = 900,000 gwei is burned; 60,000 x 2 = 120,000 gwei goes to the validator. The gasLimit of 100,000 was the maximum authorization, but only 60,000 was actually consumed."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

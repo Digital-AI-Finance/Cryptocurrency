@@ -1,0 +1,180 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{verbatim}
+\usepackage{amsmath}
+
+% Course color palette (copied from beamer preamble)
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Ethereum \& Smart Contracts} \textcolor{mlgray}{|} Lesson 03 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{Ethereum \& Smart Contracts}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 03 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% ── Activity 1 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 1: Explore Ethereum}{10 min}{%
+Visit \url{https://etherscan.io} and find any smart contract. Answer:
+\begin{enumerate}
+\item What is the contract's address?
+\item How many transactions has it processed?
+\item What is the contract's ETH balance?
+\item Can you identify what the contract does from its name or verified source code?
+\end{enumerate}
+\textbf{Bonus:} Find a transaction to this contract. What was the gas used? What was the gas price in Gwei?
+}
+
+\vspace{2pt}
+
+% ── Activity 2 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 2: Gas Price Calculator}{5 min}{%
+Calculate the transaction fee for each scenario:
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Operation} & \textbf{Gas Used} & \textbf{Gas Price (Gwei)} & \textbf{Fee (ETH)} \\
+\midrule
+ETH Transfer      & 21{,}000    & 30 & \fillcell \\
+ERC-20 Transfer   & 65{,}000    & 30 & \fillcell \\
+Uniswap Swap      & 150{,}000   & 50 & \fillcell \\
+NFT Mint          & 250{,}000   & 50 & \fillcell \\
+Contract Deploy   & 1{,}500{,}000 & 20 & \fillcell \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textit{Hint: Fee = Gas Used $\times$ Gas Price. 1 Gwei = $10^{-9}$ ETH.}
+}
+
+\vspace{2pt}
+
+% ── Activity 3 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 3: Read a Smart Contract}{10 min}{%
+Read this Solidity contract and answer the questions:
+\vspace{2pt}
+\noindent\ttfamily\small
+// SPDX-License-Identifier: MIT\\
+pragma solidity \textasciicircum{}0.8.0;\\[2pt]
+contract SimpleVault \{\\
+\hspace*{1.5em}mapping(address => uint256) public balances;\\[2pt]
+\hspace*{1.5em}function deposit() public payable \{\\
+\hspace*{3em}balances[msg.sender] += msg.value;\\
+\hspace*{1.5em}\}\\[2pt]
+\hspace*{1.5em}function withdraw(uint256 amount) public \{\\
+\hspace*{3em}require(balances[msg.sender] >= amount);\\
+\hspace*{3em}balances[msg.sender] -= amount;\\
+\hspace*{3em}payable(msg.sender).transfer(amount);\\
+\hspace*{1.5em}\}\\
+\}
+\rmfamily\normalsize\par\vspace{2pt}
+\begin{enumerate}
+\item What is the state variable and its type?
+\item What does \texttt{msg.sender} represent?
+\item What does \texttt{msg.value} represent?
+\item What happens if you try to withdraw more than your balance?
+\item Can you spot a potential security vulnerability? (Hint: think about the order of operations)
+\end{enumerate}
+}
+
+\vspace{2pt}
+
+% ── Activity 4 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 4: Smart Contract vs Traditional App}{5 min}{%
+Compare a traditional ride-sharing app (Uber) with a decentralized version (DAO-based):
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Feature} & \textbf{Uber (Centralized)} & \textbf{Ride DAO (Decentralized)} \\
+\midrule
+Who sets prices?       & Company            & \fillcell \\
+Payment processing     & Credit card + Uber & \fillcell \\
+Driver verification    & Background check   & \fillcell \\
+Revenue distribution   & Uber takes 25\%    & \fillcell \\
+Rule changes           & Uber decides       & \fillcell \\
+\bottomrule
+\end{tabular}
+\end{center}
+}
+
+\vspace{4pt}
+
+% ── Glossary ───────────────────────────────────────────────────────────────────
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{2.8cm}p{11.8cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{EVM}           & Ethereum Virtual Machine. The sandboxed runtime environment that executes smart contract bytecode on every Ethereum node. \\
+\textbf{Gas}           & The unit measuring computational effort required to execute operations on the EVM. Every instruction costs a defined amount of gas. \\
+\textbf{Wei}           & The smallest denomination of ether. $1\,\text{ETH} = 10^{18}\,\text{Wei}$. Used for precise on-chain arithmetic. \\
+\textbf{Gwei}          & Gigawei. $1\,\text{Gwei} = 10^{9}\,\text{Wei}$. The conventional unit for expressing gas prices. \\
+\textbf{Solidity}      & The most widely used high-level programming language for writing Ethereum smart contracts, syntactically similar to JavaScript/C++. \\
+\textbf{ABI}           & Application Binary Interface. A JSON specification describing a contract's functions and events, enabling external callers to encode and decode calls. \\
+\textbf{Bytecode}      & The low-level EVM instructions produced by compiling Solidity source code. This is what is actually stored on-chain and executed. \\
+\textbf{EOA}           & Externally Owned Account. An Ethereum account controlled by a private key (a human wallet), as opposed to a contract account. \\
+\textbf{Smart Contract} & Self-executing code stored on the blockchain that automatically enforces agreement terms without a trusted intermediary. \\
+\textbf{Nonce}         & A per-account transaction counter. Each new transaction must increment the nonce, preventing replay attacks and ordering transactions. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Ethereum \& Smart Contracts --- Lesson 03 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

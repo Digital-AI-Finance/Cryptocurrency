@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz ES-1: Ethereum Architecture &amp; Account Model | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">ES-1: Ethereum Architecture &amp; Account Model</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">ES-1: Ethereum Architecture &amp; Account Model</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the fundamental design difference between Bitcoin and Ethereum that enables smart contracts?",
+                    "options": {
+                        "A": "Ethereum uses a UTXO model while Bitcoin uses an account model",
+                        "B": "Ethereum uses a Turing-complete virtual machine (EVM) while Bitcoin's scripting language is intentionally limited",
+                        "C": "Ethereum blocks are produced every 10 minutes while Bitcoin targets 12 seconds",
+                        "D": "Ethereum uses SHA-256 for hashing while Bitcoin uses Keccak-256"
+                    },
+                    "correct": "B",
+                    "explanation": "Ethereum's core innovation is the EVM — a Turing-complete execution environment embedded in every full node. Bitcoin's Script is deliberately non-Turing-complete (no loops) to prevent complex on-chain programs. Ethereum inverted this: any computable function can run on-chain, enabling smart contracts. Bitcoin uses UTXO; Ethereum uses an account model (the opposite of option A)."
+                },
+                {
+                    "id": 2,
+                    "question": "Ethereum uses an account-based model rather than Bitcoin's UTXO model. What is the primary advantage of the account model for smart contracts?",
+                    "options": {
+                        "A": "It is more private because balances are hidden from validators",
+                        "B": "Contracts can maintain persistent state (storage) that survives between transactions",
+                        "C": "It eliminates the need for a mempool",
+                        "D": "Transactions are cheaper because no UTXO scanning is required"
+                    },
+                    "correct": "B",
+                    "explanation": "The account model stores persistent key-value storage on-chain for each contract. When a transaction calls a contract, the EVM reads and writes this storage, updating the global state. In the UTXO model, each coin is spent and recreated — there is no natural place for a contract to 'remember' data between calls. Persistent state is the foundation of DeFi, NFTs, and DAOs."
+                },
+                {
+                    "id": 3,
+                    "question": "An Ethereum Externally Owned Account (EOA) and a Contract Account both have four fields in the state trie. Which field distinguishes a Contract Account from an EOA?",
+                    "options": {
+                        "A": "nonce",
+                        "B": "balance",
+                        "C": "codeHash",
+                        "D": "address"
+                    },
+                    "correct": "C",
+                    "explanation": "All accounts have nonce, balance, storageRoot, and codeHash. For an EOA, codeHash is the hash of the empty string (no code). For a Contract Account, codeHash is the Keccak-256 hash of the deployed EVM bytecode. This is how the EVM distinguishes which accounts can execute logic. Both account types have a nonce and balance; addresses are just identifiers."
+                },
+                {
+                    "id": 4,
+                    "question": "What is the purpose of the nonce field in an Ethereum EOA account?",
+                    "options": {
+                        "A": "It is a random value used in proof-of-work mining",
+                        "B": "It counts the number of transactions sent from that account, preventing replay attacks",
+                        "C": "It stores the current gas price the account is willing to pay",
+                        "D": "It is the sequence number of the block the account was created in"
+                    },
+                    "correct": "B",
+                    "explanation": "The nonce is a monotonically increasing counter of outgoing transactions from an EOA (or contract creations from a contract). Each transaction must include the current nonce. If a signed transaction is broadcast again (replay attack), validators reject it because the nonce has already been consumed. The nonce also ensures transactions are processed in order from a given account."
+                },
+                {
+                    "id": 5,
+                    "question": "The Ethereum world state is stored as a Merkle Patricia Trie (MPT). What does the root hash of the state trie represent?",
+                    "options": {
+                        "A": "The hash of the most recently mined block",
+                        "B": "A cryptographic commitment to the entire set of account states at a given block",
+                        "C": "The Keccak-256 hash of all transaction data in the current block",
+                        "D": "The accumulated difficulty of the chain up to the current block"
+                    },
+                    "correct": "B",
+                    "explanation": "The stateRoot in a block header is the root hash of the Merkle Patricia Trie encoding all account states (balances, nonces, code, storage) at that block height. Because it is a Merkle root, changing any single account's field changes the root. Light clients can verify any account's state with a Merkle proof against this root, without downloading the full state."
+                },
+                {
+                    "id": 6,
+                    "question": "Which of the following is stored in an Ethereum block header?",
+                    "options": {
+                        "A": "The full list of transaction calldata for every transaction in the block",
+                        "B": "stateRoot, transactionsRoot, receiptsRoot, and parentHash",
+                        "C": "The private key of the block proposer",
+                        "D": "The EVM bytecode of every contract deployed in that block"
+                    },
+                    "correct": "B",
+                    "explanation": "The Ethereum block header contains (among others): parentHash, stateRoot (Merkle root of account states), transactionsRoot (Merkle root of transactions), receiptsRoot (Merkle root of receipts), logsBloom, difficulty/mixHash, number, gasLimit, gasUsed, timestamp, extraData, and (post-Merge) withdrawalsRoot. Full transaction data lives in the block body, not the header."
+                },
+                {
+                    "id": 7,
+                    "question": "What is a Merkle Patricia Trie, and why does Ethereum use it instead of a plain Merkle tree?",
+                    "options": {
+                        "A": "It is a sorted array of accounts that supports binary search in $O(\\log n)$ time",
+                        "B": "It combines a Patricia (radix) trie for efficient key-value lookups with Merkle hashing for cryptographic integrity",
+                        "C": "It is a balanced binary tree where every leaf is a transaction hash",
+                        "D": "It is a hash map with open addressing used for fast account lookup"
+                    },
+                    "correct": "B",
+                    "explanation": "A Merkle Patricia Trie (MPT) merges two data structures: a Patricia trie (compact radix trie) for $O(\\text{key length})$ key-value lookups, and a Merkle tree where each node stores the hash of its children. Ethereum uses it for state, transactions, and receipts. The Patricia structure allows efficient insertion, deletion, and lookup by 20-byte address. The Merkle hashing provides proofs of inclusion and exclusion that light clients can verify."
+                },
+                {
+                    "id": 8,
+                    "question": "Before EIP-1559 (London hard fork), Ethereum used a first-price auction for gas fees. What problem did this create?",
+                    "options": {
+                        "A": "Miners could not distinguish between legitimate transactions and spam",
+                        "B": "Users had to guess the right gas price, often overpaying significantly or waiting hours during congestion",
+                        "C": "The block gas limit could not be adjusted dynamically",
+                        "D": "Smart contracts could not estimate their own gas costs"
+                    },
+                    "correct": "B",
+                    "explanation": "In the pre-EIP-1559 auction, users bid a gasPrice and miners greedily selected highest bidders. During congestion, users faced a guessing game: bid too low and wait indefinitely, bid too high and waste ETH. Wallets used external gas oracles (like EthGasStation) to suggest prices, but these were imprecise. Overpayment of 5-10x was common during NFT drops or DeFi events."
+                },
+                {
+                    "id": 9,
+                    "question": "EIP-1559 introduced a base fee mechanism. What happens to the base fee when a block uses more than 50% of its gas target?",
+                    "options": {
+                        "A": "It stays constant until the next epoch boundary",
+                        "B": "It decreases by up to 12.5% to incentivize more transactions",
+                        "C": "It increases by up to 12.5% to reduce demand in the next block",
+                        "D": "It is reset to zero and recalculated from scratch"
+                    },
+                    "correct": "C",
+                    "explanation": "EIP-1559 sets a target block size of 50% of the gas limit. If a block uses more gas than the target, the base fee rises by up to 12.5% for the next block. If usage is below target, the base fee falls by up to 12.5%. This creates a negative feedback loop that stabilises fees during sustained congestion and makes the base fee predictable within a few blocks."
+                },
+                {
+                    "id": 10,
+                    "question": "In EIP-1559 transactions (Type 2), a user sets maxFeePerGas and maxPriorityFeePerGas. If the base fee is 30 gwei and maxPriorityFeePerGas is 2 gwei, how much does the validator receive per unit of gas?",
+                    "options": {
+                        "A": "32 gwei (base fee + priority fee)",
+                        "B": "2 gwei (priority fee only; base fee is burned)",
+                        "C": "30 gwei (base fee only; priority fee goes to a treasury)",
+                        "D": "0 gwei (all fees are burned under EIP-1559)"
+                    },
+                    "correct": "B",
+                    "explanation": "Under EIP-1559, the base fee is entirely burned (removed from circulation). The validator (formerly miner) receives only the priority fee (tip). If baseFee = 30 gwei and maxPriorityFeePerGas = 2 gwei, the validator earns 2 gwei per gas unit. The user pays 32 gwei per gas: 30 goes to burn address, 2 goes to validator. If maxFeePerGas < baseFee + priorityFee, the transaction reverts."
+                },
+                {
+                    "id": 11,
+                    "question": "What is the significance of Ethereum's 'The Merge' that occurred in September 2022?",
+                    "options": {
+                        "A": "Ethereum merged its mainnet with the Polygon sidechain to reduce fees",
+                        "B": "Ethereum transitioned from proof-of-work to proof-of-stake consensus, eliminating GPU mining",
+                        "C": "Ethereum merged its execution layer with the IPFS storage network",
+                        "D": "Ethereum combined the EVM and WASM into a single virtual machine"
+                    },
+                    "correct": "B",
+                    "explanation": "The Merge joined Ethereum's proof-of-work execution layer (mainnet) with the Beacon Chain proof-of-stake consensus layer that had been running in parallel since December 2020. After The Merge, validators replaced miners: they stake ETH to propose and attest blocks instead of competing with hash power. Ethereum's energy consumption dropped by ~99.95%, and new ETH issuance fell by ~90% (the 'triple halving')."
+                },
+                {
+                    "id": 12,
+                    "question": "What is the minimum amount of ETH required to activate a validator on Ethereum's proof-of-stake network?",
+                    "options": {
+                        "A": "16 ETH",
+                        "B": "32 ETH",
+                        "C": "64 ETH",
+                        "D": "100 ETH"
+                    },
+                    "correct": "B",
+                    "explanation": "Each Ethereum validator must deposit exactly 32 ETH into the deposit contract to be activated. This stake serves as collateral: good behavior earns attestation rewards; misbehavior (e.g., double-voting) triggers slashing, burning a portion of the 32 ETH. Validators with fewer than 16 ETH remaining are forcibly exited. The 32 ETH minimum balances decentralization against Sybil resistance."
+                },
+                {
+                    "id": 13,
+                    "question": "What is slashing in Ethereum's proof-of-stake, and which validator behavior triggers it?",
+                    "options": {
+                        "A": "A reward reduction for validators who are offline for more than one epoch",
+                        "B": "A penalty that burns a portion of a validator's stake for provably malicious actions such as double voting or surround voting",
+                        "C": "A fee charged to validators who propose blocks with invalid transactions",
+                        "D": "A mechanism that redistributes ETH from inactive validators to active ones"
+                    },
+                    "correct": "B",
+                    "explanation": "Slashing is a severe penalty for provably malicious behavior. There are two slashable offenses: (1) double voting — signing two different blocks for the same slot (equivocation); (2) surround voting — signing attestations that 'surround' a previously signed attestation, which could enable finality attacks. Slashing burns at least 1/32 of the validator's stake immediately and triggers a forced exit with further correlation penalties if many validators are slashed simultaneously."
+                },
+                {
+                    "id": 14,
+                    "question": "In Ethereum PoS, validators earn rewards primarily through attestations. What is an attestation?",
+                    "options": {
+                        "A": "A cryptographic proof that a validator correctly executed a smart contract",
+                        "B": "A validator's signed vote confirming the head of the chain and the current checkpoint for finality",
+                        "C": "A transaction type that stakes additional ETH without withdrawing",
+                        "D": "A block proposer's signature on the block they have produced"
+                    },
+                    "correct": "B",
+                    "explanation": "Every epoch (~6.4 minutes), each active validator is assigned to an attestation committee and must submit a signed message voting on: (1) the current head block (LMD-GHOST fork choice), (2) the source checkpoint (last justified epoch), and (3) the target checkpoint (current epoch). These attestations are aggregated and included on-chain. Validators earn the majority of their rewards from timely, correct attestations — roughly 84% of total validator income."
+                },
+                {
+                    "id": 15,
+                    "question": "What is the role of the storageRoot field in an Ethereum contract account?",
+                    "options": {
+                        "A": "It stores the IPFS hash of the contract's source code for verification",
+                        "B": "It is the Merkle Patricia Trie root of the contract's persistent key-value storage",
+                        "C": "It is the block hash at which the contract was deployed",
+                        "D": "It stores the total amount of ETH the contract has received since deployment"
+                    },
+                    "correct": "B",
+                    "explanation": "Each contract account has its own storage trie, a 256-bit key to 256-bit value mapping. The storageRoot is the MPT root of this per-contract storage. When a transaction writes to a contract's storage (e.g., updating a token balance), the storage trie changes, updating the storageRoot and consequently the global stateRoot. This enables Solidity mappings, arrays, and state variables to persist between calls."
+                },
+                {
+                    "id": 16,
+                    "question": "Ethereum's transaction Type 0 (legacy), Type 1 (EIP-2930), and Type 2 (EIP-1559) differ in their fee fields. Which statement correctly describes Type 1 transactions?",
+                    "options": {
+                        "A": "Type 1 uses maxFeePerGas and maxPriorityFeePerGas with base fee burning",
+                        "B": "Type 1 adds an access list to pre-declare storage slots, reducing gas costs for accessed state, while still using the legacy gasPrice field",
+                        "C": "Type 1 is identical to Type 0 but includes a chain ID to prevent replay across networks",
+                        "D": "Type 1 supports account abstraction by allowing arbitrary validation logic"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-2930 (Type 1) introduced access lists: an explicit list of addresses and storage keys the transaction will access. Declaring them upfront reduces the gas cost of first access (from 2600 to 2100 for addresses, 2100 to 1900 for storage slots) because the EVM can pre-warm the cache. Type 1 still uses a single gasPrice like legacy transactions. Type 2 (EIP-1559) introduced the two-field fee model (maxFeePerGas + maxPriorityFeePerGas)."
+                },
+                {
+                    "id": 17,
+                    "question": "A smart contract at address X calls another contract at address Y using CALL. In which account's storage does the state change occur?",
+                    "options": {
+                        "A": "Always in contract X's storage, regardless of which contract executes",
+                        "B": "In contract Y's storage, because Y's code is executing in Y's context",
+                        "C": "In the EOA that originated the transaction",
+                        "D": "In a temporary scratch space that is discarded after the call returns"
+                    },
+                    "correct": "B",
+                    "explanation": "When contract X issues a CALL to contract Y, execution context switches to Y: Y's code runs with Y's storage, Y's balance, and msg.sender = X. Any SSTORE instructions in Y's code write to Y's storage. This contrasts with DELEGATECALL, where Y's code runs in X's context — writing to X's storage instead. The distinction is critical for proxy and upgradeable contract patterns."
+                },
+                {
+                    "id": 18,
+                    "question": "What is the Ethereum Virtual Machine (EVM) execution model? Specifically, what kind of machine is it?",
+                    "options": {
+                        "A": "A register machine with 256 general-purpose 32-bit registers",
+                        "B": "A stack machine operating on 256-bit words with a maximum stack depth of 1024",
+                        "C": "A Harvard architecture machine with separate instruction and data memory",
+                        "D": "A RISC machine with a fixed 32-bit instruction width"
+                    },
+                    "correct": "B",
+                    "explanation": "The EVM is a stack-based virtual machine. Each opcode pops its arguments from and pushes results onto a stack of 256-bit (32-byte) words. The stack has a maximum depth of 1024 items; exceeding this causes a stack overflow exception and consumes all remaining gas. The EVM also has volatile memory (a byte array cleared between calls) and persistent storage (256-bit key-value). The 256-bit word size was chosen to match Ethereum's use of 256-bit hashes and elliptic curve arithmetic."
+                },
+                {
+                    "id": 19,
+                    "question": "What was the primary purpose of the Beacon Chain, launched in December 2020, before The Merge?",
+                    "options": {
+                        "A": "It processed Ethereum mainnet transactions at 10x higher throughput",
+                        "B": "It ran the proof-of-stake consensus layer in parallel with mainnet, allowing validators to stake ETH and test PoS before transitioning",
+                        "C": "It served as the settlement layer for Ethereum Layer 2 rollups",
+                        "D": "It was a testnet used exclusively by Ethereum developers to debug EIPs"
+                    },
+                    "correct": "B",
+                    "explanation": "The Beacon Chain launched on December 1, 2020, as a separate proof-of-stake chain running alongside Ethereum's proof-of-work mainnet. Validators deposited 32 ETH into the deposit contract and began earning staking rewards, but Beacon Chain had no EVM or user transactions — it purely ran PoS consensus. This two-year parallel operation stress-tested PoS at scale before The Merge unified both layers in September 2022."
+                },
+                {
+                    "id": 20,
+                    "question": "How does Ethereum's account model handle the creation of a new contract? Specifically, how is the new contract's address determined?",
+                    "options": {
+                        "A": "The address is randomly generated by the validator who includes the transaction",
+                        "B": "The address is derived from the deployer's address and their current nonce using Keccak-256",
+                        "C": "The address is the SHA-256 hash of the contract's bytecode",
+                        "D": "The address is assigned sequentially by an on-chain registry contract"
+                    },
+                    "correct": "B",
+                    "explanation": "When an EOA deploys a contract (or a contract creates one via CREATE), the new address is deterministically computed as: $\\text{addr} = \\text{Keccak-256}(\\text{RLP}(\\text{deployer\\_address}, \\text{nonce}))[12:]$ (last 20 bytes). The CREATE2 opcode introduced in EIP-1014 allows address pre-computation using the deployer address, a salt, and the init code hash — enabling counterfactual instantiation patterns used in state channels and account abstraction."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

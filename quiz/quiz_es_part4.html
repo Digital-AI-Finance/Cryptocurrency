@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz ES-4: Deployment, Security &amp; Integration | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">ES-4: Deployment, Security &amp; Integration</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">ES-4: Deployment, Security &amp; Integration</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Which development framework provides a JavaScript/TypeScript environment for compiling, testing, and deploying Solidity contracts, featuring a built-in local Ethereum node?",
+                    "options": {
+                        "A": "Foundry",
+                        "B": "Remix",
+                        "C": "Hardhat",
+                        "D": "Ganache standalone"
+                    },
+                    "correct": "C",
+                    "explanation": "Hardhat is a Node.js-based development environment offering compilation via solc, a local Hardhat Network node (with `console.log` debugging in Solidity), scripted deployments, and a rich plugin ecosystem. Tests are written in JavaScript/TypeScript with Chai/Mocha. Foundry is the Rust-based alternative with Solidity tests."
+                },
+                {
+                    "id": 2,
+                    "question": "What distinguishes Foundry from Hardhat as a smart contract development framework?",
+                    "options": {
+                        "A": "Foundry requires a cloud subscription; Hardhat runs locally",
+                        "B": "Foundry is written in Rust and allows tests to be written directly in Solidity, while Hardhat uses JavaScript/TypeScript",
+                        "C": "Foundry only supports ERC-20 contracts; Hardhat supports all contract types",
+                        "D": "Foundry compiles to WASM; Hardhat compiles to EVM bytecode"
+                    },
+                    "correct": "B",
+                    "explanation": "Foundry (built in Rust) offers extremely fast compilation and test execution. Its key differentiator is that tests are written in Solidity itself using the `forge-std` library, enabling direct state manipulation, fuzzing, and fork tests. Hardhat tests are JavaScript/TypeScript. Both compile to EVM bytecode."
+                },
+                {
+                    "id": 3,
+                    "question": "What are the two primary outputs produced by the Solidity compiler (`solc`) when compiling a contract?",
+                    "options": {
+                        "A": "Source map and gas report",
+                        "B": "ABI (Application Binary Interface) and bytecode",
+                        "C": "Constructor calldata and deployment address",
+                        "D": "Storage layout and function selector table"
+                    },
+                    "correct": "B",
+                    "explanation": "The Solidity compiler produces: (1) the ABI — a JSON description of the contract's public interface (functions, events, errors with their signatures and types), used by clients to encode/decode calls; and (2) the bytecode — the EVM machine code deployed on-chain. The creation bytecode includes the constructor; the runtime bytecode is what's stored at the contract address."
+                },
+                {
+                    "id": 4,
+                    "question": "How is the 4-byte function selector computed in Ethereum's ABI encoding?",
+                    "options": {
+                        "A": "The first 4 bytes of the function name encoded as UTF-8",
+                        "B": "The first 4 bytes of keccak256 of the function signature (e.g., `transfer(address,uint256)`)",
+                        "C": "A sequential integer assigned at compile time, encoded as 4 bytes",
+                        "D": "The keccak256 of the contract address concatenated with the function name"
+                    },
+                    "correct": "B",
+                    "explanation": "The function selector is `keccak256('functionName(type1,type2,...)')` truncated to the first 4 bytes. For example, `transfer(address,uint256)` hashes to `0xa9059cbb...`. This 4-byte prefix is placed at the start of calldata to route calls to the correct function. Collisions (same selector, different functions) are possible but rare."
+                },
+                {
+                    "id": 5,
+                    "question": "How is a contract's deployment address determined when using the standard `CREATE` opcode?",
+                    "options": {
+                        "A": "It is randomly assigned by the mining node",
+                        "B": "It is derived as keccak256(sender address, sender nonce), truncated to 20 bytes",
+                        "C": "It is derived as keccak256(contract bytecode), truncated to 20 bytes",
+                        "D": "It is assigned sequentially by the Ethereum protocol"
+                    },
+                    "correct": "B",
+                    "explanation": "With `CREATE`, the new contract address is `keccak256(RLP(sender, nonce))[12:]` — a deterministic function of the deployer's address and their current transaction nonce. This means you can pre-compute the address before deployment. `CREATE2` instead uses `keccak256(0xff, sender, salt, keccak256(initcode))[12:]`, enabling counterfactual deployment."
+                },
+                {
+                    "id": 6,
+                    "question": "What is the key advantage of `CREATE2` over `CREATE` for contract deployment?",
+                    "options": {
+                        "A": "`CREATE2` is cheaper in gas than `CREATE`",
+                        "B": "`CREATE2` allows the deployment address to be known in advance based on a chosen salt and init code, enabling counterfactual instantiation",
+                        "C": "`CREATE2` deploys contracts without requiring a transaction",
+                        "D": "`CREATE2` allows contracts to be deployed to any user-specified address"
+                    },
+                    "correct": "B",
+                    "explanation": "`CREATE2` computes the address from `keccak256(0xff || sender || salt || keccak256(initcode))`. Since `salt` is chosen by the deployer, the address is deterministic and known before deployment. This enables 'counterfactual' patterns: users can send funds to a not-yet-deployed address, and the contract is deployed only when needed (used in state channels and smart wallets)."
+                },
+                {
+                    "id": 7,
+                    "question": "What is the difference between a `call` and a transaction when interacting with a deployed contract?",
+                    "options": {
+                        "A": "A call costs more gas than a transaction",
+                        "B": "A call is a read-only local simulation that returns data without creating a blockchain record; a transaction is broadcast, mined, and can modify state",
+                        "C": "A transaction can only transfer ETH; a call can invoke any function",
+                        "D": "Both are identical; the terms are interchangeable"
+                    },
+                    "correct": "B",
+                    "explanation": "An `eth_call` (JSON-RPC) executes a function locally on a node against the current state — no gas is spent, no state is permanently changed, and the result is returned immediately. A transaction (`eth_sendRawTransaction`) is signed, broadcast to the network, included in a block, and permanently modifies state. View/pure functions are typically called via `eth_call`; state-changing functions require transactions."
+                },
+                {
+                    "id": 8,
+                    "question": "In smart contract testing, what is a 'fork test' and what problem does it solve?",
+                    "options": {
+                        "A": "A test that checks two different versions of a contract simultaneously",
+                        "B": "A test that runs against a local copy of mainnet state, allowing interaction with real deployed contracts (like Uniswap) without spending real ETH",
+                        "C": "A test that forks execution into multiple parallel threads for speed",
+                        "D": "A test that verifies a contract works after a protocol upgrade"
+                    },
+                    "correct": "B",
+                    "explanation": "Fork testing (supported by Hardhat and Foundry) forks the state of a live network (mainnet, testnets) at a specific block into a local environment. Tests can then interact with real deployed contracts (e.g., Uniswap pools, Chainlink oracles) without real ETH, enabling realistic integration testing and simulating complex DeFi interactions."
+                },
+                {
+                    "id": 9,
+                    "question": "What vulnerability was exploited in The DAO hack of 2016, resulting in the theft of approximately 3.6 million ETH?",
+                    "options": {
+                        "A": "Integer overflow in the token balance calculation",
+                        "B": "Reentrancy: the contract sent ETH before updating its internal balance, allowing the attacker to recursively re-enter the withdrawal function",
+                        "C": "Front-running: the attacker observed a pending transaction and submitted a higher-fee transaction first",
+                        "D": "Access control: the attacker called an admin function without owning the required role"
+                    },
+                    "correct": "B",
+                    "explanation": "The DAO hack exploited reentrancy: when a user called `withdraw()`, the contract sent ETH to the caller's fallback function before updating their balance. The attacker's malicious contract recursively called `withdraw()` again in its fallback, draining funds each time before the balance was ever reduced. This led to Ethereum's hard fork creating ETH and ETC."
+                },
+                {
+                    "id": 10,
+                    "question": "What is the standard defense against reentrancy attacks in Solidity?",
+                    "options": {
+                        "A": "Use `transfer()` instead of `call()` because `transfer()` limits gas to 2300",
+                        "B": "Follow the Checks-Effects-Interactions pattern: update all state before making external calls",
+                        "C": "Mark all functions as `pure` to prevent state changes during execution",
+                        "D": "Disable the contract's fallback function"
+                    },
+                    "correct": "B",
+                    "explanation": "The Checks-Effects-Interactions (CEI) pattern mandates: (1) Checks — validate inputs and conditions; (2) Effects — update all state variables; (3) Interactions — make external calls last. By updating balances before transferring ETH, a reentrant call finds the balance already zero. OpenZeppelin's `ReentrancyGuard` (nonReentrant modifier) provides an additional mutex lock."
+                },
+                {
+                    "id": 11,
+                    "question": "Before Solidity 0.8.0, integer overflow and underflow were silent. What was the common mitigation, and how did 0.8.0 change this?",
+                    "options": {
+                        "A": "SafeMath library was used to add checked arithmetic; 0.8.0 made overflow/underflow trigger a revert automatically",
+                        "B": "Developers used `uint128` instead of `uint256` to prevent overflow; 0.8.0 deprecated `uint128`",
+                        "C": "Overflow was prevented by using floating-point types; 0.8.0 added native float support",
+                        "D": "No mitigation was needed; integer overflow was not exploitable before 0.8.0"
+                    },
+                    "correct": "A",
+                    "explanation": "Before 0.8.0, arithmetic silently wrapped (e.g., `uint8(255) + 1 = 0`). OpenZeppelin's SafeMath library added `add()`, `sub()`, `mul()` functions that explicitly check for overflow and revert. Solidity 0.8.0 made checked arithmetic the default — all operations revert on overflow/underflow. Use `unchecked { }` blocks to opt out for gas savings when overflow is impossible."
+                },
+                {
+                    "id": 12,
+                    "question": "What is front-running in the context of Ethereum smart contracts?",
+                    "options": {
+                        "A": "Deploying a contract before a competitor to claim a vanity address",
+                        "B": "A miner or searcher observing a pending transaction in the mempool and submitting a competing transaction with higher gas to be included first",
+                        "C": "A type of reentrancy attack that targets the first call in a transaction batch",
+                        "D": "An attack where an attacker predicts a random number before it is generated"
+                    },
+                    "correct": "B",
+                    "explanation": "Transactions in the mempool are publicly visible before inclusion. A front-runner (often MEV bots or miners) observes a profitable pending transaction (e.g., a large DEX trade) and submits their own transaction with higher gas fees to be processed first, profiting from the price impact or arbitrage. Mitigations include commit-reveal schemes, slippage limits, and private mempools."
+                },
+                {
+                    "id": 13,
+                    "question": "In the transparent proxy upgrade pattern, how is the ambiguity between proxy admin functions and implementation functions resolved?",
+                    "options": {
+                        "A": "All function selectors are namespaced by prepending the contract name",
+                        "B": "The proxy checks `msg.sender`: if caller is the admin, proxy admin functions are called; otherwise, the call is delegated to the implementation",
+                        "C": "The implementation contract cannot have any functions with the same selector as the proxy",
+                        "D": "The proxy uses a separate ABI encoding scheme for admin calls"
+                    },
+                    "correct": "B",
+                    "explanation": "In the transparent proxy pattern (used by OpenZeppelin's TransparentUpgradeableProxy), the proxy routes calls based on `msg.sender`: admin calls (upgrade, change admin) are handled by the proxy itself, and all other calls are delegated to the implementation. This prevents function selector clashing but adds a gas overhead for the sender check. UUPS moves upgrade logic to the implementation instead."
+                },
+                {
+                    "id": 14,
+                    "question": "What are the minimum required functions defined by the ERC-20 token standard?",
+                    "options": {
+                        "A": "`mint()`, `burn()`, `transfer()`, `pause()`",
+                        "B": "`totalSupply()`, `balanceOf()`, `transfer()`, `transferFrom()`, `approve()`, `allowance()` plus Transfer and Approval events",
+                        "C": "`send()`, `receive()`, `balance()`, `approve()` plus a Sent event",
+                        "D": "`transfer()`, `balanceOf()` and a Transfer event only"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-20 (EIP-20) defines 6 functions: `totalSupply()`, `balanceOf(address)`, `transfer(to, amount)`, `transferFrom(from, to, amount)`, `approve(spender, amount)`, `allowance(owner, spender)`; and 2 events: `Transfer(from, to, value)` and `Approval(owner, spender, value)`. This minimal interface enables interoperability across all ERC-20-aware wallets and protocols."
+                },
+                {
+                    "id": 15,
+                    "question": "How does ERC-721 differ from ERC-20 in terms of token fungibility?",
+                    "options": {
+                        "A": "ERC-721 tokens are fungible and divisible; ERC-20 tokens are non-fungible",
+                        "B": "ERC-721 tokens are non-fungible — each token has a unique `tokenId` and is not interchangeable; ERC-20 tokens are fungible and interchangeable",
+                        "C": "ERC-721 tokens can only be transferred by the contract owner; ERC-20 tokens are freely transferable",
+                        "D": "ERC-721 extends ERC-20 by adding an ID field; all other behavior is identical"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-20 tokens are fungible: each unit is identical and interchangeable (like currency). ERC-721 tokens are Non-Fungible Tokens (NFTs): each has a unique `tokenId` that represents a distinct asset (artwork, deed, game item). ERC-721 adds `ownerOf(tokenId)`, `safeTransferFrom()`, and the `tokenURI()` metadata extension. ERC-1155 supports both fungible and non-fungible tokens in a single contract."
+                },
+                {
+                    "id": 16,
+                    "question": "What is an Automated Market Maker (AMM) in DeFi, and how does it price assets?",
+                    "options": {
+                        "A": "An AMM is a bot that automatically places limit orders on a centralized exchange based on market conditions",
+                        "B": "An AMM is a smart contract that holds reserves of token pairs and prices trades using a mathematical formula (e.g., $x \cdot y = k$) rather than an order book",
+                        "C": "An AMM is a government-regulated market maker that guarantees liquidity for listed tokens",
+                        "D": "An AMM aggregates prices from multiple DEXes and routes trades to the cheapest venue"
+                    },
+                    "correct": "B",
+                    "explanation": "AMMs (pioneered by Uniswap) replace traditional order books with liquidity pools. The constant product formula $x \cdot y = k$ (where $x$ and $y$ are reserve amounts) determines the price: as one token is bought, the other's reserve decreases, causing price to rise. Liquidity providers deposit equal values of both tokens and earn fees from trades. Price impact increases with trade size relative to pool size."
+                },
+                {
+                    "id": 17,
+                    "question": "In a DApp architecture using ethers.js, what is the role of a 'provider' vs a 'signer'?",
+                    "options": {
+                        "A": "A provider executes transactions; a signer reads blockchain data",
+                        "B": "A provider connects to an Ethereum node for read-only data access; a signer wraps a private key (or wallet) to sign and send transactions",
+                        "C": "A provider and signer are the same object; the distinction is only semantic",
+                        "D": "A provider manages contract state; a signer manages user authentication"
+                    },
+                    "correct": "B",
+                    "explanation": "In ethers.js: a Provider connects to an Ethereum node (via RPC URL, MetaMask, Infura, Alchemy) and enables read operations — `getBalance()`, `getBlock()`, calling view functions. A Signer has access to a private key and can sign messages, sign transactions, and send them. `provider.getSigner()` returns a signer backed by the connected wallet (e.g., MetaMask)."
+                },
+                {
+                    "id": 18,
+                    "question": "What are optimistic rollups, and how do they achieve Ethereum scalability while inheriting L1 security?",
+                    "options": {
+                        "A": "Optimistic rollups execute transactions off-chain, post compressed transaction data to L1, and assume transactions are valid unless a fraud proof is submitted within a challenge period",
+                        "B": "Optimistic rollups use zero-knowledge proofs to verify every transaction before posting to L1",
+                        "C": "Optimistic rollups are a sharding scheme that splits the Ethereum state across multiple chains",
+                        "D": "Optimistic rollups run transactions in parallel on L1 to improve throughput"
+                    },
+                    "correct": "A",
+                    "explanation": "Optimistic rollups (Arbitrum, Optimism) batch transactions off-chain, publish compressed calldata to Ethereum L1, and optimistically assume correctness. During a challenge window (typically 7 days), anyone can submit a fraud proof if they detect an invalid state transition. If no fraud is proven, the state is finalized. This achieves 10-100x throughput with L1 data availability guarantees."
+                },
+                {
+                    "id": 19,
+                    "question": "What did EIP-4844 (proto-danksharding) introduce to Ethereum, and what problem does it solve?",
+                    "options": {
+                        "A": "EIP-4844 introduced account abstraction, enabling smart contract wallets as first-class citizens",
+                        "B": "EIP-4844 introduced 'blobs' — temporary large data attachments to blocks at low cost, dramatically reducing L2 rollup data posting fees",
+                        "C": "EIP-4844 introduced the EVM Object Format (EOF) for more structured bytecode",
+                        "D": "EIP-4844 introduced Verkle tries to replace Merkle Patricia tries for state storage"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-4844 (proto-danksharding, live on Ethereum in March 2024) introduced 'blob-carrying transactions' — a new transaction type that attaches up to 6 large data blobs (~128 KB each) per block. Blobs are stored temporarily (~18 days) and priced separately from calldata, costing far less. L2 rollups use blobs to post transaction data to L1 at dramatically reduced cost, enabling cheaper L2 transactions."
+                },
+                {
+                    "id": 20,
+                    "question": "Which of the following tools is commonly used for automated smart contract security analysis to detect vulnerabilities like reentrancy and integer overflow?",
+                    "options": {
+                        "A": "Prettier and ESLint",
+                        "B": "Slither and Mythril",
+                        "C": "Hardhat and Foundry",
+                        "D": "Etherscan and Tenderly"
+                    },
+                    "correct": "B",
+                    "explanation": "Slither (by Trail of Bits) is a static analysis framework for Solidity that detects 80+ vulnerability patterns including reentrancy, uninitialized storage, and access control issues. Mythril uses symbolic execution to find vulnerabilities like integer overflow and delegatecall misuse. These automated tools complement but do not replace manual code audits. Etherscan/Tenderly are explorers/debuggers, not security scanners."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

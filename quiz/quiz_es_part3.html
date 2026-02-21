@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz ES-3: Solidity Fundamentals | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">ES-3: Solidity Fundamentals</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">ES-3: Solidity Fundamentals</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What does the pragma directive `pragma solidity ^0.8.0;` specify in a Solidity file?",
+                    "options": {
+                        "A": "The contract must be compiled with exactly version 0.8.0",
+                        "B": "The contract is compatible with version 0.8.0 and any newer 0.8.x release, but not 0.9.0",
+                        "C": "The contract requires at least version 0.8.0, including all future major versions",
+                        "D": "The pragma is optional and only serves as documentation"
+                    },
+                    "correct": "B",
+                    "explanation": "The caret `^` in `^0.8.0` means 'compatible with': it accepts 0.8.0 and any 0.8.x version, but not 0.9.x or higher. This ensures the contract uses features available from 0.8.0 while avoiding breaking changes introduced in future minor or major versions."
+                },
+                {
+                    "id": 2,
+                    "question": "Which of the following is the correct top-level structure of a minimal Solidity contract?",
+                    "options": {
+                        "A": "`class MyContract { }` with a `main()` entry point",
+                        "B": "`contract MyContract { }` preceded by a pragma version directive",
+                        "C": "`module MyContract { }` exported as a default",
+                        "D": "`interface MyContract { }` with all functions declared"
+                    },
+                    "correct": "B",
+                    "explanation": "A Solidity source file typically starts with a `pragma solidity` version directive, followed by `contract ContractName { ... }`. The `contract` keyword is analogous to a class in OOP. There is no `main()` function; the constructor and public functions serve as entry points."
+                },
+                {
+                    "id": 3,
+                    "question": "In Solidity, what is the range of values that `uint256` can store?",
+                    "options": {
+                        "A": "$-2^{255}$ to $2^{255} - 1$",
+                        "B": "$0$ to $2^{255} - 1$",
+                        "C": "$0$ to $2^{256} - 1$",
+                        "D": "$-2^{256}$ to $2^{256} - 1$"
+                    },
+                    "correct": "C",
+                    "explanation": "`uint256` is an unsigned 256-bit integer, storing values from 0 to $2^{256} - 1$ (approximately $1.16 \times 10^{77}$). The signed equivalent `int256` stores $-2^{255}$ to $2^{255} - 1$. Solidity 0.8+ automatically reverts on overflow/underflow without needing SafeMath."
+                },
+                {
+                    "id": 4,
+                    "question": "What does the `address` type in Solidity represent, and how large is it?",
+                    "options": {
+                        "A": "A 32-byte hash of the contract bytecode",
+                        "B": "A 20-byte Ethereum account address, capable of holding ETH (if payable)",
+                        "C": "A 32-byte storage slot identifier",
+                        "D": "A 4-byte function selector"
+                    },
+                    "correct": "B",
+                    "explanation": "The `address` type is a 20-byte (160-bit) Ethereum address, representing an externally owned account or contract. `address payable` additionally allows `.transfer()` and `.send()` to send ETH. `address` without `payable` cannot directly receive ETH through those methods."
+                },
+                {
+                    "id": 5,
+                    "question": "Which data location is cheapest for function parameters that are only read and never modified?",
+                    "options": {
+                        "A": "storage",
+                        "B": "memory",
+                        "C": "calldata",
+                        "D": "stack"
+                    },
+                    "correct": "C",
+                    "explanation": "`calldata` is a read-only, non-persistent area where function arguments are stored when a function is called externally. It is cheaper than `memory` because the EVM does not need to copy the data — it reads it directly from the transaction input. `calldata` is only available for external function parameters."
+                },
+                {
+                    "id": 6,
+                    "question": "What is the key difference between `storage` and `memory` data locations in Solidity?",
+                    "options": {
+                        "A": "`storage` holds up to 32 KB; `memory` is unlimited",
+                        "B": "`storage` is persistent between transactions; `memory` is temporary and cleared after each call",
+                        "C": "`memory` is persistent; `storage` is reset after every block",
+                        "D": "Both are identical; the choice only affects compile-time optimization"
+                    },
+                    "correct": "B",
+                    "explanation": "`storage` is the contract's permanent state stored on-chain — changes persist across transactions and cost significant gas (SSTORE). `memory` is a temporary byte array allocated per call and automatically freed when the call ends. Reading/writing `memory` is much cheaper than `storage`."
+                },
+                {
+                    "id": 7,
+                    "question": "What does the `public` visibility specifier do when applied to a state variable in Solidity?",
+                    "options": {
+                        "A": "It allows the variable to be modified from any external contract",
+                        "B": "It automatically generates a getter function that external callers can use to read the value",
+                        "C": "It stores the variable in calldata instead of storage",
+                        "D": "It makes the variable available only within the current file"
+                    },
+                    "correct": "B",
+                    "explanation": "When a state variable is declared `public`, the Solidity compiler automatically synthesizes a getter function with the same name. External contracts and off-chain clients can call this getter to read the value. The variable itself remains in storage; only reading is exposed, not writing."
+                },
+                {
+                    "id": 8,
+                    "question": "A function declared `internal` in a Solidity contract can be called from:",
+                    "options": {
+                        "A": "Only within the same contract, not from derived contracts",
+                        "B": "The current contract and any contracts that inherit from it",
+                        "C": "Any external contract that knows the function selector",
+                        "D": "Only from the contract's constructor"
+                    },
+                    "correct": "B",
+                    "explanation": "`internal` functions are accessible within the contract that defines them and all contracts that inherit from it — analogous to `protected` in OOP. They are not visible externally. `private` functions are accessible only within the defining contract and are not inherited."
+                },
+                {
+                    "id": 9,
+                    "question": "What does the `view` keyword indicate about a Solidity function?",
+                    "options": {
+                        "A": "It costs no gas to call",
+                        "B": "It does not modify state but may read state variables",
+                        "C": "It is only visible internally and cannot be called externally",
+                        "D": "It returns a view of storage as a raw byte array"
+                    },
+                    "correct": "B",
+                    "explanation": "`view` functions promise not to modify any state (no writes to state variables, no emitting events, no calling non-view functions). They can read state freely. When called off-chain via `eth_call`, they execute locally and cost no gas. When called on-chain from another transaction, they do consume gas."
+                },
+                {
+                    "id": 10,
+                    "question": "How does a `pure` function differ from a `view` function in Solidity?",
+                    "options": {
+                        "A": "`pure` can read state; `view` cannot",
+                        "B": "`pure` cannot read or modify state; `view` can read state but not modify it",
+                        "C": "`pure` functions are always free; `view` functions cost half the normal gas",
+                        "D": "`pure` is for internal functions only; `view` is for external functions only"
+                    },
+                    "correct": "B",
+                    "explanation": "`pure` functions neither read nor modify state — they depend only on their arguments. Typical uses include mathematical utilities (e.g., computing keccak256 of a value). `view` functions may read state variables and global variables like `block.timestamp` but cannot write. Both avoid state changes."
+                },
+                {
+                    "id": 11,
+                    "question": "What is the purpose of a function modifier in Solidity, and how is it applied?",
+                    "options": {
+                        "A": "Modifiers change the return type of a function at compile time",
+                        "B": "Modifiers wrap a function with reusable pre- and/or post-condition logic, applied via the function signature",
+                        "C": "Modifiers are used exclusively for access control and cannot contain `require` statements",
+                        "D": "Modifiers replace the function body entirely with custom logic"
+                    },
+                    "correct": "B",
+                    "explanation": "A modifier is a reusable code block attached to a function declaration (e.g., `function foo() public onlyOwner`). It can execute code before the function body (using `_;` as a placeholder), after it, or both. Common uses include access control (`onlyOwner`), reentrancy guards, and state checks."
+                },
+                {
+                    "id": 12,
+                    "question": "What happens when a `require` statement's condition evaluates to `false`?",
+                    "options": {
+                        "A": "The transaction continues but emits a warning event",
+                        "B": "The transaction reverts, all state changes are undone, and remaining gas is refunded",
+                        "C": "The transaction reverts and all gas is consumed as a penalty",
+                        "D": "Execution jumps to the nearest `catch` block"
+                    },
+                    "correct": "B",
+                    "explanation": "`require(condition, \"message\")` reverts the transaction if `condition` is false: all state changes made so far in that call are rolled back, and the remaining (unspent) gas is refunded to the caller. The optional error string is returned as the revert reason. It is used for input validation and precondition checks."
+                },
+                {
+                    "id": 13,
+                    "question": "In Solidity, what is an `event` and what is its primary use case?",
+                    "options": {
+                        "A": "An event is a special storage variable that persists between blocks",
+                        "B": "An event is a mechanism to emit log entries stored in transaction receipts, used to notify off-chain listeners",
+                        "C": "An event triggers automatic execution of a callback function in other contracts",
+                        "D": "An event is a compile-time constant used for configuration"
+                    },
+                    "correct": "B",
+                    "explanation": "Events emit log entries stored in the transaction receipt's log bloom filter — they are not accessible by contracts at runtime, but are cheap to write (much cheaper than storage). Off-chain applications (frontends, indexers like The Graph) subscribe to events to track contract activity such as token transfers."
+                },
+                {
+                    "id": 14,
+                    "question": "How is the storage slot for a mapping key computed in Solidity? For `mapping(address => uint256) balances`, what is the slot for key `k`?",
+                    "options": {
+                        "A": "The slot index of the variable in the contract layout, regardless of key",
+                        "B": "$\\text{keccak256}(k \\| p)$ where $p$ is the storage slot of the mapping variable",
+                        "C": "$\\text{keccak256}(p \\| k)$ where $p$ is the storage slot of the mapping variable",
+                        "D": "A sequential slot number assigned at compile time"
+                    },
+                    "correct": "B",
+                    "explanation": "Solidity computes mapping slot as $\\text{keccak256}(\\text{key} \\| \\text{slot})$ — the key is left-padded to 32 bytes, concatenated with the slot position $p$ of the mapping declaration, and hashed. This distributes keys pseudo-randomly across the 256-bit storage space, avoiding collisions between different mappings."
+                },
+                {
+                    "id": 15,
+                    "question": "Which statement correctly describes dynamic arrays in Solidity storage?",
+                    "options": {
+                        "A": "Array elements are stored sequentially starting at slot 0 of the contract",
+                        "B": "The array length is stored at slot $p$; elements start at $\\text{keccak256}(p)$ and are stored contiguously",
+                        "C": "Dynamic arrays cannot be stored in contract storage; they must use memory",
+                        "D": "Each element is stored at $\\text{keccak256}(p \\| i)$ where $i$ is the index"
+                    },
+                    "correct": "B",
+                    "explanation": "For a dynamic array at storage slot $p$: the length is stored at slot $p$, and elements are stored contiguously starting at $\\text{keccak256}(p)$. Element $i$ is at $\\text{keccak256}(p) + i$. This allows large arrays without collisions with other state variables."
+                },
+                {
+                    "id": 16,
+                    "question": "How does Solidity implement inheritance, and what happens when two parent contracts define the same function?",
+                    "options": {
+                        "A": "Solidity uses single inheritance only; multiple parents are not allowed",
+                        "B": "Solidity supports multiple inheritance using C3 linearization; the most-derived override wins, and `super` chains up",
+                        "C": "Solidity resolves conflicts by always using the first listed parent",
+                        "D": "Multiple inheritance causes a compile error unless one parent's function is marked `final`"
+                    },
+                    "correct": "B",
+                    "explanation": "Solidity supports multiple inheritance. When ambiguity arises, it uses C3 linearization (same as Python) to determine a consistent method resolution order. Derived contracts must explicitly `override` conflicting functions. `super.foo()` calls the next function in the linearized chain, enabling cooperative multiple inheritance."
+                },
+                {
+                    "id": 17,
+                    "question": "What is a Solidity `interface`, and how does it differ from an `abstract contract`?",
+                    "options": {
+                        "A": "An interface can have state variables; an abstract contract cannot",
+                        "B": "An interface declares function signatures only with no implementation and no state variables; an abstract contract may have partial implementation and state",
+                        "C": "An interface and abstract contract are identical; the keywords are interchangeable",
+                        "D": "An abstract contract cannot be inherited; an interface can"
+                    },
+                    "correct": "B",
+                    "explanation": "Interfaces declare external function signatures without any implementation, constructor, state variables, or modifiers. Abstract contracts may include partial implementations, state variables, and modifiers — but at least one function must be unimplemented. Interfaces are used to define interaction standards (e.g., ERC-20); abstract contracts provide base implementations."
+                },
+                {
+                    "id": 18,
+                    "question": "What is the difference between `require`, `assert`, and `revert` in Solidity error handling?",
+                    "options": {
+                        "A": "`require` and `assert` both refund gas; `revert` consumes all gas",
+                        "B": "`require` is for input validation (refunds remaining gas); `assert` is for invariant checks (historically consumed all gas, now uses REVERT); `revert` unconditionally reverts with a custom message",
+                        "C": "`assert` is for user-facing errors; `require` is for internal invariants",
+                        "D": "All three are identical; the choice is purely stylistic"
+                    },
+                    "correct": "B",
+                    "explanation": "`require(cond, msg)` validates inputs/preconditions and refunds remaining gas on failure. `assert(cond)` checks invariants that should never be false (like array bounds) — since Solidity 0.8, it uses `REVERT` opcode and also refunds remaining gas, but signals a more serious logic error. `revert(msg)` unconditionally reverts with a message, used for complex conditions. Custom errors (`error MyError(); revert MyError();`) are more gas-efficient."
+                },
+                {
+                    "id": 19,
+                    "question": "What does the Ownable design pattern provide in a smart contract?",
+                    "options": {
+                        "A": "It prevents the contract from being called by any address except the EVM itself",
+                        "B": "It designates a privileged `owner` address with exclusive access to administrative functions, transferable to another address",
+                        "C": "It automatically distributes contract ETH to all token holders",
+                        "D": "It makes all state variables private and read-only"
+                    },
+                    "correct": "B",
+                    "explanation": "The Ownable pattern (popularized by OpenZeppelin) stores an `owner` state variable set to `msg.sender` in the constructor. An `onlyOwner` modifier restricts administrative functions. The owner can transfer ownership via `transferOwnership(newOwner)` or renounce it. This is a foundational access-control primitive."
+                },
+                {
+                    "id": 20,
+                    "question": "In the proxy upgrade pattern, why is logic stored in a separate implementation contract rather than in the proxy itself?",
+                    "options": {
+                        "A": "Because the EVM forbids storing functions and state in the same contract",
+                        "B": "Because the proxy's storage and address never change, allowing the implementation to be swapped while the contract address and state remain stable",
+                        "C": "Because implementation contracts are cheaper to deploy than proxies",
+                        "D": "Because Solidity interfaces require the logic to be in a separate file"
+                    },
+                    "correct": "B",
+                    "explanation": "In the proxy upgrade pattern, users always interact with the proxy contract (fixed address, holds the state). The proxy `delegatecall`s the implementation contract, which provides the logic but runs in the proxy's storage context. To upgrade, the admin points the proxy to a new implementation address — state is preserved, logic is replaced. UUPS and transparent proxies are common variants."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>
