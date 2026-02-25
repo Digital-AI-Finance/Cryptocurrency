@@ -1,0 +1,189 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{NFTs \& Digital Assets} \textcolor{mlgray}{|} Lesson 06 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{NFTs \& Digital Assets}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 06 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% ── Activity 1 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 1: Explore NFT Marketplaces}{10 min}{%
+Visit \url{https://opensea.io} and explore the marketplace. Answer:
+\begin{enumerate}
+\item What are the top 3 collections by total volume? What is the floor price of each?
+\item Pick one collection --- how many total items does it have? How many unique owners?
+\item Click on any individual NFT --- what metadata does it show (traits, rarity, history)?
+\item Find the ``Activity'' tab --- what does ``wash trading'' look like in transaction history?
+\end{enumerate}
+\textbf{Bonus:} Compare OpenSea with \url{https://blur.io}. How do their fee structures differ?
+}
+
+\vspace{2pt}
+
+% ── Activity 2 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 2: NFT Metadata Investigation}{5 min}{%
+Look up a CryptoPunk or Bored Ape Yacht Club NFT on \url{https://etherscan.io}. Answer:
+\begin{enumerate}
+\item Find the smart contract address. What token standard does it implement (ERC-721 or ERC-1155)?
+\item Look at the tokenURI function output. Where does the metadata point to (IPFS, HTTP, on-chain)?
+\item If the metadata points to IPFS, what happens if the IPFS gateway goes down?
+\item What is the difference between on-chain and off-chain metadata storage?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{4pt}%
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Collection} & \textbf{Standard} & \textbf{Metadata Location} & \textbf{Risk Level} \\
+\midrule
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% ── Activity 3 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 3: NFT Valuation Comparison}{10 min}{%
+Research each collection using official websites and analytics tools. Complete the table.\\[2pt]
+\textit{Hint: Floor price is the lowest listing price. Use tools such as rarity.tools or trait sniper for rarity data.}
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Collection} & \textbf{Floor Price} & \textbf{Total Volume} & \textbf{Unique Holders} & \textbf{Rarity Tool} \\
+\midrule
+CryptoPunks            & \fillcell & \fillcell & \fillcell & \fillcell \\
+Bored Ape Yacht Club   & \fillcell & \fillcell & \fillcell & \fillcell \\
+Azuki                  & \fillcell & \fillcell & \fillcell & \fillcell \\
+Pudgy Penguins         & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}
+\end{center}
+}
+
+\vspace{2pt}
+
+% ── Activity 4 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 4: Design Your NFT Collection}{5 min}{%
+Fill in the form below. Bring your design to class for discussion.
+\begin{enumerate}
+\item \textbf{Collection Name:}~\rule{5cm}{0.3pt}
+\item \textbf{Collection Size:}~\rule{3cm}{0.3pt}
+\item \textbf{Asset Type:}\quad
+      $\square$~Art\quad
+      $\square$~Gaming\quad
+      $\square$~Music\quad
+      $\square$~Utility\quad
+      $\square$~Identity\quad
+      $\square$~Other
+\item \textbf{Metadata Storage:}\quad
+      $\square$~On-chain\quad
+      $\square$~IPFS\quad
+      $\square$~Arweave\quad
+      $\square$~Centralized Server
+\item \textbf{Royalty Percentage:}~\rule{1.5cm}{0.3pt}\%
+\item \textbf{Target Marketplace:}\quad
+      $\square$~OpenSea\quad
+      $\square$~Blur\quad
+      $\square$~Magic Eden\quad
+      $\square$~Custom
+\item \textbf{Risk Assessment:}\quad
+      $\square$~Metadata loss\quad
+      $\square$~Rug pull\quad
+      $\square$~Low liquidity\quad
+      $\square$~Regulatory
+\end{enumerate}
+}
+
+\vspace{4pt}
+
+% ── Glossary ───────────────────────────────────────────────────────────────────
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.2cm}p{11.4cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{NFT}                  & Non-Fungible Token. A cryptographic token on a blockchain that represents a unique asset; unlike fungible tokens, each NFT is distinct and not interchangeable. \\
+\textbf{ERC-721}              & The Ethereum token standard for non-fungible tokens. Each token has a unique ID and owner, making it suitable for digital collectibles and art. \\
+\textbf{ERC-1155}             & A multi-token standard allowing a single contract to manage both fungible and non-fungible tokens, reducing gas costs for batch transfers. \\
+\textbf{Metadata}             & The descriptive data associated with an NFT (name, image, traits, description). Can be stored on-chain, on IPFS, or on centralised servers. \\
+\textbf{Floor Price}          & The lowest current asking price for any NFT within a collection, used as a benchmark for minimum market value. \\
+\textbf{Minting}              & The process of creating an NFT by recording it on the blockchain. Minting assigns a unique token ID and transfers ownership to the creator or buyer. \\
+\textbf{Royalties}            & A percentage of secondary sale proceeds automatically paid to the original creator via smart contract logic, enabling ongoing revenue. \\
+\textbf{IPFS}                 & InterPlanetary File System. A distributed peer-to-peer protocol for storing and sharing content-addressed files, commonly used to host NFT metadata and images. \\
+\textbf{Wash Trading}         & A form of market manipulation where a single party (or coordinated parties) repeatedly buys and sells the same asset to artificially inflate volume or price. \\
+\textbf{Soulbound Token (SBT)} & A non-transferable NFT permanently bound to one wallet, proposed for representing credentials, memberships, or identity attributes. \\
+\textbf{Rarity Score}         & A numerical measure of how uncommon an NFT's combination of traits is within its collection; higher scores indicate rarer attributes. \\
+\textbf{Token URI}            & A function in ERC-721/ERC-1155 contracts that returns the URL or on-chain data pointing to an NFT's metadata JSON file. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, NFTs \& Digital Assets --- Lesson 06 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

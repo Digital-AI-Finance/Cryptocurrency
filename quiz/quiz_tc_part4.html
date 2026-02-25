@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz TC-4: Token Economics &amp; Security | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz TC-4: Token Economics &amp; Security</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz TC-4: Token Economics &amp; Security</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "A fixed-supply token mints all tokens at deployment and disables further minting. Which real-world asset does this model most closely resemble, and what is its key economic implication?",
+                    "options": {
+                        "A": "Fiat currency — governments can expand supply to meet demand",
+                        "B": "Gold — finite scarcity creates a stock-to-flow ratio that may support value appreciation as demand grows",
+                        "C": "Government bonds — fixed supply guarantees a fixed interest rate return",
+                        "D": "Commodities futures — the supply is fixed per contract but resets annually"
+                    },
+                    "correct": "B",
+                    "explanation": "Fixed-supply tokens mirror gold's scarcity model: the maximum quantity is known at launch and cannot change. Bitcoin's 21 million cap is the canonical example. The stock-to-flow model (existing supply divided by annual new supply) argues that scarcity relative to demand drives value. As demand grows with fixed supply, price pressure is upward — but this assumes sustained demand, which is not guaranteed."
+                },
+                {
+                    "id": 2,
+                    "question": "An inflationary token mints new tokens at a constant annual rate $r$. If the current supply is $S_0$, what is the supply after $t$ years?",
+                    "options": {
+                        "A": "$S_0 + r \cdot t$",
+                        "B": "$S_0 \cdot (1 + r)^t$",
+                        "C": "$S_0 \cdot e^{-rt}$",
+                        "D": "$S_0 / (1 + r \cdot t)$"
+                    },
+                    "correct": "B",
+                    "explanation": "Compound growth applies: each year the supply grows by factor $(1+r)$, giving $S_t = S_0 \cdot (1+r)^t$. For example, Ethereum post-Merge targets roughly 0–0.5% annual inflation. At $r = 0.005$ and $t = 10$ years, $S_{10} = S_0 \cdot (1.005)^{10} \approx 1.051 \cdot S_0$. Continuous inflation must be weighed against validator incentives and token holder dilution."
+                },
+                {
+                    "id": 3,
+                    "question": "A deflationary token destroys a fixed percentage of every transaction as a burn fee. What is the primary economic tension this design creates?",
+                    "options": {
+                        "A": "Between miners who earn fees and validators who earn block rewards",
+                        "B": "Between velocity of money (frequent transactions accelerate burns) and store-of-value utility (holders benefit from scarcity but reducing velocity may harm network usage)",
+                        "C": "Between the ERC-20 standard and ERC-721 compatibility requirements",
+                        "D": "Between the smart contract's `burn` function and the EVM's gas refund mechanism"
+                    },
+                    "correct": "B",
+                    "explanation": "A transaction burn fee creates a deflationary feedback loop: more usage burns more tokens, increasing scarcity. However, if the burn fee is too high, rational actors reduce transaction frequency to avoid the tax, lowering network velocity and utility. This is the core velocity-scarcity tension. Tokens like SAFEMOON experimented with this model; it often amplifies speculation over utility."
+                },
+                {
+                    "id": 4,
+                    "question": "Binance Coin (BNB) began as an inflationary ERC-20 token and transitioned to a deflationary model. What mechanism does Binance use to reduce BNB supply?",
+                    "options": {
+                        "A": "Locking tokens in a central reserve that never releases them",
+                        "B": "Quarterly token burns using a portion of Binance exchange profits, targeting a final supply of 100 million BNB",
+                        "C": "Automatic burn of all staking rewards without distributing them to validators",
+                        "D": "Converting circulating BNB to a non-transferable governance token"
+                    },
+                    "correct": "B",
+                    "explanation": "Binance uses its exchange profits to buy BNB on the open market and burn it permanently every quarter. The burn amount is calculated based on trading volume, creating a link between exchange success and token scarcity. The plan targets reducing supply from the initial 200 million BNB to 100 million — a 50% reduction. This is a centrally controlled deflationary mechanism, contrasting with algorithmic burns."
+                },
+                {
+                    "id": 5,
+                    "question": "A startup allocates 20% of its token supply to the founding team with a 4-year vesting schedule and a 1-year cliff. What does 'cliff' mean in this context?",
+                    "options": {
+                        "A": "Tokens are released in a single lump sum after 4 years with no intermediate unlocks",
+                        "B": "No tokens vest during the first year; at the 12-month mark, 25% of the team allocation unlocks, then monthly vesting continues for 3 more years",
+                        "C": "Team tokens are permanently locked until a governance vote approves their release",
+                        "D": "The token price must exceed a cliff price before vesting activates"
+                    },
+                    "correct": "B",
+                    "explanation": "A 1-year cliff means zero tokens vest before month 12. At the cliff date, the accrued first-year allocation unlocks (typically 25% of the full grant for a 4-year schedule). After the cliff, vesting resumes monthly or quarterly for the remaining 3 years. This structure prevents early exits while still rewarding long-term contributors, and is standard in both traditional equity and token grants."
+                },
+                {
+                    "id": 6,
+                    "question": "A token's smart contract implements vesting using: `require(block.timestamp >= vestingStart + cliffDuration, \"Cliff not reached\")`. What attack vector does this NOT protect against?",
+                    "options": {
+                        "A": "Premature withdrawals before the cliff period",
+                        "B": "Miners/validators manipulating `block.timestamp` by up to ~15 seconds to unlock tokens slightly early",
+                        "C": "The team calling `transfer` to circumvent the vesting contract entirely if tokens were mistakenly sent to an EOA",
+                        "D": "Both B and C"
+                    },
+                    "correct": "D",
+                    "explanation": "Two attack vectors remain: (1) `block.timestamp` manipulation — validators can adjust timestamps within the Ethereum protocol's ~15-second tolerance, enabling trivially early unlocks near the cliff boundary; (2) tokens sent directly to an EOA (not the vesting contract) have no on-chain vesting enforcement at all. Robust vesting requires tokens to remain in the vesting contract throughout, and cliff periods should add a safety buffer beyond the exact boundary."
+                },
+                {
+                    "id": 7,
+                    "question": "Locked liquidity refers to LP (liquidity provider) tokens being sent to a burn address or time-lock contract. Why does this matter for token security?",
+                    "options": {
+                        "A": "It prevents the DEX from charging swap fees on the locked liquidity pair",
+                        "B": "It prevents the project team from withdrawing the liquidity pool reserves and abandoning holders ('rug pull'), providing verifiable assurance to investors",
+                        "C": "It reduces the AMM's slippage to zero for all trades in the pair",
+                        "D": "It grants the lock contract owner automatic governance voting rights"
+                    },
+                    "correct": "B",
+                    "explanation": "A rug pull occurs when a project team withdraws liquidity from an AMM pool, causing the token's price to collapse to near zero. By locking LP tokens in a time-locked contract (e.g., via Unicrypt or Team.Finance) or burning them, the team cryptographically proves they cannot withdraw the underlying reserves for the lock duration. Investors can verify the lock on-chain, reducing counterparty risk."
+                },
+                {
+                    "id": 8,
+                    "question": "A token allocates supply as follows: 40% public sale, 20% team (3-year vest), 15% ecosystem fund, 15% treasury, 10% advisors. What is the 'fully diluted valuation' (FDV) if the token price is $2.00 and max supply is 100 million?",
+                    "options": {
+                        "A": "$40{,}000{,}000$ (only the public sale allocation)",
+                        "B": "$80{,}000{,}000$ (circulating supply at launch at $2.00)",
+                        "C": "$200{,}000{,}000$ (max supply $\times$ current price)",
+                        "D": "$133{,}333{,}333$ (locked supply excluded from FDV)"
+                    },
+                    "correct": "C",
+                    "explanation": "FDV = max supply $\times$ current price $= 100{,}000{,}000 \times \$2.00 = \$200{,}000{,}000$. FDV represents what the entire project would be worth if all tokens — including locked, unvested, and unissued — were in circulation at the current price. It is a critical metric: a low circulating market cap with a very high FDV signals massive future sell pressure from unlocking tokens."
+                },
+                {
+                    "id": 9,
+                    "question": "USDC is a fiat-backed stablecoin with an 'elastic supply' model. What does elastic supply mean for USDC?",
+                    "options": {
+                        "A": "USDC uses an algorithmic rebase mechanism that adjusts all holder balances proportionally every 24 hours",
+                        "B": "Circle mints USDC when users deposit USD and burns USDC when users redeem, so total supply tracks total USD reserves held",
+                        "C": "USDC supply expands automatically when ETH price rises and contracts when ETH price falls",
+                        "D": "Smart contracts can mint unlimited USDC as long as they stake ETH as collateral"
+                    },
+                    "correct": "B",
+                    "explanation": "USDC's supply elasticity comes from its mint/redeem mechanism: Circle mints new USDC 1:1 when institutional partners deposit USD into Circle's reserve accounts, and burns USDC when users redeem for USD. Supply equals outstanding redemption obligations — always matching circulating tokens to held reserves. This contrasts with algorithmic stablecoins (like Terra/UST) which maintain peg through market incentives without full collateral."
+                },
+                {
+                    "id": 10,
+                    "question": "Chainlink (LINK) has a fixed maximum supply of 1 billion tokens. What economic argument supports fixed supply for an oracle network token?",
+                    "options": {
+                        "A": "Fixed supply guarantees LINK's price will always appreciate over time",
+                        "B": "Node operators earn LINK fees from data consumers; predictable supply reduces inflation dilution of staking rewards, maintaining operator incentives",
+                        "C": "Fixed supply makes LINK immune to regulatory scrutiny as a security",
+                        "D": "Chainlink can expand LINK supply via a DAO vote whenever node operator rewards fall below threshold"
+                    },
+                    "correct": "B",
+                    "explanation": "LINK's fixed supply means node operators' staking rewards and service fees are not diluted by continuous inflation. In an inflationary system, newly minted tokens reduce existing holders' share; in a fixed-supply system, operator revenue comes entirely from user fees. As Chainlink's oracle demand grows, fee revenue increases without inflation diminishing its real value — aligning operator incentives with network growth."
+                },
+                {
+                    "id": 11,
+                    "question": "UNI governance token holders can vote on Uniswap protocol parameters. Which red flag in a governance token's design suggests centralisation risk?",
+                    "options": {
+                        "A": "Governance proposals require a minimum quorum of 1% of total supply to pass",
+                        "B": "A single address or DAO multisig holds >51% of circulating governance tokens, enabling unilateral protocol control",
+                        "C": "The token grants proportional fee revenue sharing in addition to voting rights",
+                        "D": "Governance votes have a 7-day voting period before execution"
+                    },
+                    "correct": "B",
+                    "explanation": "If one entity holds >50% of a governance token, they can unilaterally pass any proposal — upgrading contracts, changing fee parameters, or draining the treasury — without consensus. This recreates the centralisation that decentralised protocols aim to eliminate. Red flags include: founder address holding large undisclosed allocations, venture funds coordinating votes, or a lack of time-lock delays before executing passed proposals."
+                },
+                {
+                    "id": 12,
+                    "question": "Which of the following is the clearest red flag indicating a potential 'rug pull' or exit scam in a new token project?",
+                    "options": {
+                        "A": "The team uses a public multisig wallet for the treasury",
+                        "B": "The contract is verified on Etherscan and uses OpenZeppelin's standard ERC-20",
+                        "C": "The contract contains a hidden `setFee(uint256 newFee)` function callable only by the owner that can set transfer fees to 100%, effectively blocking all transfers",
+                        "D": "The token has a 6-month liquidity lock with a verifiable on-chain time-lock"
+                    },
+                    "correct": "C",
+                    "explanation": "A privileged function allowing the owner to set arbitrary transfer fees — especially to extreme values like 100% — is a classic honeypot pattern. Tokens appear tradeable on DEXs but once investors buy in, the owner sets the fee to 100%, making it impossible to sell. This is why source code auditing is essential: the contract may look like a standard ERC-20 in its interface but contain backdoors invisible without reading the Solidity source."
+                },
+                {
+                    "id": 13,
+                    "question": "The quantity theory of money equation $MV = PQ$ is applied to token valuation. If a token's velocity $V = 10$, transaction volume $Q = \$5{,}000{,}000$, and price level $P = 1$ (denominated in USD), what does this imply about the required token supply $M$?",
+                    "options": {
+                        "A": "$M = 50{,}000{,}000$ tokens must exist to support the transaction volume",
+                        "B": "$M = 500{,}000$ tokens — each token turns over 10 times per period to process $5M in transactions",
+                        "C": "$M = 5{,}000{,}000$ tokens at $P=1$ per token, with each circulating 10 times",
+                        "D": "$M = 10{,}000$ tokens at high velocity replace the need for large supply"
+                    },
+                    "correct": "B",
+                    "explanation": "From $MV = PQ$: $M = PQ/V = (1 \times 5{,}000{,}000) / 10 = 500{,}000$. This means 500,000 tokens each changing hands 10 times can process $5M in economic activity. High velocity reduces the required market cap for a given transaction volume, which is why pure payment tokens often have lower valuations than store-of-value tokens (which have velocity $\approx 1$). Reducing velocity (e.g., through staking lockups) increases required $M$, supporting price."
+                },
+                {
+                    "id": 14,
+                    "question": "Metcalfe's Law states that the value of a network is proportional to $n^2$ where $n$ is the number of users. Applied to token valuation, what does this predict about a token network growing from 1,000 to 10,000 active addresses?",
+                    "options": {
+                        "A": "Network value grows 10x, proportional to the linear increase in users",
+                        "B": "Network value grows approximately 100x, since $(10{,}000)^2 / (1{,}000)^2 = 100$",
+                        "C": "Network value grows $\log(10{,}000)/\log(1{,}000) \approx 1.33$x",
+                        "D": "Network value is unrelated to user count; only transaction fees determine valuation"
+                    },
+                    "correct": "B",
+                    "explanation": "Metcalfe's Law: $V \propto n^2$. At $n=1{,}000$: $V \propto 10^6$. At $n=10{,}000$: $V \propto 10^8$. Ratio: $10^8/10^6 = 100$. A 10x user growth implies ~100x network value growth under this model. This is why early adoption phases create enormous value if they can achieve critical mass — each new user adds value proportional to all existing users. Bitcoin's network effect is often cited as its primary valuation driver."
+                },
+                {
+                    "id": 15,
+                    "question": "Which combination of demand drivers most robustly supports a utility token's long-term valuation?",
+                    "options": {
+                        "A": "Speculative trading volume and influencer marketing campaigns",
+                        "B": "Protocol fee revenue distributed to token holders, governance rights over a growing protocol, and mandatory token burning per unit of service consumed",
+                        "C": "Exchange listings on centralised platforms and market-maker agreements",
+                        "D": "A fixed price peg maintained by the founding team buying tokens on the open market"
+                    },
+                    "correct": "B",
+                    "explanation": "Durable utility token value rests on three pillars: (1) cash flow rights — fee revenue creates a fundamental valuation floor similar to dividends; (2) governance utility — control over a growing protocol has option value; (3) deflationary pressure — mandatory burns link service usage directly to supply reduction, creating a demand-supply feedback loop. Speculative volume and exchange listings are short-term catalysts that don't create fundamental value."
+                },
+                {
+                    "id": 16,
+                    "question": "A reentrancy attack on a token contract exploits which specific execution pattern?",
+                    "options": {
+                        "A": "The attacker deploys a contract that calls `approve` and `transferFrom` in the same transaction to double-spend allowances",
+                        "B": "A malicious contract's `receive()` or `fallback()` function re-enters the victim contract before the first call's state update completes, enabling repeated withdrawals",
+                        "C": "The attacker front-runs a pending `transfer` transaction by submitting the same transaction with higher gas",
+                        "D": "The attacker exploits integer overflow in the balance mapping to wrap around to a large balance"
+                    },
+                    "correct": "B",
+                    "explanation": "Reentrancy (the DAO hack vector) works as follows: (1) victim calls attacker's contract, sending ETH; (2) attacker's `receive()` re-enters victim's `withdraw()` before the victim's balance is updated to zero; (3) victim sends ETH again; steps 2-3 repeat until victim is drained. The fix is the Checks-Effects-Interactions pattern: update state (balance = 0) BEFORE the external call. OpenZeppelin's `ReentrancyGuard` adds a mutex lock as a defence."
+                },
+                {
+                    "id": 17,
+                    "question": "The ERC-20 approval race condition allows an attacker to spend more than the intended allowance when an owner updates it. Explain the exact attack sequence.",
+                    "options": {
+                        "A": "Attacker calls `transferFrom` multiple times in a single transaction before the approval is confirmed",
+                        "B": "Owner sends `approve(spender, newAmount)`; attacker front-runs by calling `transferFrom(owner, attacker, oldAmount)` before the new approval is mined, then calls it again for `newAmount` after — spending `oldAmount + newAmount`",
+                        "C": "Attacker deploys a proxy contract that intercepts the approval transaction and doubles the allowance in the EVM",
+                        "D": "Attacker exploits that `allowance` mapping is stored in slot 0 and can be overwritten via a hash collision"
+                    },
+                    "correct": "B",
+                    "explanation": "The race condition: Alice approves Bob for 100. She later wants to change to 50, sending `approve(Bob, 50)`. Bob sees this pending tx in the mempool, front-runs with `transferFrom(Alice, Bob, 100)` spending the original 100. Alice's tx then executes, setting Bob's allowance to 50. Bob calls `transferFrom` again for 50 — total spent: 150 instead of 50. Mitigation: use `increaseAllowance`/`decreaseAllowance` (which add/subtract rather than set) or require allowance be reset to 0 first."
+                },
+                {
+                    "id": 18,
+                    "question": "Front-running in token contracts occurs when a miner or bot observes a profitable pending transaction and submits their own transaction with higher gas to execute first. Which token mechanism is most susceptible to front-running?",
+                    "options": {
+                        "A": "Simple `transfer` calls between two EOAs",
+                        "B": "AMM token swaps where the output amount depends on pool reserves at execution time, allowing sandwich attacks",
+                        "C": "ERC-20 `approve` transactions that set a fixed allowance",
+                        "D": "Batch minting of NFTs with a fixed mint price"
+                    },
+                    "correct": "B",
+                    "explanation": "AMM swaps (e.g., on Uniswap) are the primary front-running target. A sandwich attack: (1) attacker sees victim's large swap pending in mempool; (2) attacker submits a buy with higher gas (front-runs, moving price against victim); (3) victim's swap executes at a worse price; (4) attacker sells immediately (back-runs), profiting from the price impact. Mitigations include slippage limits (revert if output < minimum), private mempools (Flashbots), and time-weighted AMMs."
+                },
+                {
+                    "id": 19,
+                    "question": "Slither is a static analysis tool for Solidity. Which category of vulnerability can Slither detect through control flow analysis that Mythril's symbolic execution may miss?",
+                    "options": {
+                        "A": "Integer overflow in deeply nested arithmetic operations under specific runtime inputs",
+                        "B": "Coding anti-patterns like unused state variables, missing event emissions, and incorrect visibility modifiers detectable without execution",
+                        "C": "All possible reentrancy paths through EVM opcode simulation",
+                        "D": "Gas griefing attacks requiring knowledge of the contract's deployment environment"
+                    },
+                    "correct": "B",
+                    "explanation": "Slither performs static analysis — inspecting the code's abstract syntax tree and control flow graph without executing it. This excels at catching: unused `public` functions that should be `external`, state variables that should be `immutable`, missing `indexed` event parameters, shadowed state variables, and dangerous patterns like `tx.origin` for authentication. Mythril uses symbolic execution to explore all code paths under various inputs, catching logic bugs Slither misses. Both tools complement each other and should be used together."
+                },
+                {
+                    "id": 20,
+                    "question": "Before deploying an ERC-20 token to Ethereum mainnet, which combination of steps provides the strongest security assurance?",
+                    "options": {
+                        "A": "Verify contract source on Etherscan and announce on Twitter",
+                        "B": "Run Slither and Mythril static/symbolic analysis, achieve 100% test branch coverage, commission a professional security audit from a recognised firm, deploy to testnet with a bug bounty period, then deploy to mainnet with a timelock on privileged functions",
+                        "C": "Hire a developer who has previously deployed tokens and use their private key for deployment",
+                        "D": "Use only OpenZeppelin contracts with zero custom code; no further review is needed"
+                    },
+                    "correct": "B",
+                    "explanation": "Mainnet readiness requires layered security: (1) automated tools (Slither, Mythril) catch known vulnerability patterns cheaply; (2) high test coverage ensures intended behaviour; (3) a professional audit (e.g., Trail of Bits, ConsenSys Diligence, Halborn) provides human expert review of logic; (4) testnet deployment with a bug bounty invites community review under real conditions; (5) timelocks on `transferOwnership`, `mint`, and parameter changes give the community time to react to malicious owner actions. Each layer catches different vulnerability classes."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

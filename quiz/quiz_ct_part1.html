@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz CT-1: Market Microstructure | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz CT-1: Market Microstructure</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz CT-1: Market Microstructure</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is an order book in a cryptocurrency exchange, and what are its two primary sides?",
+                    "options": {
+                        "A": "A ledger recording all historical trades on a blockchain, divided into confirmed and unconfirmed transactions",
+                        "B": "A real-time list of outstanding buy orders (bids) and sell orders (asks) at various price levels, showing the full supply and demand schedule for an asset at any given moment",
+                        "C": "A document maintained by regulators listing all licensed cryptocurrency exchange operators and their approved trading pairs",
+                        "D": "A smart contract that automatically matches buy and sell orders using a constant-product formula"
+                    },
+                    "correct": "B",
+                    "explanation": "An order book is the central mechanism of a limit-order exchange. The bid side lists all resting buy orders — traders willing to purchase the asset at or below a specified price. The ask side (also called the offer side) lists all resting sell orders — traders willing to sell at or above a specified price. Orders are ranked by price priority (highest bid first, lowest ask first) and then by time priority within the same price level. The order book provides complete price transparency and allows participants to see available liquidity before placing trades."
+                },
+                {
+                    "id": 2,
+                    "question": "In a cryptocurrency order book, what information does each price level typically display?",
+                    "options": {
+                        "A": "The identity of traders who placed orders at that level, the time each order was placed, and the exchange fee tier of each trader",
+                        "B": "The price, the total quantity of the asset available at that price (aggregated across all resting orders), and sometimes the number of individual orders contributing to that quantity",
+                        "C": "The price, the VWAP of all trades executed at that level in the past 24 hours, and the percentage change from the previous day's closing price",
+                        "D": "The price, the maximum order size permitted at that level, and the margin requirement for leveraged positions at that price"
+                    },
+                    "correct": "B",
+                    "explanation": "Each price level in the order book shows: (1) the price itself; (2) the total size/quantity available — the sum of all individual limit orders resting at that price; and (3) optionally, the count of individual orders. For example, a level showing '2.5 BTC at $42,000' means traders collectively wish to buy (if bid) or sell (if ask) 2.5 BTC at that exact price. Exchanges aggregate individual orders at the same price to show total depth. Some exchanges also show the cumulative depth — the total quantity available from best price to that level — which helps traders assess the total liquidity they can access up to a given price."
+                },
+                {
+                    "id": 3,
+                    "question": "What is 'market depth' as visualised in a depth chart, and what does a steep versus a gradual slope on the depth chart indicate?",
+                    "options": {
+                        "A": "Market depth measures the number of unique traders active in the past hour; a steep slope indicates fewer traders while a gradual slope indicates more participants",
+                        "B": "Market depth shows the cumulative quantity of buy and sell orders at each price level away from the mid-price; a steep slope indicates thin liquidity (small orders move the price significantly), while a gradual slope indicates deep liquidity (large orders needed to move the price)",
+                        "C": "Market depth tracks the 24-hour trading volume at each price level; a steep slope indicates most volume occurred near the current price, while a gradual slope indicates volume was spread across a wide range",
+                        "D": "Market depth displays the time-weighted average position of all open orders; slope steepness reflects the average holding duration of limit orders"
+                    },
+                    "correct": "B",
+                    "explanation": "A depth chart plots cumulative order quantity on the y-axis against price on the x-axis, typically as two curves meeting at the mid-price — the bid curve extending left and the ask curve extending right. A steep slope on either side means the cumulative quantity grows rapidly with small price movements away from the mid-price, implying thin liquidity: even a modest-sized market order will consume multiple price levels and cause significant slippage. A gradual slope means large cumulative quantity is available close to the mid-price, indicating deep liquidity where even large orders have minimal price impact. Exchanges with deep markets (e.g., Binance for BTC/USDT) show very gradual slopes compared to smaller altcoin pairs."
+                },
+                {
+                    "id": 4,
+                    "question": "How does the matching engine of a centralised limit-order exchange determine which orders execute against each other?",
+                    "options": {
+                        "A": "Orders are matched randomly among all resting orders at the best price level to prevent front-running by high-frequency traders",
+                        "B": "The exchange uses a Dutch auction every 10 seconds, collecting all orders in a batch and clearing them at a single uniform price",
+                        "C": "Incoming orders are matched against resting orders using price-time priority: the best-priced resting order executes first, and among orders at the same price, the earliest-submitted order executes first",
+                        "D": "Orders are matched by size priority: the largest resting order always executes first, regardless of when it was submitted"
+                    },
+                    "correct": "C",
+                    "explanation": "The standard matching algorithm is price-time priority (FIFO — First In, First Out within each price level). When a buy market order arrives, it matches against the lowest-priced resting sell (ask) orders first. If multiple asks exist at the same price, the one submitted earliest gets matched first. This incentivises market makers to submit limit orders early to gain queue priority. Price-time priority is the norm on most spot exchanges. Some derivatives exchanges use pro-rata allocation (allocating fills proportionally by order size among same-price orders) to reduce the advantage of speed. Understanding the matching algorithm is essential for traders designing execution strategies."
+                },
+                {
+                    "id": 5,
+                    "question": "A trader submits a market order to buy 1 BTC on an exchange. What is the defining characteristic of a market order, and what is its primary risk?",
+                    "options": {
+                        "A": "A market order executes only if the price stays within 1% of the current mid-price; its primary risk is non-execution if the price moves too fast",
+                        "B": "A market order instructs the exchange to buy immediately at the best available prices in the order book, guaranteeing execution but not price — the primary risk is slippage, where the final average execution price differs unfavourably from the quoted price due to consuming multiple price levels",
+                        "C": "A market order executes at exactly the last traded price displayed on the exchange; its primary risk is that this price may be stale by several seconds",
+                        "D": "A market order is identical to a limit order but with no expiration time; the primary risk is paying higher exchange fees"
+                    },
+                    "correct": "B",
+                    "explanation": "A market order is an unconditional instruction to execute immediately at whatever prices are available in the order book. For a buy market order for 1 BTC: if the ask side shows 0.3 BTC at $42,000, 0.5 BTC at $42,010, and 0.2 BTC at $42,030, the order will consume all three levels, receiving 0.3 BTC at $42,000, 0.5 BTC at $42,010, and 0.2 BTC at $42,030 — an average fill price of $42,012 despite the quoted best ask of $42,000. This difference ($12 in this case) is slippage. In illiquid markets or during volatility, slippage on market orders can be substantial. Market orders guarantee execution certainty but surrender price certainty."
+                },
+                {
+                    "id": 6,
+                    "question": "What is a limit order, and under what market conditions does a buy limit order fail to execute?",
+                    "options": {
+                        "A": "A limit order executes immediately at the current market price up to a specified maximum quantity; it fails if the quantity exceeds what is available",
+                        "B": "A limit order specifies a maximum price (for buys) or minimum price (for sells) at which the trader is willing to transact; a buy limit order fails to execute if the market price never falls to or below the specified limit price before the order expires",
+                        "C": "A limit order is automatically cancelled if not filled within 60 seconds; it fails when market volatility exceeds 5% per minute",
+                        "D": "A limit order instructs the exchange to gradually accumulate a position over several hours using a TWAP algorithm; it fails if trading volume is insufficient"
+                    },
+                    "correct": "B",
+                    "explanation": "A limit order rests in the order book until it is matched or cancelled. A buy limit order at $41,500 for BTC will only execute if the market price drops to $41,500 or below — i.e., if a sell order at $41,500 or lower arrives to match against it. If BTC never falls that low before the order's time-in-force expires (GTC — Good Till Cancelled, GTD — Good Till Date, IOC — Immediate or Cancel, etc.), the order remains unfilled. The trade-off versus a market order: limit orders provide price certainty but sacrifice execution certainty. Professional traders often use limit orders to act as market makers, capturing the bid-ask spread by providing liquidity that others consume."
+                },
+                {
+                    "id": 7,
+                    "question": "A trader holds a long position in ETH and wants to limit potential losses. They place a stop-loss order at $2,800 when ETH is trading at $3,200. What happens when ETH's price reaches $2,800?",
+                    "options": {
+                        "A": "The stop-loss order is converted into a limit order to sell at exactly $2,800, guaranteeing an exit at that precise price",
+                        "B": "The stop-loss triggers and converts into a market sell order that executes at the best available prices; in a fast-moving or illiquid market, the actual fill price may be significantly below $2,800 (slippage or 'gap risk')",
+                        "C": "The stop-loss order freezes the position and notifies the trader, who must then manually confirm the sale within 30 seconds",
+                        "D": "The stop-loss order automatically hedges the position by purchasing ETH put options at the $2,800 strike price"
+                    },
+                    "correct": "B",
+                    "explanation": "A standard stop-loss order has two stages: (1) The trigger condition — when the market price reaches or crosses the stop price ($2,800), the stop order activates. (2) The order type after activation — for a regular stop-loss, it converts to a market order. This means in a fast-falling market, the actual fill might be $2,780 or lower if large sell pressure is present. This is called 'stop-loss slippage' or 'gap risk.' During high-volatility events (flash crashes, exchange circuit breaker failures, news events), ETH could 'gap' past $2,800 without trading there — the stop activates but executes at whatever price is available. This is why traders concerned about precise exits use stop-limit orders instead."
+                },
+                {
+                    "id": 8,
+                    "question": "A stop-limit order has two price parameters: a stop price and a limit price. How does this differ from a regular stop-loss order, and what risk does the limit component introduce?",
+                    "options": {
+                        "A": "A stop-limit order executes at the stop price and the limit price is only used to calculate the maximum slippage permitted; the risk is higher exchange fees",
+                        "B": "A stop-limit order triggers at the stop price and then converts to a limit order at the limit price; the risk is non-execution — if the market price falls through the limit price before the limit order fills, the position remains open and losses can exceed the intended stop level",
+                        "C": "A stop-limit order uses the stop price as the entry point for a new long position and the limit price as the profit target; the risk is that the limit is set too conservatively",
+                        "D": "A stop-limit order executes at whichever of the two prices is more favourable to the trader; the risk is that exchanges charge double fees for dual-price orders"
+                    },
+                    "correct": "B",
+                    "explanation": "A stop-limit order (e.g., stop at $2,800, limit at $2,790) works as follows: when the market price reaches $2,800 (the stop), a limit sell order at $2,790 is placed. This limit order will only fill at $2,790 or better. The advantage over a regular stop-loss: if the market is orderly and temporarily dips to $2,800 and recovers, the limit order may not fill at all (protecting from over-selling). The critical risk: if ETH crashes rapidly past both $2,800 and $2,790 (e.g., to $2,700 in seconds due to a flash crash or large liquidation cascade), the stop triggers but the limit order never fills because no one is selling at $2,790 in a one-sided market. The trader's loss can vastly exceed what the stop was designed to prevent."
+                },
+                {
+                    "id": 9,
+                    "question": "The bid-ask spread is quoted as the difference between the best ask and best bid prices. If BTC's best bid is $41,995 and best ask is $42,005, what is the spread in dollar terms and in basis points?",
+                    "options": {
+                        "A": "$5 spread; approximately 0.12 basis points — reflecting the low liquidity typical of illiquid altcoins",
+                        "B": "$10 spread; approximately 2.38 basis points — and this spread represents the immediate round-trip cost for a trader who buys at the ask and immediately sells at the bid",
+                        "C": "$10 spread; approximately 0.5 basis points — well within normal range for BTC on a major exchange like Binance",
+                        "D": "$5 spread; approximately 1.19 basis points — representing the market maker's profit on each round-trip trade"
+                    },
+                    "correct": "B",
+                    "explanation": "The bid-ask spread = best ask - best bid = $42,005 - $41,995 = $10. In basis points: ($10 / $42,000) x 10,000 = 2.38 bps. This is the round-trip cost (in price terms) for a trader using market orders: buying at the ask ($42,005) and immediately selling at the bid ($41,995) results in a $10 loss per BTC — the spread is the market maker's compensation for providing liquidity. On major exchanges, BTC/USDT spreads are typically 1-3 bps. Illiquid pairs (small altcoins) may have spreads of 50-200 bps. The spread also serves as a friction measure: any active trading strategy must generate returns exceeding the spread just to break even."
+                },
+                {
+                    "id": 10,
+                    "question": "What factors cause the bid-ask spread to widen during periods of market stress or high volatility?",
+                    "options": {
+                        "A": "Exchange servers slow down during volatility, causing a technical delay in order book updates that artificially widens the displayed spread",
+                        "B": "Market makers face higher inventory risk and adverse selection risk during volatility — the probability that their limit orders are picked off by informed traders increases — so they widen spreads to compensate for the increased risk of holding positions in a fast-moving market",
+                        "C": "Regulatory rules require exchanges to mandate wider spreads during periods of excessive volatility as a circuit-breaker mechanism",
+                        "D": "Wider spreads during volatility reflect increased taxes imposed by exchanges on order flow to discourage speculative trading"
+                    },
+                    "correct": "B",
+                    "explanation": "Market maker spread widening during volatility reflects two key risks. (1) Inventory risk: a market maker posting quotes on both sides holds inventory. In volatile conditions, prices can move sharply against their position before they can adjust quotes — widening the spread compensates for this directional exposure. (2) Adverse selection risk (the 'winner's curse'): when informed traders (those with news or superior analysis) are present, their market orders are more likely to be correct — market makers who fill these orders get 'picked off' and are always on the wrong side. Widening spreads filters out small orders while ensuring compensation when filled by informed traders. During crypto flash crashes, spreads can widen 10-50x normal levels as market makers pull quotes entirely."
+                },
+                {
+                    "id": 11,
+                    "question": "A trader wants to purchase 50 ETH but the best ask only shows 20 ETH available. Explain how slippage occurs and calculate the approximate cost if the next levels show 15 ETH at $3,010 and 15 ETH at $3,020, with the best ask at $3,000.",
+                    "options": {
+                        "A": "Slippage does not occur because the exchange automatically sources liquidity from other exchanges to fill the entire 50 ETH at $3,000",
+                        "B": "The order fills 20 ETH at $3,000, 15 ETH at $3,010, and 15 ETH at $3,020. Average fill price = (20×$3,000 + 15×$3,010 + 15×$3,020) / 50 = $3,009. Slippage = $3,009 - $3,000 = $9 per ETH, or 0.30% above the best ask",
+                        "C": "The exchange rejects the order with an 'insufficient liquidity' error and requires the trader to split it into three separate orders of 20, 15, and 15 ETH respectively",
+                        "D": "The order fills entirely at $3,000 because exchanges are required by market regulations to guarantee best-price execution for retail traders"
+                    },
+                    "correct": "B",
+                    "explanation": "Slippage occurs when a single order consumes multiple price levels. The market order for 50 ETH sweeps through: 20 ETH at $3,000, then 15 ETH at $3,010, then 15 ETH at $3,020. Average fill price = (20×3000 + 15×3010 + 15×3020) / 50 = (60,000 + 45,150 + 45,300) / 50 = 150,450 / 50 = $3,009. Slippage = $9/ETH = 0.30%. Total extra cost vs. buying everything at the best ask: 50 × $9 = $450. This illustrates why order size relative to market depth matters enormously. Institutional traders use TWAP/VWAP algorithms and iceberg orders to minimise slippage on large orders."
+                },
+                {
+                    "id": 12,
+                    "question": "What is 'price impact' and how does it differ conceptually from 'slippage' in the context of cryptocurrency trading?",
+                    "options": {
+                        "A": "Price impact and slippage are identical terms — both describe the difference between expected and actual execution price, and the terms are used interchangeably across all exchanges",
+                        "B": "Price impact refers to how a large trade moves the market price for subsequent traders (permanent effect on the order book), while slippage is the cost to the individual trader of consuming multiple price levels; price impact affects market structure, slippage affects individual trade economics",
+                        "C": "Price impact is a metric used only in DeFi AMMs, while slippage is the relevant concept for centralised exchanges — the two concepts do not overlap",
+                        "D": "Slippage is always larger than price impact because slippage includes exchange fees while price impact excludes fees"
+                    },
+                    "correct": "B",
+                    "explanation": "These related concepts capture different dimensions of the same phenomenon. Slippage is the individual trader's cost: the difference between the price when the order was initiated (or the best price available) and the actual average execution price. Price impact is the market-level effect: after a large buy order consumes bid-side or ask-side liquidity, the order book is thinner and the new best bid/ask has moved — subsequent traders face a different (worse) market. In a centralised exchange, a large market buy permanently removes ask orders until they are replenished by new makers. In an AMM like Uniswap, price impact is mathematically defined by the constant-product formula: a large trade moves the pool's implied price for all future trades. Both concepts are critical for measuring execution quality and market impact."
+                },
+                {
+                    "id": 13,
+                    "question": "Market liquidity in a cryptocurrency exchange is measured along multiple dimensions. Which combination of metrics provides the most complete picture of a market's liquidity?",
+                    "options": {
+                        "A": "24-hour trading volume alone is sufficient; high volume always implies high liquidity",
+                        "B": "The number of registered users on the exchange and the count of active trading pairs listed",
+                        "C": "Bid-ask spread (tightness), order book depth at multiple price levels (depth), and the speed at which the order book replenishes after a large trade (resiliency) — together these capture the cost, capacity, and recovery speed of the market",
+                        "D": "The ratio of buy orders to sell orders (order imbalance) and the percentage of limit orders versus market orders submitted"
+                    },
+                    "correct": "C",
+                    "explanation": "Market microstructure theory identifies three dimensions of liquidity. (1) Tightness (spread): the cost of a small, immediate round-trip transaction — measured by the bid-ask spread. Tight spreads indicate competitive market-making. (2) Depth: how much volume is available at or near the current price — measured by order book depth at various price bands (e.g., within 1%, 2%, 5% of mid). Deep markets absorb large orders with minimal price impact. (3) Resiliency: how quickly the order book recovers to its pre-trade depth after a large order consumes liquidity — resilient markets attract more natural flow. A highly liquid market scores well on all three: tight spreads, deep order book, and rapid replenishment. High 24-hour volume can occur even in markets with wide spreads if turnover is high."
+                },
+                {
+                    "id": 14,
+                    "question": "An exchange shows a BTC/USDT order book with 100 BTC of resting bids and asks within 1% of the mid-price. A single trader places a market sell order for 80 BTC. What happens to the order book and what does this reveal about the relationship between liquidity and price stability?",
+                    "options": {
+                        "A": "The order book activates a circuit breaker and pauses trading for 60 seconds to allow market makers to replenish liquidity",
+                        "B": "The 80 BTC market sell consumes the best 80 BTC worth of bid orders, causing the market price to fall significantly as it sweeps through price levels; this reveals that even seemingly deep markets can experience sharp price moves if order size is large relative to available bid-side depth — liquidity is the buffer between order flow and price stability",
+                        "C": "The 80 BTC sell order is split automatically by the exchange into 16 orders of 5 BTC each and executed via TWAP over 16 minutes to minimise market impact",
+                        "D": "The 80 BTC sell is absorbed at the current price because market makers are obligated by exchange agreement to provide guaranteed fills within 1% for orders up to 100 BTC"
+                    },
+                    "correct": "B",
+                    "explanation": "An 80 BTC market sell against 100 BTC of bid depth within 1% will consume approximately 80% of that visible liquidity, sweeping through multiple price levels and pushing the market price down significantly. If 100 BTC is spread across 10 levels of 10 BTC each at $100 increments, consuming 80 BTC means reaching the 8th level — moving the price down ~$800 (0.002% per BTC). Real-world example: BTC flash crashes (e.g., March 2020, when BTC fell 50% in hours) occur when large sell pressure overwhelms bid-side depth. Thin liquidity is self-reinforcing: as price falls, stop-loss orders trigger more market sells, further consuming bids in a cascading liquidation. Liquidity is the primary buffer between large order flow and price volatility."
+                },
+                {
+                    "id": 15,
+                    "question": "During the March 2020 crypto crash, several exchanges experienced 'negative basis' where perpetual futures traded below spot prices, and liquidation engines failed. What does this reveal about liquidity and market structure during crises?",
+                    "options": {
+                        "A": "It reveals that perpetual futures are always riskier than spot markets because they use leverage, and leveraged products should be banned during market stress events",
+                        "B": "It reveals that during systemic stress, liquidity evaporates simultaneously across venues — market makers withdraw quotes, bid-side depth disappears, liquidation cascades generate one-sided sell flow that overwhelms all remaining buyers — and the interconnection between futures and spot through funding rates and arbitrage amplifies rather than dampens price moves",
+                        "C": "It reveals that the negative basis was caused by exchange servers crashing, and the apparent price divergence was a data feed error rather than a genuine market signal",
+                        "D": "It reveals that spot markets have inherently superior liquidity to futures markets because they require no margin, and all institutional traders switched to spot during the crisis"
+                    },
+                    "correct": "B",
+                    "explanation": "March 12, 2020 ('Black Thursday') illustrated liquidity fragility in crypto markets. BitMEX's overloaded servers caused order insertion failures, triggering a cascade: leveraged long positions received margin calls, automatic liquidation engines submitted large market sells into a market with almost no bids, driving BTC from $7,900 to $3,600 in hours. Perpetual futures traded at steep discounts to spot (negative basis) because liquidation sell pressure overwhelmed the futures market faster than arbitrageurs could bridge the gap. Market makers on all venues pulled quotes due to extreme risk. The lesson: apparent liquidity (visible order book depth in normal conditions) vastly overstates crisis liquidity. Market structure connections (liquidation engines, funding rate arbitrage, cross-margin linkages) transmit and amplify stress across venues."
+                },
+                {
+                    "id": 16,
+                    "question": "What is the role of market makers in cryptocurrency exchanges, and why do exchanges incentivise market making through fee rebates?",
+                    "options": {
+                        "A": "Market makers are exchange employees who guarantee execution of all orders within 5 milliseconds; exchanges pay them salaries rather than fee rebates",
+                        "B": "Market makers post resting limit orders on both the bid and ask sides, providing continuous two-sided liquidity; exchanges incentivise this with maker rebates (often negative fees — makers receive payment per fill) because maker orders benefit all other participants by tightening spreads and deepening the order book",
+                        "C": "Market makers are regulators who verify that all trades comply with anti-money-laundering rules; rebates compensate them for the compliance cost",
+                        "D": "Market makers are large investors who commit to holding at least $10 million in assets on the exchange; fee rebates compensate them for the opportunity cost of locking up capital"
+                    },
+                    "correct": "B",
+                    "explanation": "Market makers (MMs) profit by continuously posting bids below the fair value and asks above it, capturing the spread when matched. Their continuous two-sided quoting creates the visible liquidity that takers (those using market orders) consume. Without MMs, spreads would widen dramatically and order book depth would be sparse. Exchanges run 'maker-taker' fee models: takers (who remove liquidity via market orders) pay fees (e.g., 0.10%), while makers (who add liquidity via limit orders that rest in the book) pay zero or receive rebates (e.g., -0.02%, meaning the exchange pays them $0.02 per $100 traded). This cross-subsidy incentivises liquidity provision. Professional HFT firms and dedicated market-making firms (Wintermute, GSR, Virtu) provide the majority of depth on major crypto exchanges."
+                },
+                {
+                    "id": 17,
+                    "question": "Price discovery in cryptocurrency markets occurs across multiple venues simultaneously. What mechanism ensures that BTC prices on Binance, Coinbase, and Kraken do not diverge significantly for extended periods?",
+                    "options": {
+                        "A": "Exchanges sign bilateral agreements to synchronise their prices every second; deviations trigger automatic adjustments by an industry-wide coordination protocol",
+                        "B": "Arbitrageurs continuously monitor prices across exchanges and exploit any discrepancy: buying on the cheaper exchange and simultaneously selling on the more expensive one, earning a risk-free profit while their trades mechanically push prices together",
+                        "C": "All major exchanges use the same Chainlink oracle price feed as their reference price, ensuring that all markets quote the same price by construction",
+                        "D": "Regulatory rules in the EU and US require all licensed exchanges to offer prices within 0.1% of the global benchmark price at all times"
+                    },
+                    "correct": "B",
+                    "explanation": "Cross-exchange price convergence is maintained by arbitrageurs. If BTC trades at $42,000 on Binance and $42,200 on Coinbase, an arbitrageur simultaneously buys on Binance and sells on Coinbase, locking in a $200/BTC profit. This buying pressure raises Binance's price and selling pressure lowers Coinbase's price until the gap closes (minus transaction costs, withdrawal fees, and execution risk). In practice, sophisticated algorithms execute this in milliseconds. The efficiency of this arbitrage determines how tight the cross-exchange price differential is. Crypto markets are unusual because assets can be physically transferred between exchanges (via blockchain withdrawal), unlike traditional financial markets where settlement occurs through clearing houses. Transfer times (10-60 minutes for BTC) create windows where temporary divergences persist."
+                },
+                {
+                    "id": 18,
+                    "question": "What is the difference between a 'taker' fee and a 'maker' fee in a cryptocurrency exchange fee structure, and which order types typically incur each?",
+                    "options": {
+                        "A": "Taker fees apply to trades above $10,000 in value; maker fees apply to trades below $10,000. Market orders of any size incur both fees simultaneously",
+                        "B": "Taker fees are charged to traders who remove liquidity from the order book (typically via market orders or marketable limit orders that execute immediately against resting orders); maker fees are charged to traders who add liquidity (limit orders that rest in the book). Maker fees are usually lower or even negative (rebates)",
+                        "C": "Taker fees are charged on the first trade of the day; maker fees apply to all subsequent trades. The distinction incentivises traders to consolidate activity into single large orders",
+                        "D": "Taker fees are charged to sellers; maker fees are charged to buyers. Asymmetric fees reflect the exchange's interest in encouraging buying pressure to support asset prices"
+                    },
+                    "correct": "B",
+                    "explanation": "The maker-taker fee model distinguishes between liquidity providers and liquidity consumers. Takers submit market orders (or aggressive limit orders that immediately match resting orders), removing liquidity from the book — they pay the taker fee (e.g., 0.04-0.10% on major spot exchanges). Makers submit limit orders that rest in the book waiting for a counterpart, adding liquidity — they pay a lower maker fee (e.g., 0.00-0.02%) or receive a rebate (-0.01% to -0.02%). Fee tiers typically decrease with higher 30-day trading volume. For a $1 million trade at 0.05% taker fee, the cost is $500. For institutional traders executing billions in volume, fee optimisation — ensuring maximum fills via maker orders — can save millions annually."
+                },
+                {
+                    "id": 19,
+                    "question": "An exchange charges a maker fee of 0.02% and a taker fee of 0.08%. A market maker executes $5 million in daily volume equally split between maker and taker fills. What is their daily net fee cost or rebate?",
+                    "options": {
+                        "A": "Net cost = $3,000 per day (paying 0.08% on all $5 million regardless of order type)",
+                        "B": "Net cost = $2,500 maker fills rebate $500 (0.02% on $2.5M), taker fills cost $2,000 (0.08% on $2.5M); net cost = $1,500 per day",
+                        "C": "Maker fills cost $500 (0.02% on $2.5M), taker fills cost $2,000 (0.08% on $2.5M); net cost = $2,500 per day",
+                        "D": "All trades are maker fills for a market maker by definition; net cost = $1,000 per day (0.02% on $5M)"
+                    },
+                    "correct": "C",
+                    "explanation": "Calculation: Maker volume = $2.5M; maker fee = 0.02%; maker cost = $2.5M x 0.0002 = $500. Taker volume = $2.5M; taker fee = 0.08%; taker cost = $2.5M x 0.0008 = $2,000. Net daily fee cost = $500 + $2,000 = $2,500. Annualised fee cost = $2,500 x 365 = $912,500. This illustrates why professional market makers optimise to maximise maker fills: if this trader achieved 80% maker and 20% taker instead of 50/50, the daily cost would be $800 maker + $800 taker = $1,600 — saving $900/day ($328,500/year). High-frequency market makers on major exchanges often achieve maker-fill ratios above 90%, making fee structure a key competitive factor."
+                },
+                {
+                    "id": 20,
+                    "question": "What is 'hidden liquidity' or 'dark liquidity' in cryptocurrency markets, and how does it affect price discovery?",
+                    "options": {
+                        "A": "Hidden liquidity refers to illicit trading by sanctioned entities that is concealed from regulators; it distorts price discovery by injecting artificial demand",
+                        "B": "Hidden liquidity refers to large limit orders submitted with an 'iceberg' or 'hidden' flag, where only a small visible portion appears in the public order book while the remainder is concealed; this allows large institutions to avoid revealing their intentions and prevents other traders from front-running their orders, but it reduces the informativeness of the public order book for price discovery",
+                        "C": "Hidden liquidity describes trades executed in off-exchange OTC markets between two parties without reporting to any exchange; all such trades are completely invisible to the market",
+                        "D": "Hidden liquidity is a term for pending blockchain transactions in the mempool that have not yet been confirmed; it represents temporary liquidity that will appear on-chain after block confirmation"
+                    },
+                    "correct": "B",
+                    "explanation": "Iceberg orders (also called 'reserve orders') allow traders to show only a fraction of their total order size in the public book. Example: a 1,000 BTC sell iceberg showing only 10 BTC at a time — as each 10 BTC visible tranche is filled, the next 10 BTC automatically appear. Large institutions use icebergs to avoid revealing their full intentions, as a visible 1,000 BTC sell would cause other traders to immediately sell ahead of it (front-running), driving the price down before the large order is filled. The cost: the public order book no longer accurately reflects total available supply and demand, making price discovery less informative. Sophisticated traders analyse order book patterns to detect iceberg orders (e.g., noticing that a level repeatedly replenishes after each fill)."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

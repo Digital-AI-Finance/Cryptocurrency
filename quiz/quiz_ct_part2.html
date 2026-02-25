@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz CT-2: Trading Strategies | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz CT-2: Trading Strategies</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz CT-2: Trading Strategies</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the core premise of momentum trading in cryptocurrency markets, and what market inefficiency does it attempt to exploit?",
+                    "options": {
+                        "A": "Momentum trading assumes prices always revert to their historical mean; it exploits the tendency of overextended moves to reverse sharply",
+                        "B": "Momentum trading assumes that assets that have recently risen (or fallen) in price tend to continue moving in the same direction for a period; it exploits behavioural biases such as anchoring, underreaction to news, and herding that cause prices to trend rather than instantly incorporate all information",
+                        "C": "Momentum trading assumes that all cryptocurrencies track Bitcoin's price movements; it exploits the lag between Bitcoin moves and altcoin reactions",
+                        "D": "Momentum trading assumes that derivatives markets lead spot markets; it exploits the systematic delay in spot price adjustment following futures price changes"
+                    },
+                    "correct": "B",
+                    "explanation": "Momentum trading is grounded in empirical evidence that assets with recent strong performance tend to continue outperforming over intermediate horizons (weeks to months), while recent underperformers continue to lag. This 'momentum anomaly' contradicts the weak form of market efficiency and has been documented across asset classes since Jegadeesh and Titman (1993). In crypto, momentum is amplified by: retail herding (FOMO — Fear Of Missing Out), social media amplification creating self-reinforcing narratives, and thin markets where trend-following algorithms dominate flows. The behavioural basis: investors underreact to new information initially (gradual incorporation), then overreact later as the trend becomes obvious, creating the full momentum life-cycle of trend initiation, acceleration, and eventual reversal."
+                },
+                {
+                    "id": 2,
+                    "question": "A momentum strategy buys the top-quintile cryptocurrencies by 30-day return and shorts the bottom quintile. BTC returns +40% in the formation period and ETH returns -15%. Six weeks later, BTC returns -20% and ETH returns +25%. What is the approximate P&L of this strategy and what phenomenon does this illustrate?",
+                    "options": {
+                        "A": "Long BTC gains +40%, short ETH gains +15%; total P&L = +55%. This illustrates the reliable profitability of momentum in all market conditions",
+                        "B": "Long BTC loses -20% in the holding period, short ETH loses -25% (position is short so a price rise hurts); total strategy P&L = -20% + (-25%) = -45%. This illustrates 'momentum crash' — the abrupt reversal of momentum positions that typically occurs when prior losers sharply outperform prior winners",
+                        "C": "Long BTC loses -20%, short ETH gains +25% (short profits from decline); total P&L = +5%. This illustrates mean reversion occurring after a momentum period",
+                        "D": "P&L cannot be calculated without knowing the exact entry prices and position sizes; the example is insufficient to determine whether momentum succeeded"
+                    },
+                    "correct": "B",
+                    "explanation": "In the holding period: the long BTC position loses 20% (BTC fell). The short ETH position loses 25% (ETH rose 25% — a short position loses money when the shorted asset rises). Total P&L approximation: -20% + (-25%) = -45%. This scenario is called a 'momentum crash' — first documented by Daniel and Moskowitz (2016). Momentum crashes tend to occur after periods of market stress followed by sharp recovery: the recent losers (ETH, which fell 15%) bounce strongly, while recent winners (BTC, which rose 40%) give back gains. In crypto, momentum crashes are particularly severe because the market is highly correlated during stress events, then decorrelates during recovery. Risk management for momentum strategies requires crash protection mechanisms such as volatility scaling (reducing position size when recent realised volatility spikes)."
+                },
+                {
+                    "id": 3,
+                    "question": "What distinguishes 'time-series momentum' (absolute momentum) from 'cross-sectional momentum' (relative momentum) in cryptocurrency trading strategies?",
+                    "options": {
+                        "A": "Time-series momentum trades within a single day (intraday), while cross-sectional momentum holds positions for days to weeks (swing trading)",
+                        "B": "Time-series momentum compares an asset's current return against its own historical returns (going long if it's up over the past N months versus itself), while cross-sectional momentum ranks assets against each other (going long the best performers and short the worst performers in a universe)",
+                        "C": "Time-series momentum uses only price data (technical analysis), while cross-sectional momentum incorporates fundamental data (on-chain metrics, developer activity, etc.)",
+                        "D": "The two terms are synonymous — both describe the same strategy of buying recent winners and shorting recent losers"
+                    },
+                    "correct": "B",
+                    "explanation": "These are distinct strategy types with different risk profiles. Time-series (absolute) momentum: for each asset independently, if its N-month return is positive, go long; if negative, go short or stay flat. This captures the asset's own trending behaviour and provides a natural risk-off mechanism (flat/short in downtrends). Popularised by Moskowitz, Ooi, and Pedersen (2012) as 'Time Series Momentum.' Cross-sectional (relative) momentum: simultaneously long the top performers and short the bottom performers within a universe, maintaining constant net exposure. This hedges market beta (long-short is roughly market-neutral) but is fully invested regardless of whether the market is in a drawdown. In crypto, absolute momentum has historically been preferred because it provides downside protection during bear markets by going short or flat on the entire asset class."
+                },
+                {
+                    "id": 4,
+                    "question": "A trend-following system generates a buy signal when the 14-day RSI (Relative Strength Index) crosses above 50 from below. In a sideways, choppy market where price oscillates between $40,000 and $42,000, what is the likely performance outcome and why?",
+                    "options": {
+                        "A": "The system performs well in choppy markets because RSI oscillates frequently, generating many small profitable trades that compound into significant gains",
+                        "B": "The system underperforms in sideways markets because trend-following strategies are designed to profit from sustained directional moves; in a choppy market, RSI will cross the 50 level repeatedly in both directions, generating frequent small losses (whipsaws) as each signal reverses before a profit target is reached",
+                        "C": "The system is unaffected by market conditions because RSI is a normalised indicator that produces equally reliable signals in all market regimes",
+                        "D": "The system avoids choppy markets entirely because RSI cannot compute when price change over 14 days is exactly zero"
+                    },
+                    "correct": "B",
+                    "explanation": "Trend-following strategies have a characteristic return profile: they lose frequently (many small losses) but win occasionally by large amounts when a genuine trend develops. In a sideways/range-bound market, there are no sustained trends to capture. Each RSI cross above 50 triggers a buy, but price quickly reverses back into the range, triggering a sell — this is called 'whipsawing.' Transaction costs accumulate with each false signal. The key insight: trend-following strategies have positive skewness (right-skewed returns) — they generate convex payoffs similar to owning options. They sacrifice win rate (often below 50%) for high average win-to-loss ratio. This is why systematic trend-following CTAs (Commodity Trading Advisors) often underperform during years with few major trends (2011, 2018) but deliver large returns during trending years (2008, 2022)."
+                },
+                {
+                    "id": 5,
+                    "question": "A simple moving average (SMA) is calculated as the equal-weighted average of closing prices over N periods. What is the SMA-20 for BTC if the last 5 days' closing prices are $41,000, $42,500, $43,000, $42,800, $44,200, and the sum of the prior 15 days' prices totals $615,000?",
+                    "options": {
+                        "A": "SMA-20 = ($41,000 + $42,500 + $43,000 + $42,800 + $44,200) / 5 = $42,700",
+                        "B": "SMA-20 = ($615,000 + $41,000 + $42,500 + $43,000 + $42,800 + $44,200) / 20 = ($615,000 + $213,500) / 20 = $828,500 / 20 = $41,425",
+                        "C": "SMA-20 = ($615,000 + $213,500) / 20 = $41,425 — this is the average price over the most recent 20 trading days",
+                        "D": "SMA-20 requires weighting recent prices more heavily; the equal-weighted formula cannot be applied here without a decay factor"
+                    },
+                    "correct": "C",
+                    "explanation": "The SMA-20 sums the 20 most recent closing prices and divides by 20. Sum of last 5 days = $41,000 + $42,500 + $43,000 + $42,800 + $44,200 = $213,500. Total sum = $615,000 + $213,500 = $828,500. SMA-20 = $828,500 / 20 = $41,425. The current price of $44,200 is above the SMA-20 of $41,425, which many trend-following systems interpret as a bullish signal (price above its moving average). The equal-weighting is a feature and a limitation: older prices are treated identically to newer ones, making the SMA slow to respond to recent changes. This 'lag' causes SMA to miss early trend entries but also reduces false signals in noisy markets."
+                },
+                {
+                    "id": 6,
+                    "question": "An exponential moving average (EMA) assigns greater weight to recent prices than an SMA. What is the approximate weight given to the most recent price in an EMA-12 versus an EMA-26, and what does this difference mean for crossover signals?",
+                    "options": {
+                        "A": "EMA-12 weights the latest price at 50%; EMA-26 at 25%. Faster EMAs react too quickly to be useful for identifying trends",
+                        "B": "EMA-12 applies a multiplier of 2/(12+1) ≈ 15.4% to the most recent price; EMA-26 applies 2/(26+1) ≈ 7.1%. The EMA-12 reacts faster to price changes, so a bullish crossover (EMA-12 crossing above EMA-26) signals that recent momentum is outpacing the longer-term trend — a potential entry signal for trend-following strategies",
+                        "C": "Both EMAs assign exactly the same weight (1/N) to the most recent price; the only difference is the number of periods used in the denominator",
+                        "D": "EMA-12 ignores all prices older than 12 periods; EMA-26 ignores all prices older than 26 periods — neither uses exponential decay"
+                    },
+                    "correct": "B",
+                    "explanation": "The EMA smoothing factor is k = 2/(N+1). For EMA-12: k = 2/13 ≈ 0.1538 (15.38% weight on the latest price). For EMA-26: k = 2/27 ≈ 0.0741 (7.41% weight on the latest price). EMA calculation: EMA_today = Price_today × k + EMA_yesterday × (1-k). The MACD (Moving Average Convergence Divergence) indicator — one of the most widely used technical indicators — is defined as EMA-12 minus EMA-26. When MACD crosses above zero, the short-term momentum (EMA-12) is outpacing the medium-term trend (EMA-26), generating a bullish signal. The MACD signal line is a 9-period EMA of the MACD itself; crossovers between MACD and its signal line are used as entry/exit triggers by many systematic traders."
+                },
+                {
+                    "id": 7,
+                    "question": "The 'golden cross' occurs when a shorter-period moving average crosses above a longer-period moving average, while the 'death cross' is the reverse. What are the typical moving average periods used for these signals, and what is the empirical track record of these patterns in crypto?",
+                    "options": {
+                        "A": "Golden cross uses EMA-5 crossing above EMA-20; death cross uses EMA-20 crossing below EMA-50. Both signals are highly reliable with a 90% accuracy rate in Bitcoin trading",
+                        "B": "Golden cross is the 50-day SMA crossing above the 200-day SMA; death cross is the 50-day SMA crossing below the 200-day SMA. These signals are widely followed but are lagging indicators — they confirm a trend that is already underway rather than predicting future moves, and in backtests on Bitcoin, they produce modest risk-adjusted returns with significant lag",
+                        "C": "Golden cross and death cross refer exclusively to MACD crossovers of the zero line; they have no connection to simple moving averages",
+                        "D": "The golden cross uses the 10-day and 30-day EMAs; it has been shown to predict Bitcoin price increases of exactly 20% in the subsequent 30 days with statistical certainty"
+                    },
+                    "correct": "B",
+                    "explanation": "The canonical golden/death cross uses 50-day and 200-day SMAs. When the 50-day SMA crosses above the 200-day SMA, it signals that medium-term momentum is stronger than long-term trend — a bullish golden cross. The reverse is a bearish death cross. These signals are widely followed in crypto: the Bitcoin death cross in January 2022 preceded months of decline; the golden cross in early 2023 preceded a strong rally. However, they are lagging indicators by construction — they can only cross after price has already moved significantly. Empirical backtests show that blindly following these signals produces below-average risk-adjusted returns due to: (1) late entries missing much of the move, (2) false signals in sideways markets, (3) large drawdowns between signal and reversal."
+                },
+                {
+                    "id": 8,
+                    "question": "A trading algorithm generates 'buy' signals when the 10-period EMA crosses above the 30-period EMA and 'sell' signals on the reverse crossover. Over 1 year of BTC trading, it produces 48 trades with a 40% win rate and average win of $2,000 per trade, average loss of $800 per trade. What is the strategy's annual expectancy per trade and overall annual P&L?",
+                    "options": {
+                        "A": "Expectancy = 0.40 × $2,000 - 0.60 × $800 = $800 - $480 = $320 per trade. Annual P&L = 48 × $320 = $15,360",
+                        "B": "Expectancy = 0.40 × $2,000 - 0.60 × $800 = $320 per trade. Annual P&L = 48 × $320 = $15,360. Despite a below-50% win rate, the strategy is profitable because the average win is 2.5x the average loss",
+                        "C": "A 40% win rate means the strategy loses money; profitability requires at least 51% wins regardless of the win/loss magnitude ratio",
+                        "D": "Expectancy cannot be calculated from these figures; trade expectancy requires knowledge of the maximum adverse excursion for each trade"
+                    },
+                    "correct": "B",
+                    "explanation": "Expectancy = (Win Rate × Average Win) - (Loss Rate × Average Loss) = (0.40 × $2,000) - (0.60 × $800) = $800 - $480 = $320 per trade. Annual P&L = 48 trades × $320 = $15,360 (before transaction costs). The profit factor = (0.40 × $2,000) / (0.60 × $800) = $800 / $480 = 1.67, meaning the strategy generates $1.67 for every $1.00 lost — profitable despite the 40% win rate. This illustrates a fundamental principle: profitability depends on the expectancy formula, not win rate alone. A strategy with 30% win rate but 5:1 average win/loss ratio is highly profitable. Trend-following strategies typically have win rates of 30-45% but large average wins relative to losses — they are profitable because of their asymmetric payoff structure."
+                },
+                {
+                    "id": 9,
+                    "question": "Mean reversion trading assumes that asset prices tend to return to their historical average after deviating significantly. What mathematical concept underpins this assumption, and what conditions are required for mean reversion to be profitable in crypto markets?",
+                    "options": {
+                        "A": "Mean reversion is based on the Law of Large Numbers; it is profitable whenever a cryptocurrency has been listed for at least 3 years because longer histories produce more stable means",
+                        "B": "Mean reversion is based on the concept of stationarity — the idea that a price series has a stable long-run mean and variance to which it reverts; in crypto, profitability requires identifying assets whose price is genuinely mean-reverting (often pairs or spreads rather than absolute prices), having a reliable estimate of the mean, and entering positions with sufficient expected reversion magnitude to cover transaction costs",
+                        "C": "Mean reversion in crypto is guaranteed by arbitrage: any time a cryptocurrency trades above its historical mean, arbitrageurs sell it to a guaranteed floor price set by its intrinsic value",
+                        "D": "Mean reversion assumes that the distribution of daily returns follows a Poisson process; trading profitability depends on correctly estimating the Poisson intensity parameter"
+                    },
+                    "correct": "B",
+                    "explanation": "Mean reversion requires the underlying process to be stationary — having a finite, stable mean to which it reverts. Individual cryptocurrency prices in levels are generally non-stationary (random walks with drift), making mean reversion to absolute price levels unreliable. More robust applications target: (1) price ratios/spreads between related assets (e.g., BTC/ETH ratio) — these may be cointegrated (non-stationary individually but stationary in combination); (2) technical deviations from rolling averages (Bollinger Bands); (3) funding rates and basis in futures markets. Profitability conditions: the reversion speed must be fast enough to generate returns before transaction costs erode profits; the mean must be stable (not regime-shifting); and positions must be sized to account for the fat-tailed risk of a temporary deviation becoming a permanent regime change."
+                },
+                {
+                    "id": 10,
+                    "question": "Bollinger Bands consist of a middle band (20-period SMA), an upper band (SMA + 2 standard deviations), and a lower band (SMA - 2 standard deviations). If BTC has a 20-day SMA of $42,000 and daily return standard deviation of $1,500, where are the Bollinger Bands, and what does price touching the lower band suggest under mean reversion logic?",
+                    "options": {
+                        "A": "Upper band = $43,500; lower band = $40,500. Touching the lower band signals a guaranteed buy; the price will always return to the SMA within 20 days",
+                        "B": "Upper band = $42,000 + 2×$1,500 = $45,000; lower band = $42,000 - 2×$1,500 = $39,000. Price touching the lower band means it is approximately 2 standard deviations below the mean — a statistically unusual deviation that, under mean reversion assumptions, suggests buying opportunity as price is expected to revert toward $42,000",
+                        "C": "The bands cannot be calculated without first computing the Z-score of current price relative to the historical distribution of all Bitcoin prices since 2009",
+                        "D": "Upper band = $42,000 + $1,500 = $43,500; lower band = $42,000 - $1,500 = $40,500. Touching the lower band indicates a sell signal in trend-following strategies because it confirms downward momentum"
+                    },
+                    "correct": "B",
+                    "explanation": "Bollinger Band calculation: Upper = SMA + 2σ = $42,000 + 2×$1,500 = $45,000. Lower = SMA - 2σ = $42,000 - 2×$1,500 = $39,000. Under a normal distribution, approximately 95% of observations fall within 2 standard deviations of the mean. When price touches the lower band, it has moved about 2σ below the SMA — a statistically unusual position. Mean reversion logic: buy near the lower band expecting reversion to the $42,000 SMA, targeting a $3,000 gain. Sell short near the upper band expecting downward reversion. However, the critical caveat: in trending markets, price can 'walk the band' — repeatedly touching or exceeding the lower band during a downtrend without reverting. Bollinger Band signals require confirmation (e.g., RSI showing oversold conditions) to distinguish genuine mean-reversion setups from momentum breakouts."
+                },
+                {
+                    "id": 11,
+                    "question": "What is the 'Bollinger Band squeeze' pattern, and how do traders use it to anticipate breakout moves?",
+                    "options": {
+                        "A": "A Bollinger Band squeeze occurs when the price touches the upper and lower bands simultaneously; it signals imminent reversal regardless of direction",
+                        "B": "A Bollinger Band squeeze occurs when the bands narrow significantly (the upper and lower bands converge) due to a prolonged period of low volatility; traders interpret this as coiled energy — periods of low volatility are typically followed by high-volatility expansions — and prepare for a breakout by watching which direction price breaks out of the squeeze",
+                        "C": "A Bollinger Band squeeze means the 20-period SMA has flattened to a slope of less than 0.1% over the period, indicating that the asset is in terminal decline and should be sold",
+                        "D": "A Bollinger Band squeeze only occurs in bear markets; in bull markets, bands always expand. Traders use it exclusively as a bear market confirmation signal"
+                    },
+                    "correct": "B",
+                    "explanation": "Bollinger Band width (upper band - lower band) is proportional to recent price volatility. A squeeze — where band width contracts to multi-month lows — indicates that price has been trading in a tight range and historical volatility has compressed. In financial markets, volatility is mean-reverting: extended periods of low volatility are typically followed by volatility expansion (the 'volatility cycle'). The Bollinger Band squeeze does not predict direction — it signals that a large move is approaching. Traders use supplementary indicators (volume, RSI, MACD) or simply wait for a price bar to close outside the bands to determine direction. In crypto, well-known squeezes preceded major moves: the 2020 BTC consolidation at $10,000-$11,000 for months preceded the November-December 2020 parabolic rally to $29,000."
+                },
+                {
+                    "id": 12,
+                    "question": "A crypto trader implements a mean reversion strategy: buy BTC whenever it falls more than 3% in a single day, sell when it recovers to the prior day's close. Over 200 trading days, there are 30 such opportunities. How would you assess whether this strategy has statistically significant edge, and what is the key risk?",
+                    "options": {
+                        "A": "30 observations is more than sufficient to confirm statistical significance; any strategy with 30+ trades that is profitable is valid and should be deployed immediately with maximum capital",
+                        "B": "Statistical significance requires a t-test or bootstrap analysis on the 30 trade returns; with only 30 observations, confidence intervals are wide and the strategy may lack genuine edge versus lucky sampling. The key risk is 'gap risk': on rare occasions, the asset continues falling far below -3% (e.g., -30% during a crash), resulting in a catastrophic single-trade loss that wipes out all prior gains",
+                        "C": "The strategy has guaranteed edge because buying after a 3% decline exploits a universally documented reversal pattern; no further statistical testing is needed",
+                        "D": "With 30 observations, the strategy must produce at least 20 winning trades (66% win rate) to be considered statistically significant at the 95% confidence level"
+                    },
+                    "correct": "B",
+                    "explanation": "Statistical significance assessment: with N=30 trades, calculate the mean daily P&L after entry, standard deviation of those P&Ls, and conduct a t-test (H₀: mean P&L = 0). With standard error ≈ σ/√30, the 95% confidence interval for mean return is wide — potentially spanning both positive and negative values. Minimum 100-200 trades are typically recommended for reliable strategy evaluation. The gap risk is the critical tail risk: mean reversion strategies have a characteristic payoff profile — many small gains from frequent successful reversions, punctuated by rare catastrophic losses when the asset continues falling (analogous to 'picking up pennies in front of a steamroller'). In crypto, assets can fall 50-80% during bear markets — a 3% entry trigger means the position could be underwater 40%+ before any reversion. Position sizing and stop-losses are essential risk controls."
+                },
+                {
+                    "id": 13,
+                    "question": "Cross-exchange arbitrage in cryptocurrency markets exploits price differences for the same asset on different exchanges. If BTC trades at $42,100 on Exchange A and $42,400 on Exchange B, what is the theoretical arbitrage profit and what practical frictions reduce or eliminate it?",
+                    "options": {
+                        "A": "Theoretical profit = $300 per BTC; there are no practical frictions because blockchain transactions are instantaneous and free",
+                        "B": "Theoretical profit = $300 per BTC (0.71%). Practical frictions include: trading fees on both exchanges (e.g., 0.05% each = 0.10% = $42 on $42,100), withdrawal fees (fixed blockchain transaction fee to move BTC), blockchain confirmation time (10-60 minutes during which price risk exists), counterparty risk (exchange insolvency), and the capital requirement of maintaining balances on both exchanges simultaneously",
+                        "C": "The arbitrage is invalid because crypto exchanges use different price oracles; the $300 difference reflects oracle variance, not a genuine trading opportunity",
+                        "D": "Theoretical profit = $300 per BTC, but it must be divided equally among all arbitrageurs active in the market, making it unprofitable unless you are the only arbitrageur monitoring these two exchanges"
+                    },
+                    "correct": "B",
+                    "explanation": "Gross arbitrage profit = $42,400 - $42,100 = $300 (0.71%). Practical friction breakdown: (1) Trading fees: 0.05% taker fee on both exchanges = 0.10% × $42,250 avg ≈ $42. (2) Blockchain withdrawal fee: if moving BTC from A to B, a typical BTC network fee might be $5-$20. (3) Time risk: BTC blockchain confirmation takes ~10-60 minutes; during this time, prices on both exchanges can move, eliminating the spread. (4) Capital efficiency: to capture the arbitrage instantly (before blockchain transfer), you need pre-funded balances on both exchanges, tying up capital. (5) Exchange risk: leaving large balances on exchanges exposes capital to hacks or insolvency. In practice, professional arbitrageurs maintain pre-funded balances on all major exchanges and use exchange-internal transfers where possible, reducing the effective friction to trading fees plus spread."
+                },
+                {
+                    "id": 14,
+                    "question": "Triangular arbitrage exploits price inconsistencies between three currency pairs on a single exchange. If BTC/USDT = 42,000, ETH/USDT = 3,000, and BTC/ETH = 15.0 (when it 'should' be 14.0 based on the other two pairs), describe the triangular arbitrage trade and calculate the approximate profit on $42,000 of starting capital.",
+                    "options": {
+                        "A": "Buy BTC with USDT, buy ETH with USDT, then swap ETH for BTC in a three-way simultaneous transaction; profit = 7.14%",
+                        "B": "Start with $42,000 USDT. Buy 1 BTC at $42,000. Sell 1 BTC for 15 ETH (at BTC/ETH = 15.0). Sell 15 ETH for 15 × $3,000 = $45,000 USDT. Profit = $45,000 - $42,000 = $3,000 (7.14%)",
+                        "C": "Start with $42,000 USDT. Buy 14 ETH at $3,000 each. Sell 14 ETH for 1 BTC (using the 'correct' rate of 14.0). Sell 1 BTC for $42,000. Profit = $0 — triangular arbitrage only works with mis-priced starting assets",
+                        "D": "Triangular arbitrage requires shorting one of the three assets; since shorting on spot exchanges is unavailable, this opportunity cannot be exploited"
+                    },
+                    "correct": "B",
+                    "explanation": "The implied BTC/ETH rate from BTC/USDT and ETH/USDT is: $42,000/$3,000 = 14.0 ETH per BTC. But the actual BTC/ETH rate shows 15.0 ETH per BTC — BTC is 'overpriced' in ETH terms (or ETH is 'underpriced'). The arbitrage: (1) Start: $42,000 USDT. (2) Buy 1 BTC at $42,000 (now have 1 BTC). (3) Sell 1 BTC for 15 ETH at the BTC/ETH rate of 15.0 (now have 15 ETH). (4) Sell 15 ETH at $3,000/ETH for $45,000 USDT. Gross profit = $3,000 (7.14%). In practice, on major exchanges, triangular arbitrage discrepancies are measured in fractions of a basis point and persist for milliseconds — captured by HFT algorithms executing in sub-millisecond speeds. A 7.14% discrepancy would attract enormous capital and disappear in microseconds. Real opportunities are typically 0.01-0.05%."
+                },
+                {
+                    "id": 15,
+                    "question": "Statistical arbitrage (stat arb) differs from pure price arbitrage by relying on statistical relationships rather than guaranteed price parity. How does a crypto stat arb strategy using BTC and ETH typically work, and what is the key assumption that can fail?",
+                    "options": {
+                        "A": "Stat arb buys both BTC and ETH simultaneously and profits from their joint appreciation; the key assumption is that crypto markets always rise over time",
+                        "B": "Stat arb estimates the historical ratio or spread between BTC and ETH prices (e.g., BTC/ETH historically averages 14); when the ratio deviates significantly (e.g., rises to 16), it goes long ETH and short BTC, betting on convergence back to 14. The key assumption is cointegration — that a stable long-run relationship exists between the two assets — which can fail permanently if the fundamentals of one asset change dramatically",
+                        "C": "Stat arb uses options pricing models to identify mispricings in BTC and ETH implied volatility; the key assumption is that Black-Scholes accurately prices crypto options",
+                        "D": "Stat arb relies on correlations between crypto and traditional assets (e.g., BTC and gold); the key assumption is that crypto-to-traditional correlations remain stable over time"
+                    },
+                    "correct": "B",
+                    "explanation": "Statistical arbitrage in crypto pairs trading: identify two assets with a historically stable price relationship (the BTC/ETH ratio, for example). Estimate the mean ratio and standard deviation. When the ratio deviates significantly (e.g., 2 standard deviations above mean), the spread is 'wide': BTC is expensive relative to ETH. Trade: short BTC, long ETH, hold until convergence. The key assumption is cointegration: both assets share a common stochastic trend, and the spread between them is a stationary (mean-reverting) process. This assumption fails when: (1) a fundamental shock changes one asset's value permanently (e.g., a smart contract platform upgrade makes ETH fundamentally more valuable); (2) a regulatory event affects only one asset; (3) macro correlations shift. Regime changes in the ratio's mean are the primary risk — the trader may be 'value trapping' by staying in a position where the ratio is legitimately shifting to a new level."
+                },
+                {
+                    "id": 16,
+                    "question": "A funding rate arbitrage strategy exploits the difference between perpetual futures funding rates and spot holding costs. If BTC perpetual futures are trading at $42,500 (spot: $42,000) with a funding rate of 0.05% per 8 hours, what trade captures this funding rate and what is the approximate annualised yield?",
+                    "options": {
+                        "A": "Buy BTC perpetual futures and sell spot BTC; annualised yield = 0.05% × 3 × 365 = 54.75%, but this requires shorting spot which is unavailable on most exchanges",
+                        "B": "Sell (short) BTC perpetual futures and buy spot BTC (delta-neutral position); funding rate payers (long perpetual holders) pay 0.05% every 8 hours to short holders. Annualised yield = 0.05% × 3 payments/day × 365 days = 54.75% per year — though this rate fluctuates dramatically and can reverse sign",
+                        "C": "Buy perpetual futures and borrow spot BTC; annualised yield = 0.05% / 365 = 0.000137% per day",
+                        "D": "The trade involves buying both spot and futures; the basis ($500) is locked in and earns 1.19% ($500/$42,000) regardless of the funding rate"
+                    },
+                    "correct": "B",
+                    "explanation": "Funding rate arbitrage (also called 'cash-and-carry' in crypto): when perpetual futures trade at a premium to spot (positive funding), long perpetual holders pay short holders 0.05% every 8 hours. The delta-neutral trade: buy 1 BTC spot at $42,000 + short 1 BTC perpetual futures at $42,500. The combined position has no directional exposure (gains on spot offset losses on futures if price rises). The short futures position receives funding payments: 0.05% × $42,500 = $21.25 per 8 hours. Per day: $63.75. Annualised: $63.75 × 365 = $23,269 on $42,000 invested ≈ 55.4% APY. In practice, 0.05% per 8 hours is unusually high (indicating extreme market euphoria). Typical rates average 0.01-0.02% per 8 hours (≈ 11-22% APY), and frequently drop to near zero or go negative during bear markets. Risks: exchange counterparty risk, liquidation risk on the futures leg (requires margin), and funding rate reversal."
+                },
+                {
+                    "id": 17,
+                    "question": "The Relative Strength Index (RSI) is a momentum oscillator ranging from 0 to 100. Traditional interpretation defines RSI above 70 as 'overbought' and below 30 as 'oversold.' What is the RSI formula and what is the correct interpretation of these thresholds?",
+                    "options": {
+                        "A": "RSI = 100 × (Average Gain / Average Loss) over N periods. 'Overbought' and 'oversold' are absolute thresholds — prices above RSI 70 will always fall and prices below RSI 30 will always rise",
+                        "B": "RSI = 100 - [100 / (1 + RS)] where RS = Average Gain / Average Loss over N periods. 'Overbought' (RSI > 70) and 'oversold' (RSI < 30) are not automatic reversal signals but rather indicators of strong momentum; in trending markets, RSI can remain in overbought/oversold territory for extended periods, and the most useful signals come from divergences between RSI and price action",
+                        "C": "RSI = (Closing Price - N-period Low) / (N-period High - N-period Low) × 100. The 70/30 thresholds represent the top and bottom deciles of historical price distributions",
+                        "D": "RSI = Volume-weighted average of price changes over N periods divided by the standard deviation of price changes. The 70/30 thresholds were set by regulators to standardise momentum measurements across all financial markets"
+                    },
+                    "correct": "B",
+                    "explanation": "RSI formula: RS = Average of N-period gains / Average of N-period losses. RSI = 100 - (100 / (1 + RS)). Standard N = 14 periods. When RSI = 70: gains have been 2.33× larger than losses (RS = 2.33). The critical conceptual point: in strong bull trends, RSI can remain above 70 for weeks while the asset continues to rise — e.g., Bitcoin in late 2017 maintained RSI above 80 for months. Blindly selling at RSI 70 would have missed the majority of the bull run. RSI divergences are more informative: if price makes a new high but RSI makes a lower high (bearish divergence), momentum is weakening even as price rises — a potential reversal warning. Similarly, bullish divergence (new price low but higher RSI low) can precede bottoms."
+                },
+                {
+                    "id": 18,
+                    "question": "The MACD indicator consists of the MACD line, signal line, and histogram. A bullish MACD crossover occurs when the MACD line crosses above the signal line. What does this signal represent mechanically, and what is its limitation in volatile crypto markets?",
+                    "options": {
+                        "A": "MACD crossovers represent changes in exchange order flow data; the limitation is that MACD is only calculated from trading volume, not price",
+                        "B": "The bullish MACD crossover (MACD line crossing above signal line) means the short-term EMA (12-period) is accelerating relative to the longer-term EMA (26-period) faster than the recent average MACD pace — i.e., momentum is increasing. The limitation in crypto: high volatility creates frequent false crossovers ('whipsaws') where the MACD briefly crosses above the signal line and immediately reverses, generating losing trades without a sustained trend developing",
+                        "C": "MACD crossover signals are more reliable than moving average crossovers because MACD uses three indicators simultaneously, creating a majority-vote confirmation mechanism",
+                        "D": "MACD crossovers are identical to RSI signals; both indicators measure momentum and generate the same buy/sell signals in all market conditions"
+                    },
+                    "correct": "B",
+                    "explanation": "MACD = EMA(12) - EMA(26). Signal line = EMA(9) of MACD. Histogram = MACD - Signal. A bullish crossover (MACD > Signal) means the MACD value is accelerating upward — the gap between short and medium-term EMAs is expanding faster than recent history. In a genuine uptrend, MACD stays above its signal line for extended periods. The whipsaw problem: in crypto's high-volatility, choppy markets, price oscillates rapidly enough that MACD crosses above/below its signal line every few days without a genuine trend. Each false crossover that triggers a trade then immediately reverses results in small losses. Strategies to reduce whipsaws: require price to be above a longer-term moving average (e.g., 200-day SMA) before acting on bullish MACD signals, or use higher timeframes (weekly/monthly MACD instead of daily)."
+                },
+                {
+                    "id": 19,
+                    "question": "Backtesting a trading strategy on historical data is essential but subject to several biases. Which combination of biases is most likely to cause a backtested strategy to appear more profitable than it would be in live trading?",
+                    "options": {
+                        "A": "Bid-ask spread bias and timezone bias — strategies should be tested in the same timezone as the exchange to avoid settlement timing discrepancies",
+                        "B": "Look-ahead bias (using future data to generate past signals), survivorship bias (testing only on assets that survived to the present), overfitting/data mining bias (optimising parameters to fit historical data), and ignoring transaction costs and slippage — these biases jointly create 'backtest inflation' where simulated returns vastly exceed achievable live returns",
+                        "C": "Position size bias (assuming fixed rather than risk-adjusted sizes) and calendar bias (most strategies fail in December due to low holiday trading volume)",
+                        "D": "Backtesting has no inherent biases as long as the historical data is accurate; any profitable backtest will translate directly to live trading profitability"
+                    },
+                    "correct": "B",
+                    "explanation": "Backtest inflation is the primary challenge in algorithmic trading strategy development. Key biases: (1) Look-ahead bias: accidentally using information not available at the time of the signal — e.g., using the day's closing price to determine whether to buy at the opening. (2) Survivorship bias: if you test on a universe of 'current' cryptocurrencies, you exclude coins that failed, delisted, or went to zero — artificially inflating returns by avoiding the worst performers that existed historically. (3) Overfitting: with enough parameter optimisation trials, any parameter combination will fit historical noise; the strategy has 'memorised' the past rather than capturing genuine edge. (4) Transaction costs: excluding bid-ask spread (0.02-0.08%), taker fees (0.04-0.10%), and slippage on large orders can flip marginally profitable strategies to losers. Walk-forward testing and out-of-sample validation are essential mitigations."
+                },
+                {
+                    "id": 20,
+                    "question": "A trader backtests a momentum strategy on Bitcoin from 2017-2023 and achieves a Sharpe ratio of 2.8 with 65% win rate and 40% annualised return. Before deploying live capital, what additional validation steps are most critical, and what key metric should be evaluated alongside the Sharpe ratio?",
+                    "options": {
+                        "A": "No further validation is needed — a Sharpe ratio above 2.0 and 40% annual return are sufficient evidence of strategy robustness across all market conditions",
+                        "B": "Critical steps: (1) Out-of-sample testing on held-out data not used in optimisation; (2) Walk-forward analysis to test if parameters remain stable over time; (3) Realistic transaction cost inclusion (spread + fees + slippage); (4) Stress testing on crash periods (March 2020, November 2022). Key additional metric: Maximum Drawdown — the largest peak-to-trough decline in equity — which measures the worst-case loss scenario a trader would actually experience and determines whether the strategy is psychologically and financially survivable",
+                        "C": "The key additional step is increasing position size to 10× to confirm the strategy works at scale; institutional strategies require a minimum track record of $100 million in AUM before Sharpe ratio is meaningful",
+                        "D": "The strategy should be validated by running it simultaneously on 100 different cryptocurrencies; if it achieves 40% returns on at least 60 of them, the edge is confirmed as universal"
+                    },
+                    "correct": "B",
+                    "explanation": "A strong in-sample Sharpe ratio is necessary but insufficient. Critical validation: (1) Out-of-sample testing: split data into in-sample (for development) and out-of-sample (untouched until final validation). If Sharpe drops dramatically out-of-sample, the strategy is overfit. (2) Walk-forward analysis: repeatedly re-optimise on expanding windows, testing on the next period — simulates real-world parameter updating. (3) Transaction realism: add realistic spreads ($3-10 per BTC), fees (0.05-0.10%), and slippage (0.1-0.5% for larger orders). (4) Regime robustness: does the strategy work in both bull (2017, 2020-2021) and bear markets (2018, 2022)? Maximum drawdown is the critical co-metric: a strategy with 40% annual return but 60% maximum drawdown requires tolerating halving your capital before seeing a recovery — most traders cannot sustain this psychologically or financially. Risk-adjusted metrics like Calmar ratio (annual return / max drawdown) or Sortino ratio (downside deviation) complement Sharpe ratio."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

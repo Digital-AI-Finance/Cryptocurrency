@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz NF-3: NFT Applications &amp; Use Cases | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz NF-3: NFT Applications &amp; Use Cases</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz NF-3: NFT Applications &amp; Use Cases</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Beeple's 'Everydays: The First 5000 Days' was sold at Christie's in March 2021 for approximately $69 million. What was historically significant about the structure of this sale?",
+                    "options": {
+                        "A": "It was the first NFT sold on a public blockchain, establishing the legal precedent for digital ownership",
+                        "B": "It was one of the first major auction-house sales where the lot was delivered entirely as an NFT on-chain, with payment accepted in cryptocurrency (ETH), signalling institutional legitimacy for digital art NFTs",
+                        "C": "It was sold using a fractional NFT mechanism, allowing 5000 buyers to each own one day of the artwork",
+                        "D": "It established the ERC-721 standard by requiring Christie's to write a new smart contract specifically for the auction"
+                    },
+                    "correct": "B",
+                    "explanation": "The Beeple/Christie's sale was historically significant because a major traditional auction house accepted ETH as payment and delivered ownership via an NFT rather than a physical certificate. This legitimised NFTs as a serious art medium in the eyes of the traditional art world and galvanised institutional attention. The work is a composite of 5000 individual digital images created daily over 13 years, minted as a single ERC-721 token on Ethereum. ERC-721 predates this sale and fractional ownership was not used."
+                },
+                {
+                    "id": 2,
+                    "question": "CryptoPunks, launched by Larva Labs in 2017, are considered a foundational NFT collection. Which technical characteristic distinguished them from later ERC-721 tokens?",
+                    "options": {
+                        "A": "CryptoPunks used the ERC-1155 multi-token standard, enabling both fungible and non-fungible representations within the same contract",
+                        "B": "CryptoPunks were minted before the ERC-721 standard existed and use a bespoke smart contract that predates the standard, making them technically non-compliant with ERC-721",
+                        "C": "CryptoPunks stored their 24x24 pixel images fully on-chain in IPFS-pinned storage, making them the first fully on-chain visual NFT collection",
+                        "D": "CryptoPunks implemented royalty enforcement at the smart contract level using the EIP-2981 standard"
+                    },
+                    "correct": "B",
+                    "explanation": "CryptoPunks were created in June 2017; ERC-721 was only formalised in January 2018 (EIP-721). The Larva Labs contract uses a proprietary ownership mechanism rather than the standard ERC-721 interface, which is why they were not initially tradeable on marketplaces like OpenSea without a wrapper contract. The 10,000 punk images are stored as a hash of a composite image on-chain, but the images themselves are not stored on IPFS or fully on-chain. EIP-2981 (royalty standard) came later in 2020."
+                },
+                {
+                    "id": 3,
+                    "question": "Art Blocks is a platform for generative art NFTs. What distinguishes generative art NFTs from standard digital art NFTs in terms of how the artwork is produced?",
+                    "options": {
+                        "A": "Generative art NFTs are created by AI trained on museum collections, whereas standard digital art is hand-drawn by human artists",
+                        "B": "The artwork is algorithmically produced at the moment of minting using the transaction hash or block data as a random seed fed into an on-chain or off-chain script, so the specific output is unknown until mint",
+                        "C": "Generative art NFTs use dynamic metadata that changes the image every 24 hours based on blockchain state",
+                        "D": "Art Blocks stores the generated artwork as a PDF on IPFS to preserve full vector resolution, unlike standard NFTs which use JPEG"
+                    },
+                    "correct": "B",
+                    "explanation": "Art Blocks projects store the generative script (JavaScript/p5.js) on Ethereum. When a collector mints a token, the transaction hash becomes the seed for the algorithm, deterministically producing a unique output — neither the collector nor the artist knows the exact result in advance. This 'reveal' mechanism is fundamental to the generative art NFT model. The artwork is rendered client-side from the on-chain script. This differs from AI art (trained models) and dynamic NFTs (changing metadata)."
+                },
+                {
+                    "id": 4,
+                    "question": "Which of the following best describes the concept of 'provenance' in digital art NFTs and why it is considered more reliable than provenance in traditional fine art?",
+                    "options": {
+                        "A": "NFT provenance relies on gallery certificates of authenticity stored in encrypted databases managed by major auction houses",
+                        "B": "The complete ownership history of an NFT — every wallet that has ever held it — is permanently recorded on the public blockchain and cannot be altered, providing an immutable and verifiable chain of custody from the original minter",
+                        "C": "NFT provenance is established by the artist's digital signature in the image metadata, which can be verified against the artist's public key stored on a centralised art registry",
+                        "D": "Provenance for NFTs is guaranteed by smart contract auditors who verify authenticity before each secondary sale is processed"
+                    },
+                    "correct": "B",
+                    "explanation": "Blockchain provenance is verifiable by anyone without trusting an intermediary: every transfer event is logged on-chain, creating an unbroken public record from minting to current holder. Traditional art provenance relies on physical documentation (bills of sale, letters, exhibition records) that can be forged, lost, or disputed — as seen in numerous high-profile art fraud cases. NFT provenance does not rely on certificates, centralised registries, or auditors; it is inherent in the blockchain's append-only ledger."
+                },
+                {
+                    "id": 5,
+                    "question": "Profile Picture (PFP) collections such as Bored Ape Yacht Club (BAYC) derive much of their value from social signalling. Which economic concept best explains why holding a rare BAYC ape confers status?",
+                    "options": {
+                        "A": "Network externalities: the value of a BAYC NFT increases as more celebrities and high-net-worth individuals join the club, because membership signals access to an elite social network whose prestige scales with member quality",
+                        "B": "Diminishing marginal utility: each additional BAYC NFT owned by a user provides less social status, incentivising holders to sell once they own more than one",
+                        "C": "The Coase theorem: regardless of initial NFT distribution, efficient bargaining between holders ensures that PFPs end up in the hands of those who value them most",
+                        "D": "Gresham's Law: low-quality PFPs drive high-quality PFPs out of circulation because buyers cannot distinguish between them"
+                    },
+                    "correct": "A",
+                    "explanation": "PFP collections exhibit strong network externalities (Metcalfe's Law applied to social capital): the status value of belonging to a community grows with the prominence of other members. When celebrities like Justin Bieber, Eminem, or Steph Curry adopt BAYC apes as Twitter profile pictures, the collection's cultural cachet increases, driving demand from aspirational buyers. This is distinct from diminishing marginal utility (which applies per-holder, not per-community) and has no relation to Coase or Gresham."
+                },
+                {
+                    "id": 6,
+                    "question": "In generative NFT collections, what does 'trait rarity' mean, and how is it typically used to rank individual tokens?",
+                    "options": {
+                        "A": "Trait rarity measures the physical scarcity of the artist's original sketch that the NFT is based upon, ranked by the number of surviving physical copies",
+                        "B": "Each NFT in a collection has attributes (background, clothing, accessories) generated from probability tables; trait rarity is the inverse frequency of each attribute in the collection, and tokens are ranked by composite rarity scores aggregating the rarity of all their traits",
+                        "C": "Trait rarity is a legal classification determined by the collection's smart contract auditor, defining which tokens can be sold as 'rare' under securities law",
+                        "D": "Trait rarity refers to the number of wallet addresses that have previously owned a token; tokens with fewer past owners are considered rarer"
+                    },
+                    "correct": "B",
+                    "explanation": "Generative collections assign traits probabilistically: a background colour with 1% occurrence is rarer than one with 40% occurrence. Rarity scoring tools (Rarity.tools, Rarity Sniper) compute composite scores using methods such as simple rarity sum (sum of 1/trait_frequency across all traits) or statistical rarity (product of trait frequencies). Rarer tokens typically command floor price premiums. The ranking is entirely based on on-chain or off-chain metadata trait frequencies, not physical objects, legal classifications, or ownership history depth."
+                },
+                {
+                    "id": 7,
+                    "question": "What is the 'floor price' of an NFT collection and why is it widely used as a collection-level health metric despite its limitations?",
+                    "options": {
+                        "A": "The floor price is the average sale price of all tokens in a collection over the past 30 days, used because it smooths out outlier high-rarity sales",
+                        "B": "The floor price is the lowest listed asking price for any token in a collection on secondary markets at a given moment; it is widely used because it represents the minimum cost of economic membership in the collection and is continuously observable on-chain",
+                        "C": "The floor price is set by the collection's smart contract and cannot be changed, representing the original mint price paid by first buyers",
+                        "D": "The floor price is determined by a decentralised oracle network that aggregates bid prices from all NFT marketplaces globally and updates every hour"
+                    },
+                    "correct": "B",
+                    "explanation": "Floor price = lowest active listing price across major marketplaces (OpenSea, Blur, etc.). It is used as a real-time signal of market sentiment and collection health because it represents the marginal entry cost. However, it has well-known limitations: it reflects listed supply (which can be manipulated by wash trading or strategic de-listing), ignores trait rarity premiums, and can drop sharply if a single holder panic-lists below market. Despite this, floor price is the dominant quick metric for NFT collection valuation."
+                },
+                {
+                    "id": 8,
+                    "question": "The Bored Ape Yacht Club introduced 'commercial IP rights' for NFT holders as part of its value proposition. What does this mean in practice?",
+                    "options": {
+                        "A": "BAYC holders can legally prevent anyone else from creating derivative NFT collections inspired by ape imagery under copyright law",
+                        "B": "BAYC holders received a licence to use their specific ape's image for commercial purposes — merchandise, branding, restaurants — allowing them to monetise the IP of their individual token",
+                        "C": "BAYC holders collectively own the BAYC trademark and can vote on licensing deals through a DAO governance mechanism",
+                        "D": "BAYC holders can register their ape as a patented design with the US Patent and Trademark Office using the NFT token ID as proof of priority"
+                    },
+                    "correct": "B",
+                    "explanation": "Yuga Labs' BAYC terms of service grant each holder a worldwide, royalty-free licence to commercialise their specific ape's image. This enabled holder-operated businesses: Jenkins the Valet (literary IP), Bored & Hungry restaurant (Long Beach, CA), and various merchandise lines. This was novel in the NFT space — most collections grant only a display licence. Note: the commercial rights attach to holding the NFT, so selling it transfers the licence. Patent registration is not available for artistic images."
+                },
+                {
+                    "id": 9,
+                    "question": "In blockchain gaming and the play-to-earn (P2E) model, what is the fundamental role of NFTs for in-game assets?",
+                    "options": {
+                        "A": "NFTs replace the game's native currency, allowing players to earn tokens that are automatically converted to stablecoins upon withdrawal",
+                        "B": "NFTs represent true ownership of in-game items (characters, weapons, land) on an open blockchain, enabling players to trade, sell, or use assets across games without the game developer's permission and without the risk of the developer deleting or altering the items",
+                        "C": "NFTs serve as proof-of-stake collateral within the game's consensus mechanism, so players with more valuable NFTs have more influence over game rule changes",
+                        "D": "NFTs act as access control tokens that prevent free-to-play players from entering premium game zones, with the rental of these tokens constituting the primary P2E income stream"
+                    },
+                    "correct": "B",
+                    "explanation": "The core NFT gaming proposition is sovereign ownership: traditional game items exist only in the game company's database and can be deleted, modified, or lost if the company shuts down. NFT-based items exist on a public blockchain independent of any single server. Players can sell them on open marketplaces, lend them via smart contracts, and — in theory — use them in other compatible games. Axie Infinity demonstrated the economic model at scale in 2021, with Filipino players earning meaningful income from SLP token rewards during the play-to-earn boom."
+                },
+                {
+                    "id": 10,
+                    "question": "Axie Infinity's play-to-earn model collapsed in value dramatically after its peak in 2021. Which structural economic flaw best explains the unsustainability of its token economy?",
+                    "options": {
+                        "A": "The Ronin bridge hack destroyed player confidence by demonstrating that NFT items could be stolen from the blockchain by hackers",
+                        "B": "The game's token (SLP) was printed as gameplay rewards but had insufficient demand sinks: more SLP was emitted through play than was consumed by breeding or other in-game activities, creating inflationary spiral that destroyed token value",
+                        "C": "Axie Infinity violated securities regulations in the Philippines, causing the government to shut down the game servers and freeze all SLP withdrawals",
+                        "D": "The NFT items (Axies) became worthless because OpenSea delisted the collection following a dispute over royalty payments"
+                    },
+                    "correct": "B",
+                    "explanation": "Axie Infinity's economy was a Ponzi-like emission model: SLP was earned by all players but only consumed by breeding new Axies. As the player base grew exponentially during the 2021 bull market, SLP emission far outpaced breeding demand. New players needed to buy Axies (requiring capital inflows) to earn SLP, which only had value if more new players bought in. When growth slowed, SLP dumping collapsed the token price, making the game unprofitable, causing player exit, further dumping, and collapse. The Ronin hack (March 2022) was a separate catastrophic event."
+                },
+                {
+                    "id": 11,
+                    "question": "Decentraland and The Sandbox are blockchain-based virtual worlds where land parcels are sold as NFTs. Which economic phenomenon determines the relative value of different land parcels within these metaverse platforms?",
+                    "options": {
+                        "A": "Proof-of-work difficulty: land parcels closer to the genesis block are more expensive because they required more computational work to mint",
+                        "B": "Digital location rent: parcels adjacent to high-traffic districts (plazas, popular venues, celebrity-owned land) command premiums analogous to real-world commercial real estate, because virtual foot traffic and visibility increase neighbouring land utility",
+                        "C": "Network hashrate allocation: land parcels are priced based on the proportion of the platform's validator nodes physically located nearest to the parcel's geographic coordinates",
+                        "D": "Token velocity: parcels that have been traded more frequently are priced higher because high velocity signals strong market liquidity and thus lower bid-ask spreads"
+                    },
+                    "correct": "B",
+                    "explanation": "Virtual land economics mirror real estate: location rent theory (Ricardo) applies to digital spaces. A plot next to Decentraland's Genesis Plaza or a Snoop Dogg virtual mansion commands multiples of the floor price because it captures visitor spillover and advertising visibility. During the 2021-2022 metaverse boom, prime Sandbox land adjacent to celebrity parcels sold for hundreds of thousands of dollars. The premium reflects expected utility from foot traffic, not computational work, validator geography, or trading history."
+                },
+                {
+                    "id": 12,
+                    "question": "NFT 'interoperability' in gaming refers to using an NFT item across multiple games or platforms. What is the primary technical and economic barrier to achieving true cross-game interoperability?",
+                    "options": {
+                        "A": "Blockchain throughput limits make it impossible to transfer NFTs between games in real time during gameplay without significant latency",
+                        "B": "Each game is built with its own art style, game engine, and item balance system; an item balanced for one game would be meaningless or game-breaking in another, and game developers have economic incentives to maintain closed item ecosystems rather than cede control to open standards",
+                        "C": "ERC-721 tokens cannot store sufficient metadata to describe complex 3D game item properties, requiring the development of a new blockchain standard before interoperability is possible",
+                        "D": "NFT interoperability is blocked by intellectual property law, as game developers hold patents on all in-game item designs that prevent their use in competing games"
+                    },
+                    "correct": "B",
+                    "explanation": "The barriers to cross-game NFT interoperability are primarily economic and design-level, not purely technical. A sword balanced for Game A may be overwhelmingly powerful in Game B, breaking gameplay. Game developers also have strong financial incentives to keep players within their ecosystem (item sales, loot boxes). Standards efforts (e.g., Enjin's ERC-1155, Loot project's composable items) attempt to address shared primitives, but adoption is limited. On-chain storage constraints and IP law are real but secondary to the game design and incentive problem."
+                },
+                {
+                    "id": 13,
+                    "question": "Music NFTs allow artists to tokenise songs, albums, or royalty rights. What primary disintermediation does this enable compared to traditional music distribution?",
+                    "options": {
+                        "A": "Music NFTs replace digital audio files with blockchain-based audio streams that cannot be copied or shared without the holder's private key",
+                        "B": "Artists can sell music directly to fans — retaining a much larger share of revenue than through streaming platforms or record labels — and can embed automatic royalty splits in the smart contract so they earn on every secondary sale",
+                        "C": "Music NFTs allow artists to issue governance tokens to fans, enabling fans to vote on setlists, album artwork, and tour destinations through a DAO structure",
+                        "D": "Music NFTs replace ASCAP and BMI licensing bodies by storing performance rights on the Ethereum blockchain, automatically paying royalties to performing venues when a song is played live"
+                    },
+                    "correct": "B",
+                    "explanation": "Traditional music distribution: Spotify pays ~$0.003-0.005 per stream with the artist receiving a fraction after label/distributor cuts. Music NFT platforms (Sound.xyz, Catalog, Royal) allow artists to sell editions directly to fans at prices they set, keeping ~85-97% of revenue. Smart contract royalties (EIP-2981) automatically route a percentage of every secondary market sale back to the creator. Artists like 3LAU, RAC, and Daniel Allan have raised six figures from fan communities this way, without label intermediaries."
+                },
+                {
+                    "id": 14,
+                    "question": "Real-World Asset (RWA) tokenisation via NFTs involves representing ownership of physical assets on-chain. Which legal mechanism is essential for an RWA NFT to confer actual ownership rights enforceable in courts?",
+                    "options": {
+                        "A": "The NFT must be issued on a blockchain recognised by the International Monetary Fund as a legal digital ledger",
+                        "B": "A legal agreement (e.g., a deed of trust, LLC membership agreement, or contractual assignment) must formally link the NFT token to the underlying asset and be enforceable in the relevant jurisdiction's legal system",
+                        "C": "The physical asset must be physically destroyed and its value transferred to the blockchain as a stablecoin, which is then locked as collateral backing the NFT",
+                        "D": "The asset's RWA NFT must receive a CUSIP number from DTCC before it can be legally traded by institutional investors"
+                    },
+                    "correct": "B",
+                    "explanation": "An NFT is a token on a blockchain; it has no inherent legal effect on off-chain property rights. To make an RWA NFT legally meaningful, the token must be linked to a legal wrapper: a deed of trust where the trustee holds the physical asset for the NFT holder's benefit, an LLC whose membership interest is represented by the NFT, or a contractual agreement governed by applicable law. Projects like RealT (US real estate), Centrifuge (trade receivables), and Paxos Gold (gold) use various structures. Courts enforce the legal document, not the blockchain record per se."
+                },
+                {
+                    "id": 15,
+                    "question": "Which jurisdiction was among the first to explicitly recognise NFTs as a distinct category of digital property under statute, providing a legislative framework for their legal treatment?",
+                    "options": {
+                        "A": "The United States, through the SEC's digital asset framework issued in 2019",
+                        "B": "China, through the People's Bank of China's digital asset classification issued alongside the digital yuan launch",
+                        "C": "The United Kingdom, through Law Commission recommendations and subsequent legislation recognising 'digital objects' (including NFTs) as a third category of personal property",
+                        "D": "The European Union, through the Markets in Crypto-Assets (MiCA) regulation which classifies all NFTs as e-money tokens"
+                    },
+                    "correct": "C",
+                    "explanation": "The UK Law Commission's 2023 report on digital assets recommended (and Parliament subsequently progressed) recognising 'digital objects' — including NFTs, crypto assets, and certain data — as a third category of personal property alongside 'things in possession' and 'things in action'. This fills a common law gap where courts had struggled to categorise intangible digital assets. The US has no comprehensive federal NFT statute; China has banned NFT trading; MiCA explicitly excludes unique, non-fungible NFTs from its scope."
+                },
+                {
+                    "id": 16,
+                    "question": "When an NFT creator specifies a secondary sale royalty of 10% in their smart contract, what enforcement challenge has emerged in practice?",
+                    "options": {
+                        "A": "Royalty payments are taxed as ordinary income in most jurisdictions, so creators effectively receive only 7% after withholding, making royalties economically unattractive",
+                        "B": "NFT marketplaces that do not enforce creator royalties have emerged (e.g., Blur, X2Y2), and buyers can route secondary sales through these platforms to avoid royalties, because the royalty mechanism is a marketplace-level convention rather than a cryptographically enforced blockchain primitive",
+                        "C": "Smart contracts can only enforce royalties for on-chain sales; peer-to-peer transfers using hardware wallets bypass all royalty mechanisms entirely",
+                        "D": "The ERC-721 standard hardcodes royalty enforcement at 2.5%, making creator-specified royalties above this threshold invalid and unenforceable at the contract level"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-2981 defines a royalty standard but it is advisory — marketplaces can choose to ignore it. In 2022-2023, Blur and X2Y2 launched with optional or zero royalty enforcement to attract volume. Creators saw royalty revenues drop sharply as traders migrated to lower-royalty platforms. Yuga Labs and other major collections responded with on-chain allow/block lists to prevent non-compliant marketplaces from trading their NFTs, leading to a 'royalty wars' period. The fundamental issue is that royalties cannot be cryptographically enforced without restricting token transferability itself."
+                },
+                {
+                    "id": 17,
+                    "question": "Soulbound tokens (SBTs) are a concept introduced by Vitalik Buterin for non-transferable NFTs representing credentials. Which type of use case is most appropriate for an SBT rather than a standard transferable NFT?",
+                    "options": {
+                        "A": "Rare digital artwork where scarcity and transferability are essential to collector market value",
+                        "B": "University degree certificates, professional licences, or employment history records, where transferability would undermine the credential's meaning because the credential attests to the recipient's personal achievement and cannot be legitimately transferred to another person",
+                        "C": "In-game items where players should be able to freely trade assets they have earned through gameplay",
+                        "D": "Domain name registrations where the owner must be able to sell or transfer the domain to new operators"
+                    },
+                    "correct": "B",
+                    "explanation": "Vitalik Buterin, E. Glen Weyl, and Puja Ohlhaver's 2022 'Decentralised Society' paper proposed SBTs as non-transferable tokens bound to a 'soul' (wallet/identity). The non-transferability is the point: a medical licence, university diploma, or KYC verification attests to the holder's identity and accomplishments and would be meaningless if sold. Traditional NFTs derive value from transferability; SBTs derive value from being permanently associated with an individual. Current implementations include Proof of Humanity, Gitcoin Passport, and academic credential pilots."
+                },
+                {
+                    "id": 18,
+                    "question": "Ethereum Name Service (ENS) domain names (e.g., 'vitalik.eth') are issued as ERC-721 NFTs. What utility do they provide beyond a human-readable label?",
+                    "options": {
+                        "A": "ENS domains replace IP addresses for blockchain nodes, allowing users to connect to Ethereum validators using readable names instead of numeric IP addresses",
+                        "B": "ENS domains resolve to underlying Ethereum addresses, smart contracts, IPFS content hashes, and other records, enabling users to send ETH to 'alice.eth' instead of a hex address and to host censorship-resistant websites via IPFS",
+                        "C": "ENS domains are required for all DeFi protocol interactions on Ethereum as of EIP-4337, replacing the need for private keys with social login via readable names",
+                        "D": "ENS domains are tied to validator node identities, allowing delegators to stake ETH to 'validator.eth' rather than manually entering 48-byte BLS public keys"
+                    },
+                    "correct": "B",
+                    "explanation": "ENS is Ethereum's decentralised naming system. Each .eth name is an ERC-721 NFT that resolves via a resolver contract to: (1) an ETH address for receiving payments, (2) other cryptocurrency addresses (BTC, etc.), (3) IPFS content hashes for decentralised websites, (4) text records for social profiles. ENS reduces address error risk and enables a censorship-resistant web presence. Popular names (short names, common words) have sold for significant sums on secondary markets. ENS has no relation to node IP addresses or EIP-4337 account abstraction."
+                },
+                {
+                    "id": 19,
+                    "question": "NFT-based event ticketing offers specific advantages over traditional ticket systems. Which problem in the traditional ticketing industry does NFT ticketing most directly address?",
+                    "options": {
+                        "A": "Traditional tickets cannot be verified as authentic without internet connectivity, whereas NFT tickets work offline via QR codes embedded in the blockchain",
+                        "B": "Scalping and counterfeit tickets: NFT tickets can embed programmable resale rules (price caps, royalties to artists on secondary sales, KYC verification of buyers) that are enforced by smart contracts, eliminating both fraud and uncontrolled secondary market exploitation",
+                        "C": "Traditional ticketing systems fail to provide accessible seating maps, whereas NFT tickets embed real-time seat availability data directly in the token metadata",
+                        "D": "Traditional paper tickets cannot be collected as memorabilia, whereas NFT tickets automatically become digital collectibles with verifiable event attendance history after the event"
+                    },
+                    "correct": "B",
+                    "explanation": "The traditional ticketing industry is plagued by scalping (bots buying and reselling above face value) and counterfeits (forged paper/PDF tickets). NFT tickets can enforce resale conditions: GET Protocol and YellowHeart embed maximum resale prices and route a percentage of secondary sales back to artists/venues via smart contract. Transfer restrictions can require KYC verification of the buyer. POST-event, the ticket can transform into a POAP (Proof of Attendance Protocol) collectible. The blockchain's transparency also enables instant fraud detection by venues scanning for valid token ownership."
+                },
+                {
+                    "id": 20,
+                    "question": "Intellectual property (IP) licensing via NFTs is an emerging application. What structural advantage does an on-chain IP licensing system offer over traditional licensing agreements managed by legal intermediaries?",
+                    "options": {
+                        "A": "On-chain licensing allows NFT holders to bypass copyright law entirely, as blockchain ownership supersedes national copyright statutes in all signatory countries of the Berne Convention",
+                        "B": "Smart contract licensing can automate royalty distribution to multiple rights holders (composer, lyricist, producer) in real time upon each use or sublicensing event, eliminating the months-long royalty collection cycles of PROs and the need for manual reconciliation",
+                        "C": "On-chain licensing permanently prevents any modification of licensed works, ensuring creative integrity is preserved as a hard technical constraint rather than a contractual obligation",
+                        "D": "NFT-based IP licensing creates a single global rights registry that automatically overrides conflicting national IP registrations, establishing clear ownership in all jurisdictions simultaneously"
+                    },
+                    "correct": "B",
+                    "explanation": "Traditional royalty collection: PROs (ASCAP, BMI, PRS) collect performance royalties, pool them, and distribute quarterly or annually, with significant administrative overhead and notoriously opaque splits. On-chain licensing via smart contracts (Zora, Manifold, Story Protocol) can route micropayments to multiple rights holders instantly and transparently upon each licensing event. A song with multiple co-writers and producers can have splits encoded in the contract, ensuring automatic pro-rata distribution. This does not supersede copyright law, modify works, or create a global registry."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

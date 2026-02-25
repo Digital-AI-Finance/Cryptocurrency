@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz TC-3: Building &amp; Deploying Tokens | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz TC-3: Building &amp; Deploying Tokens</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz TC-3: Building &amp; Deploying Tokens</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the PRIMARY benefit of using OpenZeppelin's ERC-20 implementation rather than writing a token contract from scratch?",
+                    "options": {
+                        "A": "OpenZeppelin contracts automatically deploy to mainnet without gas fees",
+                        "B": "The contracts have been professionally audited, battle-tested, and embody community-reviewed security best practices",
+                        "C": "OpenZeppelin contracts bypass the EVM and execute natively on the host machine",
+                        "D": "Using OpenZeppelin removes the need to write a constructor function"
+                    },
+                    "correct": "B",
+                    "explanation": "OpenZeppelin contracts are professionally audited, extensively tested across thousands of production deployments, and maintained by security experts. Writing token logic from scratch exposes developers to subtle vulnerabilities like integer overflow, incorrect allowance management, or reentrancy — risks that OpenZeppelin's battle-tested code eliminates."
+                },
+                {
+                    "id": 2,
+                    "question": "OpenZeppelin audited code provides which of the following guarantees when used correctly?",
+                    "options": {
+                        "A": "Logical correctness of your business rules and tokenomics design",
+                        "B": "Correct implementation of standard interfaces (ERC-20, ERC-721) with known-safe internal mechanics",
+                        "C": "Protection against all possible front-running and MEV attacks",
+                        "D": "Guaranteed gas optimisation to the theoretical minimum"
+                    },
+                    "correct": "B",
+                    "explanation": "OpenZeppelin's audit guarantees cover the correctness of standard interface implementations — proper balance tracking, allowance logic, event emission, and overflow protection. It does NOT guarantee your custom business logic (e.g., your tokenomics or access control policies) is correct; those remain the developer's responsibility."
+                },
+                {
+                    "id": 3,
+                    "question": "In Solidity, a token contract declared as `contract MyToken is ERC20, Ownable` uses which object-oriented pattern?",
+                    "options": {
+                        "A": "Composition: MyToken contains instances of ERC20 and Ownable as member variables",
+                        "B": "Delegation: MyToken forwards all calls to separate ERC20 and Ownable proxy contracts",
+                        "C": "Multiple inheritance: MyToken inherits state variables and functions from both ERC20 and Ownable",
+                        "D": "Factory pattern: ERC20 and Ownable are templates instantiated at deployment time"
+                    },
+                    "correct": "C",
+                    "explanation": "Solidity supports multiple inheritance via the `is` keyword. `contract MyToken is ERC20, Ownable` means MyToken inherits all state variables (balances, allowances, owner address) and functions (transfer, approve, transferOwnership) from both parent contracts. The C3 linearisation algorithm resolves any function conflicts."
+                },
+                {
+                    "id": 4,
+                    "question": "When `MyToken` inherits from both `ERC20` and `Ownable`, in what order must parent constructors be called in Solidity?",
+                    "options": {
+                        "A": "Parent constructors run automatically; no explicit call is needed",
+                        "B": "They must be called in the constructor's modifier list using `ERC20(name, symbol) Ownable(msg.sender)` syntax",
+                        "C": "Each parent constructor is called via `super.constructor()` inside the function body",
+                        "D": "Only the first listed parent constructor runs; subsequent parents are initialised with defaults"
+                    },
+                    "correct": "B",
+                    "explanation": "In Solidity, parent constructors with arguments must be called in the constructor's modifier list: `constructor() ERC20(\"MyToken\", \"MTK\") Ownable(msg.sender) { }`. This syntax ensures ERC20 sets the token name/symbol and Ownable records the deployer as owner before any custom initialisation runs."
+                },
+                {
+                    "id": 5,
+                    "question": "An ERC-20 token's constructor calls `_mint(msg.sender, 1_000_000 * 10**18)`. What does the `10**18` factor represent?",
+                    "options": {
+                        "A": "The block number at which tokens become transferable",
+                        "B": "The conversion factor from wei to ether, used here to express $10^{18}$ token base units per whole token",
+                        "C": "The maximum number of addresses that can hold the token simultaneously",
+                        "D": "A timestamp offset added to the token's deployment block"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-20 tokens store balances as integers in their smallest indivisible unit (analogous to wei for ETH). With `decimals() = 18`, one whole token equals $10^{18}$ base units. Multiplying by $10^{18}$ converts the human-readable amount (1,000,000 tokens) into the raw integer representation stored on-chain."
+                },
+                {
+                    "id": 6,
+                    "question": "OpenZeppelin's ERC20 contract returns `18` from `decimals()` by default. How does changing this to `6` affect on-chain storage and user experience?",
+                    "options": {
+                        "A": "Balances are stored as floats with 6 decimal places; on-chain storage doubles",
+                        "B": "One whole token equals $10^6$ base units; wallets display amounts divided by $10^6$, reducing the raw balance magnitude",
+                        "C": "The contract enforces a maximum of 6 transfers per address",
+                        "D": "Token transfers are rounded to the nearest 6 wei to save gas"
+                    },
+                    "correct": "B",
+                    "explanation": "With `decimals() = 6` (as used by USDC and USDT), one whole token is stored as $10^6 = 1{,}000{,}000$ base units. Wallets and explorers divide raw balances by $10^6$ for display. Compared to 18 decimals, balances have smaller raw values, which slightly reduces storage costs for very large balances and is conventional for stablecoins pegged to USD."
+                },
+                {
+                    "id": 7,
+                    "question": "During token deployment, the constructor calls `_mint(msg.sender, initialSupply)`. Which statement about `_mint` is correct?",
+                    "options": {
+                        "A": "`_mint` is a public function that any address can call after deployment to create new tokens",
+                        "B": "`_mint` is an internal function that increases `_totalSupply` and credits the recipient's balance, emitting a `Transfer` event from the zero address",
+                        "C": "`_mint` creates a new ERC-20 contract instance for each minting operation",
+                        "D": "`_mint` deducts tokens from the contract's own balance to credit the recipient"
+                    },
+                    "correct": "B",
+                    "explanation": "`_mint(account, amount)` is `internal` — only callable from within the contract or derived contracts. It increments `_totalSupply` by `amount`, adds `amount` to `account`'s balance, and emits `Transfer(address(0), account, amount)`. The zero-address sender in the event is the ERC-20 convention for distinguishing minting from regular transfers."
+                },
+                {
+                    "id": 8,
+                    "question": "A token has `decimals() = 18` and calls `_mint(owner, 1_000_000 * 10**decimals())`. What value is stored in `_totalSupply`?",
+                    "options": {
+                        "A": "$1{,}000{,}000$",
+                        "B": "$1{,}000{,}000 \times 10^{6}$",
+                        "C": "$1{,}000{,}000 \times 10^{18}$",
+                        "D": "$10^{18}$"
+                    },
+                    "correct": "C",
+                    "explanation": "$\text{totalSupply} = 1{,}000{,}000 \times 10^{18}$. This is the raw integer stored in the contract's state. Etherscan and wallets display this as $1{,}000{,}000$ tokens by dividing by $10^{18}$ (since `decimals() = 18`). Solidity stores all token balances as unsigned integers with no floating-point arithmetic."
+                },
+                {
+                    "id": 9,
+                    "question": "A `mint(address to, uint256 amount)` function decorated with `onlyOwner` is added to the token. What does `onlyOwner` guarantee?",
+                    "options": {
+                        "A": "Only the token contract itself can call `mint`",
+                        "B": "Only the address stored in Ownable's `_owner` variable can successfully call `mint`; all other callers revert",
+                        "C": "The function can only be called once — subsequent calls from any address are blocked",
+                        "D": "`onlyOwner` makes the function payable and sends ETH to the owner on each call"
+                    },
+                    "correct": "B",
+                    "explanation": "`onlyOwner` is a modifier from OpenZeppelin's Ownable contract that checks `require(msg.sender == owner(), \"Ownable: caller is not the owner\")`. If `msg.sender` differs from the recorded owner, the transaction reverts immediately, consuming all gas up to that point. Only the current owner (initially the deployer, transferable via `transferOwnership`) can execute the decorated function."
+                },
+                {
+                    "id": 10,
+                    "question": "A capped token's `mint` function contains: `require(totalSupply() + amount <= MAX_SUPPLY, \"Cap exceeded\")`. What security property does this enforce?",
+                    "options": {
+                        "A": "It prevents transfers that would cause any holder's balance to exceed `MAX_SUPPLY`",
+                        "B": "It enforces a hard supply ceiling: the cumulative total of all minted tokens can never exceed `MAX_SUPPLY`",
+                        "C": "It restricts minting to at most `MAX_SUPPLY` tokens per transaction",
+                        "D": "It ensures `MAX_SUPPLY` tokens are always in circulation and triggers a burn if supply falls below"
+                    },
+                    "correct": "B",
+                    "explanation": "This check enforces a hard cap on total supply. Because `totalSupply()` returns the cumulative sum of all past `_mint` calls minus `_burn` calls, the require ensures the sum of all ever-minted tokens never exceeds `MAX_SUPPLY`. This is critical for deflationary or fixed-supply tokenomics where the cap is a core trust guarantee."
+                },
+                {
+                    "id": 11,
+                    "question": "OpenZeppelin's ERC20Burnable exposes `burn(uint256 amount)`. Which internal state changes does calling `burn(1000)` trigger?",
+                    "options": {
+                        "A": "Transfers 1000 tokens to the zero address without changing `_totalSupply`",
+                        "B": "Decrements `msg.sender`'s balance by 1000 and decrements `_totalSupply` by 1000, emitting `Transfer(msg.sender, address(0), 1000)`",
+                        "C": "Sets `msg.sender`'s balance to zero and emits a `Burn` event with value 1000",
+                        "D": "Locks 1000 tokens in the contract for 30 days before permanently removing them"
+                    },
+                    "correct": "B",
+                    "explanation": "`burn(amount)` calls the internal `_burn(msg.sender, amount)`. This subtracts `amount` from `msg.sender`'s balance, subtracts `amount` from `_totalSupply`, and emits `Transfer(msg.sender, address(0), amount)`. The zero-address recipient is the ERC-20 convention signalling token destruction. Unlike a transfer to a dead address, this actually reduces total supply."
+                },
+                {
+                    "id": 12,
+                    "question": "The `burnFrom(address account, uint256 amount)` function requires two conditions to succeed. What are they?",
+                    "options": {
+                        "A": "`msg.sender` must be the contract owner AND `account` must have approved the burn",
+                        "B": "`account` must have a balance of at least `amount` AND `msg.sender` must have an allowance of at least `amount` from `account`",
+                        "C": "`account` must be a multisig wallet AND the burn must occur within the same block as the approval",
+                        "D": "The contract must hold at least `amount` ETH AND `account` must have at least `amount` tokens"
+                    },
+                    "correct": "B",
+                    "explanation": "`burnFrom(account, amount)` is the delegated burn variant. It first calls `_spendAllowance(account, msg.sender, amount)` — reverting if `msg.sender`'s allowance from `account` is insufficient — then calls `_burn(account, amount)` — reverting if `account`'s balance is insufficient. Both conditions must hold. This mirrors how `transferFrom` uses allowances."
+                },
+                {
+                    "id": 13,
+                    "question": "A `batchTransfer(address[] calldata recipients, uint256[] calldata amounts)` function loops through arrays and calls `transfer()` for each entry. What is the gas complexity relative to an equivalent series of individual transfers?",
+                    "options": {
+                        "A": "$O(1)$ — the EVM optimises array iteration to constant cost regardless of length",
+                        "B": "$O(n)$ — but with lower total gas than $n$ separate transactions due to saving one base transaction fee ($21{,}000$ gas) per bundled transfer",
+                        "C": "$O(n^2)$ — each transfer checks all previous recipients for conflicts",
+                        "D": "$O(\log n)$ — Solidity uses binary search to optimise balance lookups"
+                    },
+                    "correct": "B",
+                    "explanation": "Each transfer in the loop still costs $O(1)$ storage writes, giving $O(n)$ total loop cost. However, bundling $n$ transfers into one transaction saves $(n-1) \times 21{,}000$ gas compared to $n$ separate transactions (each paying a $21{,}000$ gas base fee). The savings come from amortising fixed per-transaction overhead, not from reducing per-transfer EVM cost."
+                },
+                {
+                    "id": 14,
+                    "question": "A developer initialises a Hardhat project with `npx hardhat init` and selects 'Create a TypeScript project'. Which files are automatically generated?",
+                    "options": {
+                        "A": "Only `contracts/Token.sol` and `scripts/deploy.ts`",
+                        "B": "`hardhat.config.ts`, `contracts/Lock.sol`, `test/Lock.ts`, `scripts/deploy.ts`, and `package.json` with Hardhat dependencies",
+                        "C": "A complete front-end React application with wallet connection boilerplate",
+                        "D": "An `.env` file pre-populated with Infura API keys and a mainnet private key"
+                    },
+                    "correct": "B",
+                    "explanation": "Running `npx hardhat init` and selecting the TypeScript template generates `hardhat.config.ts` (the Hardhat configuration), `contracts/Lock.sol` (a sample contract), `test/Lock.ts` (sample Hardhat/Chai tests), `scripts/deploy.ts` (a deploy script skeleton), and updates `package.json` with `@nomicfoundation/hardhat-toolbox` and related dependencies."
+                },
+                {
+                    "id": 15,
+                    "question": "After running `npx hardhat compile`, where are the compilation artifacts stored, and what do they contain?",
+                    "options": {
+                        "A": "In `src/build/` — only the Solidity bytecode in hex format",
+                        "B": "In `artifacts/contracts/` — JSON files containing the ABI (Application Binary Interface) and EVM bytecode for each contract",
+                        "C": "In `dist/` — TypeScript type definitions auto-generated from the contract ABI",
+                        "D": "In `cache/` — only the abstract syntax tree (AST) for incremental recompilation"
+                    },
+                    "correct": "B",
+                    "explanation": "Hardhat stores compilation artifacts in `artifacts/contracts/{ContractName}.sol/{ContractName}.json`. Each JSON artifact contains the ABI (describing all functions, events, and errors for client-side interaction), the EVM bytecode (deployed to the blockchain), and the deployment bytecode (constructor + runtime bytecode). The `cache/` directory holds Solidity compilation cache for faster incremental builds."
+                },
+                {
+                    "id": 16,
+                    "question": "What is the recommended testing pyramid for a production ERC-20 token contract, listed from most to fewest tests?",
+                    "options": {
+                        "A": "End-to-end tests > integration tests > unit tests",
+                        "B": "Unit tests > integration tests > end-to-end (fork) tests",
+                        "C": "Manual QA > automated tests > formal verification",
+                        "D": "Fuzzing tests > property-based tests > snapshot tests"
+                    },
+                    "correct": "B",
+                    "explanation": "The standard testing pyramid for smart contracts places unit tests at the base (many fast tests of individual functions: mint, burn, transfer, access control), integration tests in the middle (testing interactions between contracts, e.g., token + DEX pool), and end-to-end fork tests at the top (fewer, slower tests on a mainnet fork verifying real-world integration). This structure maximises coverage while minimising test run time."
+                },
+                {
+                    "id": 17,
+                    "question": "In Hardhat tests using `ethers.js`, what does `await ethers.getSigners()` return, and why is it useful for testing access control?",
+                    "options": {
+                        "A": "A list of all Ethereum mainnet validator addresses at the current block",
+                        "B": "An array of test wallet `Signer` objects backed by the local Hardhat node's pre-funded accounts, usable to simulate calls from different addresses",
+                        "C": "A cryptographic signature over the test suite's bytecode to prove authenticity",
+                        "D": "The ABI-encoded call data for the contract's `getOwner()` function"
+                    },
+                    "correct": "B",
+                    "explanation": "`ethers.getSigners()` returns an array of `HardhatEthersSigner` objects, each backed by one of Hardhat's 20 pre-funded local accounts. In access control tests, you connect the contract to different signers: `token.connect(signers[1]).mint(...)` simulates a non-owner calling `mint`, letting you assert the transaction reverts with the expected `OwnableUnauthorizedAccount` error."
+                },
+                {
+                    "id": 18,
+                    "question": "A Hardhat deploy script uses: `const token = await ethers.deployContract('MyToken', [initialSupply])`. What does the second argument `[initialSupply]` represent?",
+                    "options": {
+                        "A": "The amount of ETH (in wei) to send to the contract as its initial balance",
+                        "B": "The list of constructor arguments passed to the contract's `constructor(uint256 initialSupply)` function during deployment",
+                        "C": "An array of addresses pre-authorised to call `mint` after deployment",
+                        "D": "The Hardhat network configuration override for this specific deployment"
+                    },
+                    "correct": "B",
+                    "explanation": "`ethers.deployContract(contractName, constructorArgs)` compiles and deploys the named contract, passing `constructorArgs` as the ABI-encoded constructor parameters. For `constructor(uint256 initialSupply)`, passing `[1_000_000n * 10n**18n]` encodes and sends that value as `initialSupply`. The array must match the constructor's parameter types and order exactly."
+                },
+                {
+                    "id": 19,
+                    "question": "Which Hardhat command runs the full test suite against the in-process Hardhat Network and displays per-test gas usage?",
+                    "options": {
+                        "A": "`npx hardhat compile --gas`",
+                        "B": "`npx hardhat test --gas-reporter`",
+                        "C": "`REPORT_GAS=true npx hardhat test`",
+                        "D": "`npx hardhat node --gas-limit`"
+                    },
+                    "correct": "C",
+                    "explanation": "Setting the environment variable `REPORT_GAS=true` activates Hardhat's built-in gas reporter (via `hardhat-gas-reporter` plugin configured in `hardhat.config.ts`). Running `REPORT_GAS=true npx hardhat test` executes all tests and prints a table showing the average, minimum, and maximum gas used per contract function, critical for gas optimisation analysis."
+                },
+                {
+                    "id": 20,
+                    "question": "To deploy a verified contract to Goerli testnet via Hardhat, which configuration must be present in `hardhat.config.ts`?",
+                    "options": {
+                        "A": "Only the `solidity` compiler version; network configuration is inferred from the deploy script",
+                        "B": "A `networks.goerli` entry with `url` (RPC endpoint) and `accounts` (deployer private key or HD wallet mnemonic), plus `etherscan.apiKey` for verification",
+                        "C": "A `mainnet` fork configuration pointing to Goerli via `forking.url`",
+                        "D": "An `ipfs` field pointing to the Pinata gateway where the compiled artifacts are uploaded"
+                    },
+                    "correct": "B",
+                    "explanation": "Hardhat requires `networks.goerli: { url: process.env.GOERLI_RPC_URL, accounts: [process.env.PRIVATE_KEY] }` to connect to the Goerli network for deployment. For contract verification via `npx hardhat verify`, `etherscan: { apiKey: process.env.ETHERSCAN_API_KEY }` is also needed. Both the RPC URL and private key are stored in `.env` and loaded via `dotenv`."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

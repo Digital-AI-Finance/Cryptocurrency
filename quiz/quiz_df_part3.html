@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz DF-3: Lending, Borrowing and Yield | DeFi Fundamentals</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz DF-3: Lending, Borrowing and Yield</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz DF-3: Lending, Borrowing and Yield</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "In a DeFi lending protocol such as Aave or Compound, what happens when a user deposits tokens into the protocol?",
+                    "options": {
+                        "A": "The tokens are sent directly to a specific borrower who requested them",
+                        "B": "The tokens enter a shared liquidity pool and the depositor receives interest-bearing receipt tokens representing their share",
+                        "C": "The tokens are locked for a fixed term and cannot be withdrawn until maturity",
+                        "D": "The protocol sells the tokens for stablecoins and invests them in Treasury bonds"
+                    },
+                    "correct": "B",
+                    "explanation": "When you deposit into a DeFi lending protocol, your tokens join a pooled liquidity reserve. In return you receive interest-bearing receipt tokens (aTokens on Aave, cTokens on Compound). These accrue interest continuously and can be redeemed for the original deposit plus earned interest at any time. There is no direct matching to a single borrower — the pool model aggregates supply and demand."
+                },
+                {
+                    "id": 2,
+                    "question": "Which of the following correctly describes the flow of funds in a DeFi money market?",
+                    "options": {
+                        "A": "Borrowers deposit collateral → protocol mints stablecoins → lenders redeem stablecoins for yield",
+                        "B": "Lenders deposit assets → borrowers post collateral and withdraw assets → borrowers pay interest → interest flows to lenders",
+                        "C": "Users stake governance tokens → protocol distributes fees to stakers → stakers can borrow against staked tokens for free",
+                        "D": "Lenders lock tokens in time-based tranches → the tranche with the longest lock earns the highest interest"
+                    },
+                    "correct": "B",
+                    "explanation": "The canonical DeFi lending flow is: (1) lenders deposit assets, earning a supply APY; (2) borrowers post collateral worth more than the loan and withdraw the borrowed asset; (3) borrowers pay a borrow interest rate; (4) that interest (minus a protocol reserve cut) flows back to lenders. The protocol never takes custody in the traditional sense — everything is governed by smart contracts."
+                },
+                {
+                    "id": 3,
+                    "question": "Why do DeFi lending protocols require overcollateralization — posting collateral worth more than the loan amount?",
+                    "options": {
+                        "A": "To comply with KYC/AML regulations that mandate overcollateralization for anonymous borrowers",
+                        "B": "Because smart contracts cannot verify borrower identity or creditworthiness, so excess collateral replaces credit scores as default protection",
+                        "C": "To ensure the protocol earns a guaranteed profit regardless of market conditions",
+                        "D": "Because Ethereum gas fees make undercollateralized loans unprofitable to execute"
+                    },
+                    "correct": "B",
+                    "explanation": "Traditional lending relies on identity verification, credit history, and legal recourse against defaulters. DeFi protocols are pseudonymous and operate without courts or bailiffs. Overcollateralization substitutes for credit risk: if a borrower stops repaying, the protocol can automatically liquidate the collateral to cover the debt. The excess buffer absorbs price volatility between the loan issuance and the liquidation."
+                },
+                {
+                    "id": 4,
+                    "question": "A DeFi protocol requires a minimum collateralization ratio of 150%. A user wants to borrow $10,000 USDC. What is the minimum collateral value they must post?",
+                    "options": {
+                        "A": "$10,000",
+                        "B": "$12,500",
+                        "C": "$15,000",
+                        "D": "$20,000"
+                    },
+                    "correct": "C",
+                    "explanation": "A 150% collateralization ratio means: collateral value / debt value ≥ 1.5. To borrow $10,000, the user needs at least $10,000 × 1.5 = $15,000 in collateral. If the collateral value falls below $15,000 (i.e., below the 150% threshold), the position becomes eligible for liquidation. Many protocols set the liquidation threshold slightly below the required ratio to give users time to top up."
+                },
+                {
+                    "id": 5,
+                    "question": "In a utilization-based interest rate model, what happens to the borrow interest rate when 90% of deposited assets have been borrowed?",
+                    "options": {
+                        "A": "The borrow rate falls to near zero to incentivize more borrowing and clear inventory",
+                        "B": "The borrow rate rises sharply to incentivize repayment and attract new deposits, protecting the protocol's liquidity",
+                        "C": "The borrow rate is fixed regardless of utilization and does not change",
+                        "D": "The protocol pauses new borrows and the borrow rate is set to the risk-free rate"
+                    },
+                    "correct": "B",
+                    "explanation": "Utilization rate $U = \\text{Total Borrows} / \\text{Total Deposits}$. Most protocols implement a kinked rate model: rates rise gradually up to an 'optimal utilization' (e.g., 80%), then increase steeply above it. At 90% utilization, the borrow rate spikes to make borrowing expensive and to attract depositors with a higher supply rate. This market mechanism auto-balances supply and demand without human intervention."
+                },
+                {
+                    "id": 6,
+                    "question": "In Aave's interest rate model, the supply APY is always lower than the borrow APY. Which formula best explains why?",
+                    "options": {
+                        "A": "Supply APY = Borrow APY because lenders receive all interest paid by borrowers",
+                        "B": "Supply APY = Borrow APY × Utilization Rate, because interest is only earned on the portion that is actually lent out",
+                        "C": "Supply APY = Borrow APY − Protocol Reserve Factor, because the protocol keeps a cut of borrow interest",
+                        "D": "Supply APY = Borrow APY / (1 + Utilization Rate) due to compounding effects"
+                    },
+                    "correct": "B",
+                    "explanation": "If utilization is 70%, only 70% of deposited funds are earning interest. The supply APY = Borrow APY × Utilization Rate (before the reserve factor). For example, if borrow APY = 10% and utilization = 70%, the gross supply APY ≈ 7%, then reduced further by the protocol's reserve factor. This relationship means supply rates always lag borrow rates, and high utilization is needed to generate attractive deposit yields."
+                },
+                {
+                    "id": 7,
+                    "question": "What is the primary feature that distinguishes Aave from Compound in terms of interest rate options for borrowers?",
+                    "options": {
+                        "A": "Aave supports only fixed rates, while Compound supports only variable rates",
+                        "B": "Aave offers both stable (pseudo-fixed) and variable borrow rates, while Compound offers only variable rates",
+                        "C": "Compound allows borrowers to choose their own interest rate via an auction mechanism",
+                        "D": "Aave charges zero interest for governance token holders, while Compound does not"
+                    },
+                    "correct": "B",
+                    "explanation": "Aave differentiates itself by offering a 'stable rate' option for borrowers — a rate that is fixed in the short term but can be rebalanced by the protocol if market conditions change drastically. This provides predictability for borrowers who want to hedge against rate spikes. Compound uses a purely algorithmic variable rate for all borrowers. Aave also pioneered flash loans, which Compound does not natively offer."
+                },
+                {
+                    "id": 8,
+                    "question": "Which unique feature was pioneered by Aave and is not natively available in the original Compound protocol?",
+                    "options": {
+                        "A": "Governance tokens distributed to protocol users",
+                        "B": "Flash loans — uncollateralized loans that must be borrowed and repaid within a single transaction",
+                        "C": "Interest-bearing receipt tokens for depositors",
+                        "D": "Algorithmic interest rates based on utilization"
+                    },
+                    "correct": "B",
+                    "explanation": "Aave introduced flash loans, which allow users to borrow any amount of liquidity with zero collateral, provided the borrowed amount plus a small fee is returned within the same Ethereum transaction. If the loan is not repaid by the end of the transaction, the entire transaction reverts. This enables arbitrage, collateral swaps, and liquidations without upfront capital. Compound does not have this feature built into its core protocol."
+                },
+                {
+                    "id": 9,
+                    "question": "What is the 'health factor' in Aave, and what happens when it falls below 1?",
+                    "options": {
+                        "A": "It measures the protocol's solvency; below 1 the protocol pauses all new loans",
+                        "B": "It is the ratio of weighted collateral value to total debt; below 1 the position becomes eligible for liquidation",
+                        "C": "It tracks the borrower's on-chain credit score; below 1 their wallet is blacklisted",
+                        "D": "It measures the utilization rate; below 1 indicates the protocol has surplus liquidity"
+                    },
+                    "correct": "B",
+                    "explanation": "Health Factor = $\\sum$(collateral value × liquidation threshold) / total debt value. When HF > 1, the position is safe. When HF = 1, collateral value has fallen to exactly the liquidation threshold. When HF < 1, the position is undercollateralized and liquidators can repay part of the debt and seize collateral at a discount (the liquidation bonus), restoring the protocol's solvency."
+                },
+                {
+                    "id": 10,
+                    "question": "During a DeFi liquidation event, what incentive do liquidators receive, and why is this incentive necessary?",
+                    "options": {
+                        "A": "Liquidators receive governance tokens for participating; this is necessary to decentralize protocol control",
+                        "B": "Liquidators receive the borrower's entire collateral for free; this maximizes protocol security",
+                        "C": "Liquidators repay part of the debt and receive the equivalent collateral at a discount (the liquidation bonus); this makes liquidation profitable and ensures it happens promptly",
+                        "D": "Liquidators receive a fixed fee in the protocol's native token regardless of collateral value"
+                    },
+                    "correct": "C",
+                    "explanation": "Without a financial incentive, no one would bother liquidating undercollateralized positions, exposing the protocol to bad debt. A liquidation bonus (e.g., 5-10% discount on seized collateral) compensates liquidators for the gas cost, execution risk, and capital required. This creates a market of bots and MEV searchers who compete to liquidate positions instantly when health factors breach 1, keeping the protocol solvent."
+                },
+                {
+                    "id": 11,
+                    "question": "What is an aToken (e.g., aUSDC) in Aave, and what makes it different from a regular ERC-20 token?",
+                    "options": {
+                        "A": "aTokens are governance tokens that grant voting rights proportional to the amount deposited",
+                        "B": "aTokens are 1:1 receipt tokens whose balance increases automatically over time as interest accrues, without requiring any action from the holder",
+                        "C": "aTokens are wrapped versions of assets that can only be used within the Aave ecosystem",
+                        "D": "aTokens represent borrowed positions and their balance decreases as interest is paid"
+                    },
+                    "correct": "B",
+                    "explanation": "aTokens are interest-bearing tokens pegged 1:1 to the underlying deposited asset. Unlike standard ERC-20 tokens with static balances, aToken balances increase in real-time every second, reflecting accumulated interest. If you deposit 1000 USDC, you receive 1000 aUSDC; after a year at 5% APY, your aUSDC balance grows to 1050 without any additional transactions. This is implemented via a rebasing or scaled-balance mechanism in the contract."
+                },
+                {
+                    "id": 12,
+                    "question": "Yield farming in DeFi typically involves which combination of activities to maximize returns?",
+                    "options": {
+                        "A": "Mining new tokens using proof-of-work hardware to earn block rewards",
+                        "B": "Moving liquidity between protocols to earn the highest available interest rates, often stacking multiple reward layers (lending interest + liquidity mining rewards + governance tokens)",
+                        "C": "Staking tokens in a single protocol's contract for a fixed 12-month period",
+                        "D": "Buying and holding tokens that have the highest historical price appreciation"
+                    },
+                    "correct": "B",
+                    "explanation": "Yield farming (also called liquidity mining) involves actively deploying capital across DeFi protocols to earn layered returns: base lending/LP fees, protocol-distributed governance tokens, and sometimes additional reward tokens. Farmers often reinvest (compound) rewards and move between protocols as rates change. The complexity and gas costs can be significant, and strategies range from simple single-asset staking to multi-step recursive borrowing loops."
+                },
+                {
+                    "id": 13,
+                    "question": "A user provides liquidity to a Uniswap V2 ETH/USDC pool and receives LP tokens. They then stake those LP tokens in a farm that pays COMP tokens. Which statement best describes what the user has achieved?",
+                    "options": {
+                        "A": "The user has eliminated all risk by diversifying across two protocols",
+                        "B": "The user earns trading fees from the LP position plus COMP token emissions on top, but is exposed to impermanent loss and smart contract risk in both protocols",
+                        "C": "The LP tokens and COMP rewards cancel out any impermanent loss from the pool",
+                        "D": "The user has created a synthetic position that tracks ETH price without holding ETH directly"
+                    },
+                    "correct": "B",
+                    "explanation": "Staking LP tokens in a liquidity mining program stacks rewards: (1) trading fees from the Uniswap pool (proportional to volume and pool share), plus (2) COMP token emissions for staking. However, risks multiply: the user faces impermanent loss from the price divergence of ETH vs USDC, smart contract bugs in both Uniswap and the farm contract, and token price risk on the COMP rewards themselves."
+                },
+                {
+                    "id": 14,
+                    "question": "What is the difference between APR and APY, and why does the distinction matter in DeFi?",
+                    "options": {
+                        "A": "APR and APY are identical; DeFi protocols use them interchangeably",
+                        "B": "APR is the simple annual rate without compounding; APY accounts for compounding and is always higher than or equal to APR for positive rates",
+                        "C": "APR is the yield after subtracting gas costs; APY is the gross yield before gas costs",
+                        "D": "APY applies only to stablecoins; APR applies only to volatile assets"
+                    },
+                    "correct": "B",
+                    "explanation": "APR (Annual Percentage Rate) is the simple rate: 10% APR means 10% per year with no compounding. APY (Annual Percentage Yield) compounds the interest: $\\text{APY} = (1 + \\text{APR}/n)^n - 1$. For daily compounding ($n=365$) at 10% APR: APY = $(1 + 0.10/365)^{365} - 1 \\approx 10.52\\%$. DeFi protocols sometimes display APY to appear more attractive. Always check which metric is shown when comparing opportunities."
+                },
+                {
+                    "id": 15,
+                    "question": "A DeFi protocol advertises 12% APR, compounded daily. What is the approximate APY?",
+                    "options": {
+                        "A": "12.00% (no difference with daily compounding)",
+                        "B": "12.68%",
+                        "C": "13.50%",
+                        "D": "24.00%"
+                    },
+                    "correct": "B",
+                    "explanation": "Using the formula $\\text{APY} = (1 + \\text{APR}/n)^n - 1$ with APR = 0.12 and $n = 365$: APY = $(1 + 0.12/365)^{365} - 1 = (1.000329)^{365} - 1 \\approx 1.1275 - 1 = 12.75\\%$. The closest answer is 12.68%, which reflects daily compounding slightly increasing the effective yield above the nominal 12% APR. The difference grows significantly at higher rates."
+                },
+                {
+                    "id": 16,
+                    "question": "You provide liquidity to an ETH/USDC pool when ETH = $1,000. You deposit 1 ETH and 1,000 USDC (equal value). Later, ETH rises to $4,000. Compared to simply holding 1 ETH + 1,000 USDC, what approximately happens to your LP position?",
+                    "options": {
+                        "A": "Your LP position is worth more because you benefit fully from ETH's price increase",
+                        "B": "Your LP position is worth the same because the pool rebalances to maintain equal dollar value",
+                        "C": "Your LP position is worth approximately 5.7% less than simply holding the original assets — this loss is called impermanent loss",
+                        "D": "Your LP position is worth approximately 50% less because you only hold half the ETH you started with"
+                    },
+                    "correct": "C",
+                    "explanation": "When ETH doubles in price, AMM arbitrageurs rebalance the pool. For a 4x price increase (ETH $1,000 → $4,000), the impermanent loss formula gives: $IL = 2\\sqrt{r}/(1+r) - 1$ where $r = 4$. So $IL = 2\\sqrt{4}/5 - 1 = 4/5 - 1 = -0.2 = -20\\%$ relative to the reference of 1 (i.e., $2\\sqrt{4}/(1+4) = 4/5 = 0.8$), meaning the LP value is 80% of hold value. This is approximately −20% relative performance, not −5.7%. The −5.7% figure corresponds to a 2x price change: $2\\sqrt{2}/(1+2) - 1 = 2\\cdot1.414/3 - 1 = 2.828/3 - 1 \\approx -0.057$."
+                },
+                {
+                    "id": 17,
+                    "question": "What does 'impermanent loss' mean, and when does it become 'permanent'?",
+                    "options": {
+                        "A": "It is a temporary reduction in portfolio value that always recovers within 24 hours",
+                        "B": "It is the divergence loss compared to holding — it is 'impermanent' because it would be zero if prices return to entry levels, but becomes realized (permanent) when you withdraw liquidity at diverged prices",
+                        "C": "It is the loss from paying high gas fees during peak network congestion",
+                        "D": "It refers to the protocol's smart contract risk causing permanent fund loss"
+                    },
+                    "correct": "B",
+                    "explanation": "Impermanent loss is the difference between the value of your LP position and what you would have had by simply holding the same assets. It is 'impermanent' because if the price ratio returns to exactly the ratio at the time of deposit, the IL disappears. However, once you withdraw your liquidity at a different price ratio, the underperformance versus holding is locked in and becomes a real (permanent) loss. Trading fees earned may or may not offset IL depending on volume."
+                },
+                {
+                    "id": 18,
+                    "question": "An LP position in a volatile token pair earns 200% APR in trading fees but also suffers 60% impermanent loss over the year. What is the approximate net return compared to holding?",
+                    "options": {
+                        "A": "+200% (impermanent loss does not reduce fee income)",
+                        "B": "+140% (fees minus impermanent loss)",
+                        "C": "+60% (the protocol guarantees a minimum return equal to the IL offset)",
+                        "D": "It cannot be calculated without knowing the exact price path"
+                    },
+                    "correct": "B",
+                    "explanation": "The net return is approximately fees earned minus impermanent loss: 200% − 60% = +140% compared to holding. This is a simplified calculation — in practice, fees compound on the impermanent-loss-adjusted position, and IL is path-dependent. However, in the common approximation used by yield dashboards: Net APR ≈ Fee APR − IL%. Here, earning 200% in fees more than compensates for 60% IL, making LPing profitable relative to holding despite the IL."
+                },
+                {
+                    "id": 19,
+                    "question": "Which of the following correctly describes how cTokens (Compound's receipt tokens) differ mechanically from Aave's aTokens?",
+                    "options": {
+                        "A": "cTokens are non-transferable and can only be redeemed by the original depositor",
+                        "B": "cTokens maintain a fixed balance but appreciate in exchange rate over time (each cToken redeems for more of the underlying), while aTokens rebase to show an increasing nominal balance",
+                        "C": "cTokens are pegged 1:1 to the underlying forever and do not accrue interest",
+                        "D": "cTokens are ERC-721 NFTs, while aTokens are ERC-20 tokens"
+                    },
+                    "correct": "B",
+                    "explanation": "Compound's cTokens use an exchange rate model: you receive a fixed number of cTokens when depositing, but their exchange rate vs the underlying increases over time as interest accrues. E.g., you deposit 1000 USDC and get 4878 cUSDC (at an exchange rate of 0.02049). As time passes, each cUSDC redeems for more USDC. Aave's aTokens use rebasing: the token balance itself increases (1000 aUSDC grows to 1050). Both represent the same economic claim but with different accounting mechanics."
+                },
+                {
+                    "id": 20,
+                    "question": "When evaluating a yield farming opportunity offering 500% APY, which risk factors must be considered to assess risk-adjusted return?",
+                    "options": {
+                        "A": "Only gas costs matter; smart contract risk is covered by insurance",
+                        "B": "Smart contract bugs, token price risk of reward tokens, impermanent loss (if LP), protocol sustainability (inflationary emissions), and liquidity/exit risk",
+                        "C": "Only the protocol's TVL and audit status; high TVL guarantees safety",
+                        "D": "Only regulatory risk matters; DeFi smart contracts are mathematically guaranteed to be safe"
+                    },
+                    "correct": "B",
+                    "explanation": "A 500% APY headline number requires severe scrutiny. Key risks: (1) Smart contract bugs — no audit guarantees zero bugs; (2) Reward token inflation — 500% APY in a new token that drops 99% in value yields a real loss; (3) Impermanent loss — if providing LP, price divergence can erode principal; (4) Protocol sustainability — high emissions may not be sustainable, causing APY to collapse; (5) Liquidity risk — if the pool dries up, you may be unable to exit. Risk-adjusted yield = Headline APY × probability of not losing principal."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

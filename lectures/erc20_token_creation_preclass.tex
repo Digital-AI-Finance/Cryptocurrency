@@ -1,0 +1,174 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{ERC-20 Token Creation} \textcolor{mlgray}{|} Lesson 04 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{ERC-20 Token Creation}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 04 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% ── Activity 1 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 1: Explore ERC-20 Tokens on Etherscan}{10 min}{%
+Visit \url{https://etherscan.io/tokens} and pick any ERC-20 token from the top 20. Answer:
+\begin{enumerate}
+\item What is the token's name, symbol, and contract address?
+\item What is the total supply? How many holders does it have?
+\item Click the \textbf{Contract} tab --- is the source code verified? What Solidity version was used?
+\item Find a recent Transfer event in the \textbf{Events} tab. Who sent tokens to whom, and how many?
+\end{enumerate}
+\textbf{Bonus:} Check the token's \textbf{Read Contract} tab. Call {\ttfamily\small totalSupply()} and {\ttfamily\small decimals()}. What do they return?
+}
+
+\vspace{2pt}
+
+% ── Activity 2 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 2: ERC-20 Function Matching}{5 min}{%
+Match each ERC-20 function to its purpose. Write the letter in the blank.
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}lcp{7.2cm}@{}}
+\toprule
+\textbf{Function} & \textbf{} & \textbf{Purpose} \\
+\midrule
+{\ttfamily\small totalSupply()}         & \fillcell & A.\ Check how many tokens a spender can use \\
+{\ttfamily\small balanceOf(addr)}       & \fillcell & B.\ Move tokens on someone else's behalf \\
+{\ttfamily\small transfer(to,amt)}      & \fillcell & C.\ Return the total tokens in existence \\
+{\ttfamily\small approve(spender,amt)}  & \fillcell & D.\ Return the token balance of an address \\
+{\ttfamily\small allowance(own,sp)}     & \fillcell & E.\ Send tokens directly from your wallet \\
+{\ttfamily\small transferFrom(f,t,a)}   & \fillcell & F.\ Authorize another address to spend tokens \\
+\bottomrule
+\end{tabular}
+\end{center}
+}
+
+\vspace{2pt}
+
+% ── Activity 3 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 3: Token Economics Comparison}{10 min}{%
+Research each token using CoinGecko or CoinMarketCap and complete the table.
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Token} & \textbf{Supply Model} & \textbf{Max Supply} & \textbf{Use Case} & \textbf{Standard} \\
+\midrule
+USDC & \fillcell & \fillcell & \fillcell & \fillcell \\
+LINK & \fillcell & \fillcell & \fillcell & \fillcell \\
+UNI  & \fillcell & \fillcell & \fillcell & \fillcell \\
+BNB  & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textit{Hint: Supply Model = Fixed / Inflationary / Deflationary / Elastic.}
+}
+
+\vspace{2pt}
+
+% ── Activity 4 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 4: Design Your Token}{5 min}{%
+Fill in the form below. Bring this design to class --- you will implement it!
+\begin{enumerate}
+\item \textbf{Name:}~\rule{3.5cm}{0.3pt}\quad \textbf{Symbol:}~\rule{2.2cm}{0.3pt}\quad \textbf{Decimals:}~\rule{1.4cm}{0.3pt}
+\item \textbf{Supply Model:}\quad
+      $\square$~Fixed\quad
+      $\square$~Inflationary (capped)\quad
+      $\square$~Deflationary
+\item \textbf{Max Supply:}~\rule{3cm}{0.3pt}\quad \textbf{Initial Supply:}~\rule{3cm}{0.3pt}
+\item \textbf{Distribution:}\quad
+      Team~\rule{0.9cm}{0.3pt}\%\quad
+      Community~\rule{0.9cm}{0.3pt}\%\quad
+      Ecosystem~\rule{0.9cm}{0.3pt}\%\quad
+      Liquidity~\rule{0.9cm}{0.3pt}\%
+\item \textbf{Special Feature:}\quad
+      $\square$~Burn-on-transfer\quad
+      $\square$~Batch airdrop\quad
+      $\square$~Vesting schedule\quad
+      $\square$~Other:~\rule{2.5cm}{0.3pt}
+\end{enumerate}
+}
+
+\vspace{4pt}
+
+% ── Glossary ───────────────────────────────────────────────────────────────────
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{2.8cm}p{11.8cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{ERC-20}       & Ethereum Request for Comments 20. The standard interface for fungible tokens, defining 6 functions and 2 events. \\
+\textbf{Fungible}     & Interchangeable; one token equals any other of the same type, like dollar bills. \\
+\textbf{totalSupply}  & ERC-20 function returning the total number of tokens in existence. \\
+\textbf{approve}      & ERC-20 function granting a spender permission to transfer tokens on the owner's behalf. \\
+\textbf{transferFrom} & ERC-20 function enabling a pre-approved spender to move tokens between addresses. \\
+\textbf{OpenZeppelin} & A library of audited, secure smart contract implementations widely used in production. \\
+\textbf{Decimals}     & The number of decimal places a token uses (typically 18), enabling fractional amounts. \\
+\textbf{Tokenomics}   & The economic design of a token: supply model, distribution, incentives, and value capture. \\
+\textbf{Vesting}      & A schedule that gradually unlocks tokens over time, preventing large dumps after launch. \\
+\textbf{Minting}      & Creating new tokens, increasing total supply. Controlled by access modifiers like {\ttfamily onlyOwner}. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, ERC-20 Token Creation --- Lesson 04 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

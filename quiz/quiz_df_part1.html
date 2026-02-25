@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz DF-1: DeFi Landscape and Fundamentals | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz DF-1: DeFi Landscape and Fundamentals</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz DF-1: DeFi Landscape and Fundamentals</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Which of the following best defines Decentralised Finance (DeFi)?",
+                    "options": {
+                        "A": "A government-regulated system of digital banks operating on the internet",
+                        "B": "Financial services — lending, trading, borrowing, earning yield — implemented as open smart contracts on a public blockchain, accessible without intermediary permission",
+                        "C": "A private consortium of banks sharing a common ledger to reduce settlement times",
+                        "D": "Any financial product denominated in cryptocurrency, including centralised exchange accounts"
+                    },
+                    "correct": "B",
+                    "explanation": "DeFi refers to the ecosystem of financial applications built on public, permissionless blockchains (primarily Ethereum). The defining characteristics are: (1) smart contracts replace intermediaries, (2) anyone with a wallet can access services without approval, (3) rules are transparent and immutable on-chain. Centralised exchanges (CeFi) and private bank consortia do not qualify as DeFi even if they use blockchain technology."
+                },
+                {
+                    "id": 2,
+                    "question": "A user holds funds on a centralised exchange (CeFi) and another user holds funds in a self-custody DeFi wallet. Which statement correctly distinguishes their situations?",
+                    "options": {
+                        "A": "The CeFi user earns higher yields because centralised systems are more capital-efficient",
+                        "B": "The CeFi user does not hold their private keys — the exchange controls the funds — whereas the DeFi user retains direct custody via their own private key",
+                        "C": "The DeFi user is subject to KYC/AML requirements whereas the CeFi user is not",
+                        "D": "Both users face identical counterparty risk because both rely on blockchain settlement"
+                    },
+                    "correct": "B",
+                    "explanation": "The core CeFi vs DeFi distinction is custody. In CeFi (e.g., Coinbase, Binance), the exchange holds private keys and you hold an IOU — as illustrated by the FTX collapse. In DeFi, you sign transactions with your own private key; the protocol never controls your funds. KYC is typically required by CeFi and absent in DeFi, not the reverse. Counterparty risk differs: CeFi has exchange insolvency risk; DeFi has smart contract risk."
+                },
+                {
+                    "id": 3,
+                    "question": "DeFi protocols are described as 'permissionless'. What does this property mean in practice?",
+                    "options": {
+                        "A": "The protocol has no transaction fees because it does not require miner permission",
+                        "B": "Any Ethereum address can interact with the protocol's smart contracts without identity verification, credit checks, or approval from a central authority",
+                        "C": "Smart contract code can be modified by anyone who finds a bug, without waiting for developer permission",
+                        "D": "Token transfers are processed immediately without waiting for block confirmation"
+                    },
+                    "correct": "B",
+                    "explanation": "Permissionless means open access: there is no whitelist, KYC gate, or credit assessment. Any address — human, bot, or smart contract — that holds the required tokens and gas can call DeFi protocol functions. This is what enables composability and financial inclusion. It does not mean free transactions, modifiable code, or instant finality."
+                },
+                {
+                    "id": 4,
+                    "question": "Which property of DeFi is often summarised as 'don't trust, verify' — and what does it mean technically?",
+                    "options": {
+                        "A": "Transparency: all user balances are publicly visible on the blockchain",
+                        "B": "Trustlessness: protocol rules are enforced by deterministic smart contract code rather than by trusting a counterparty or institution to behave honestly",
+                        "C": "Non-custodial: users verify their balances using hardware wallets rather than relying on exchange statements",
+                        "D": "Decentralisation: a majority of nodes must verify each transaction before it is final"
+                    },
+                    "correct": "B",
+                    "explanation": "'Don't trust, verify' captures trustlessness: you do not need to trust that Uniswap's developers will honour a trade, because the AMM smart contract enforces the outcome deterministically. The code is the counterparty. This is distinct from transparency (public data) and non-custodial (key ownership). Node verification (consensus) is a property of the underlying blockchain, not specifically the 'trustless' narrative."
+                },
+                {
+                    "id": 5,
+                    "question": "Total Value Locked (TVL) is the most widely cited DeFi metric. Which of the following is the most accurate definition?",
+                    "options": {
+                        "A": "The total market capitalisation of all DeFi governance tokens",
+                        "B": "The aggregate USD value of crypto assets deposited into DeFi smart contracts — liquidity pools, lending markets, vaults — at a given point in time",
+                        "C": "The total trading volume processed by decentralised exchanges in a 24-hour period",
+                        "D": "The maximum amount of capital that can be borrowed from DeFi lending protocols simultaneously"
+                    },
+                    "correct": "B",
+                    "explanation": "TVL counts assets sitting inside DeFi contracts: LP tokens in Uniswap pools, collateral posted in Aave/Compound, assets in yield vaults, etc. It is a snapshot measure of capital committed, not a flow measure like volume. TVL does not include governance token market caps unless those tokens are deposited as collateral. It is commonly tracked by DeFi Llama."
+                },
+                {
+                    "id": 6,
+                    "question": "Which of the following is a well-known limitation of TVL as a measure of DeFi health?",
+                    "options": {
+                        "A": "TVL cannot be computed for Ethereum-based protocols because ETH price is too volatile",
+                        "B": "The same assets can be counted multiple times (double-counting) when they are deposited into one protocol and the receipt token is deposited into another",
+                        "C": "TVL only measures borrowing activity and ignores liquidity provision",
+                        "D": "TVL is a lagging indicator that is only updated once per week by centralised data providers"
+                    },
+                    "correct": "B",
+                    "explanation": "Double-counting is the canonical TVL flaw. Example: ETH deposited in Aave generates aETH, which is then deposited in a Curve pool. Both Aave and Curve count the same underlying ETH in their TVL. True economic value is less than the sum of reported TVLs across protocols. TVL also fluctuates with asset prices (not just flows), and it can be trivially inflated with low-cost deposits of native tokens."
+                },
+                {
+                    "id": 7,
+                    "question": "Which DeFi ecosystem category is primarily concerned with enabling users to exchange one token for another without a centralised order book?",
+                    "options": {
+                        "A": "Lending protocols (e.g., Aave, Compound)",
+                        "B": "Decentralised exchanges / DEXs (e.g., Uniswap, Curve)",
+                        "C": "Algorithmic stablecoins (e.g., DAI, FRAX)",
+                        "D": "On-chain derivatives (e.g., dYdX, Synthetix)"
+                    },
+                    "correct": "B",
+                    "explanation": "DEXs are the DeFi category for token swaps. They use AMM (Automated Market Maker) mechanisms or on-chain order books to match trades without a centralised operator. Lending protocols let users supply/borrow assets. Stablecoins maintain peg mechanisms. Derivatives protocols create synthetic exposure to assets or perpetual futures contracts. All are distinct DeFi verticals."
+                },
+                {
+                    "id": 8,
+                    "question": "In DeFi lending protocols such as Aave or Compound, what is the collateral ratio, and why must it typically exceed 100%?",
+                    "options": {
+                        "A": "The collateral ratio is the annual interest rate; it exceeds 100% because DeFi loans compound hourly",
+                        "B": "The collateral ratio is collateral value divided by borrowed value; it exceeds 100% because loans are over-collateralised to protect against price volatility of the collateral asset without a trusted credit system",
+                        "C": "The collateral ratio is the fraction of the protocol's treasury held in stablecoins; 100%+ ensures the treasury can never be emptied",
+                        "D": "The collateral ratio measures node uptime; 100%+ is required for validators to earn rewards"
+                    },
+                    "correct": "B",
+                    "explanation": "DeFi lending is over-collateralised because there is no legal recourse or credit history to enforce repayment. If you post $150 of ETH to borrow $100 of USDC, your collateral ratio is 150%. When ETH price falls such that collateral value approaches borrowed value, the protocol liquidates the position to protect lenders. Without over-collateralisation, a borrower could simply walk away with the loan."
+                },
+                {
+                    "id": 9,
+                    "question": "What is meant by 'composability' in DeFi, and which metaphor is most commonly used to describe it?",
+                    "options": {
+                        "A": "The ability to split tokens into fractional amounts; described as 'token decimals'",
+                        "B": "The property that DeFi protocols can call each other's functions within a single transaction, stacking financial operations like building blocks; described as 'money legos'",
+                        "C": "The process of combining multiple stablecoins into a single yield-bearing vault; described as 'yield stacking'",
+                        "D": "The ability to deploy the same smart contract on multiple blockchains; described as 'cross-chain composability'"
+                    },
+                    "correct": "B",
+                    "explanation": "Composability ('money legos') means DeFi protocols interoperate permissionlessly. In a single Ethereum transaction you can: borrow DAI from Maker, swap DAI to USDC on Uniswap, deposit USDC into Aave, and receive aUSDC — all atomically. This is possible because all protocols use standardised token interfaces (ERC-20) and public smart contract ABIs. No protocol needs to negotiate integration with another."
+                },
+                {
+                    "id": 10,
+                    "question": "A flash loan is often cited as the ultimate example of DeFi composability. Why can flash loans exist in DeFi but not in traditional finance?",
+                    "options": {
+                        "A": "Traditional banks cannot lend crypto assets, so flash loans are restricted to on-chain environments",
+                        "B": "Flash loans rely on atomic transaction execution: the loan is borrowed and repaid within a single transaction, and if repayment fails the entire transaction reverts — making uncollateralised lending safe",
+                        "C": "Flash loans use zero-knowledge proofs to verify borrower solvency without revealing their identity",
+                        "D": "Traditional finance requires 30-day settlement periods, whereas Ethereum settles in 12 seconds"
+                    },
+                    "correct": "B",
+                    "explanation": "Flash loans exploit Ethereum's atomicity: all steps in a transaction either all succeed or all revert to the initial state. A borrower can take $1 million uncollateralised within one transaction, execute arbitrage or liquidations, repay the loan plus fee, and if the repayment fails the EVM reverts the whole transaction as if it never happened. Traditional finance has no equivalent atomic settlement guarantee — a defaulted loan leaves a creditor with a real loss."
+                },
+                {
+                    "id": 11,
+                    "question": "The DeFi stack is typically described in five layers. Which layer includes Uniswap and Aave as primary examples?",
+                    "options": {
+                        "A": "Settlement layer (Layer 1 blockchain — Ethereum)",
+                        "B": "Asset layer (ERC-20 tokens, NFTs)",
+                        "C": "Protocol layer (smart contracts implementing financial logic: AMMs, lending pools, stablecoins)",
+                        "D": "Application layer (user-facing front-ends and dashboards)"
+                    },
+                    "correct": "C",
+                    "explanation": "The DeFi stack layers are: (1) Settlement — the L1 blockchain (Ethereum) providing security and finality; (2) Asset — tokens (ERC-20, NFT) representing value; (3) Protocol — smart contracts implementing financial primitives like AMMs and lending pools (Uniswap, Aave, Maker); (4) Application — front-end UIs (app.uniswap.org); (5) Aggregation — protocols that route across multiple protocols (1inch, Yearn). Uniswap and Aave are at the protocol layer."
+                },
+                {
+                    "id": 12,
+                    "question": "What role does the aggregation layer play in the DeFi stack, and which type of protocol operates at this layer?",
+                    "options": {
+                        "A": "It provides the cryptographic infrastructure for private key generation; hardware wallet manufacturers operate here",
+                        "B": "It routes user requests across multiple underlying protocols to find best prices or yields; DEX aggregators (1inch) and yield optimisers (Yearn Finance) operate here",
+                        "C": "It bridges assets between Layer 1 and Layer 2 blockchains; cross-chain bridges operate here",
+                        "D": "It validates and orders transactions before submission to the settlement layer; MEV searchers operate here"
+                    },
+                    "correct": "B",
+                    "explanation": "The aggregation layer sits on top of the protocol layer and improves outcomes for end users by abstracting over multiple protocols. DEX aggregators like 1inch split a trade across Uniswap, Curve, and Balancer to minimise slippage. Yield optimisers like Yearn automatically move deposited capital to whichever lending protocol offers the highest APY. Users interact with the aggregation layer and receive better results than interacting with any single protocol directly."
+                },
+                {
+                    "id": 13,
+                    "question": "Which of the following is a smart contract risk specific to DeFi protocols — distinct from private key theft or market risk?",
+                    "options": {
+                        "A": "A user's hardware wallet breaks and they cannot access their seed phrase",
+                        "B": "A protocol's smart contract contains a logic bug that allows an attacker to drain all funds from the liquidity pool via a crafted transaction",
+                        "C": "The price of ETH falls 50%, reducing the USD value of a user's holdings",
+                        "D": "A centralised exchange becomes insolvent and cannot repay user balances"
+                    },
+                    "correct": "B",
+                    "explanation": "Smart contract risk is the risk that code deployed on-chain contains vulnerabilities exploitable by adversaries. Famous examples: the 2016 DAO reentrancy hack, the 2021 Poly Network hack ($611M), and numerous flash loan exploits that manipulate price oracles. Unlike key theft (user risk) or price decline (market risk), smart contract exploits target the protocol logic itself and can drain all deposited funds simultaneously."
+                },
+                {
+                    "id": 14,
+                    "question": "What is a reentrancy attack in a DeFi smart contract context, and which famous exploit first demonstrated this vulnerability at scale?",
+                    "options": {
+                        "A": "An attack where a malicious token contract calls back into the victim contract during a withdrawal before the victim's balance is updated; first exploited in the 2016 DAO hack",
+                        "B": "An attack where a flash loan borrower re-enters a lending pool multiple times in one transaction; first exploited against Compound in 2020",
+                        "C": "An attack where governance token holders vote to drain the treasury by re-entering the voting contract; first exploited against MakerDAO in 2019",
+                        "D": "An attack where a cross-chain bridge is called recursively to mint unlimited wrapped tokens; first exploited against Poly Network in 2021"
+                    },
+                    "correct": "A",
+                    "explanation": "In a reentrancy attack, a malicious contract's fallback function calls back into the victim contract during an ETH transfer, before the victim has updated the sender's balance. The attacker can drain funds in a loop. The 2016 DAO hack exploited exactly this: the DAO contract sent ETH before zeroing the balance, allowing recursive withdrawals totalling ~3.6 million ETH ($60M at the time). This led to the Ethereum hard fork creating ETH and ETC. The fix is the checks-effects-interactions pattern."
+                },
+                {
+                    "id": 15,
+                    "question": "The Ronin Bridge hack in 2022 resulted in approximately $625 million being stolen. Which type of vulnerability did it exploit?",
+                    "options": {
+                        "A": "An AMM price oracle manipulation via a flash loan",
+                        "B": "A reentrancy bug in the bridge's deposit function",
+                        "C": "Compromise of validator private keys — attackers gained control of 5 out of 9 Ronin validator nodes and used them to sign fraudulent withdrawals",
+                        "D": "An integer overflow in the ERC-20 token transfer function"
+                    },
+                    "correct": "C",
+                    "explanation": "The Ronin Bridge hack was a key compromise attack, not a smart contract bug. The attacker (linked to North Korea's Lazarus Group) gained control of 5 of the 9 validators required to approve withdrawals, including 4 Sky Mavis keys and 1 Axie DAO key. With a 5/9 majority, they signed fraudulent withdrawal transactions draining 173,600 ETH and 25.5M USDC. This illustrates that even if smart contract code is correct, off-chain key security is critical for bridge security."
+                },
+                {
+                    "id": 16,
+                    "question": "Annual Percentage Yield (APY) in DeFi differs from simple Annual Percentage Rate (APR). What is the key mathematical distinction?",
+                    "options": {
+                        "A": "APY is calculated on the initial principal only; APR includes accumulated rewards",
+                        "B": "APY accounts for compounding — reinvesting earned rewards so they also earn returns — whereas APR is the simple rate without compounding",
+                        "C": "APY measures USD returns; APR measures returns denominated in the native token",
+                        "D": "APY is a 30-day annualised figure; APR is a 365-day annualised figure"
+                    },
+                    "correct": "B",
+                    "explanation": "APR is the simple annualised rate: if you earn 1% per month, APR = 12%. APY compounds: if you reinvest monthly, APY = (1.01)^12 - 1 ≈ 12.68%. In DeFi, many yield farms auto-compound, making APY the relevant metric. A protocol advertising 100% APR might show ~171% APY with daily compounding. Users should compare like-for-like — APY to APY or APR to APR — to avoid being misled."
+                },
+                {
+                    "id": 17,
+                    "question": "The utilisation rate in a DeFi lending protocol such as Aave measures which quantity, and why does it affect interest rates?",
+                    "options": {
+                        "A": "The fraction of governance token holders who have voted; higher participation triggers lower borrowing rates as a reward",
+                        "B": "The fraction of supplied liquidity currently borrowed (borrows / total supply); higher utilisation means less liquidity available, so the protocol raises borrowing rates to incentivise repayment and attract new deposits",
+                        "C": "The CPU utilisation of validator nodes; higher node utilisation increases gas costs and therefore protocol fees",
+                        "D": "The percentage of collateral that has been liquidated; high liquidation rates signal market stress and trigger emergency rate freezes"
+                    },
+                    "correct": "B",
+                    "explanation": "Utilisation rate U = Total Borrows / Total Supply. When U is high (e.g., 90%), there is little liquidity available for withdrawals, and the protocol is at risk of a liquidity crunch. Lending protocols use a kinked interest rate model: rates rise steeply beyond an optimal utilisation (e.g., 80%), making borrowing expensive to encourage repayments and depositors to supply more capital. This is Aave's and Compound's core rate-setting mechanism."
+                },
+                {
+                    "id": 18,
+                    "question": "DeFi Summer refers to a specific period in 2020. What event catalysed the explosive growth of DeFi TVL during this period?",
+                    "options": {
+                        "A": "Ethereum's transition to proof-of-stake, which dramatically reduced gas fees and enabled mass DeFi adoption",
+                        "B": "Compound Finance's launch of COMP liquidity mining in June 2020, which rewarded users with governance tokens for supplying and borrowing, triggering a wave of yield farming and copycat protocols",
+                        "C": "Bitcoin's halving event in May 2020, which diverted mining revenue into DeFi protocols",
+                        "D": "The SEC's approval of the first Ethereum ETF, which brought institutional capital into DeFi"
+                    },
+                    "correct": "B",
+                    "explanation": "DeFi Summer (June–September 2020) was ignited by Compound's COMP distribution on June 15, 2020. Users realised they could earn COMP tokens on top of interest rates, making effective yields extraordinarily high. TVL across DeFi grew from ~$1B to ~$10B by September 2020. This spawned Uniswap's UNI airdrop (September 2020), Yearn Finance, SushiSwap, and dozens of yield farming protocols. Ethereum had not yet moved to PoS in 2020."
+                },
+                {
+                    "id": 19,
+                    "question": "The DeFi market experienced a severe contraction in 2022. Which two major events most directly caused TVL to collapse from ~$180B to ~$40B?",
+                    "options": {
+                        "A": "The Ethereum Merge and the FTX collapse both occurred in May 2022, triggering simultaneous technical and trust crises",
+                        "B": "The Terra/LUNA collapse (May 2022), which destroyed ~$60B in value and triggered contagion, followed by the FTX exchange collapse (November 2022), which further damaged confidence and caused leveraged DeFi positions to unwind",
+                        "C": "A coordinated 51% attack on Ethereum and a critical reentrancy bug discovered in Uniswap V3, both patched but causing panic withdrawals",
+                        "D": "The US Treasury sanctioning Tornado Cash (August 2022) and the Chinese government banning all crypto transactions, together triggering a global DeFi bank run"
+                    },
+                    "correct": "B",
+                    "explanation": "Two events dominated DeFi's 2022 crash: (1) Terra/LUNA: the algorithmic stablecoin UST lost its peg in May 2022, causing LUNA to hyperinflate to near-zero, wiping out ~$60B and creating contagion through Celsius, Three Arrows Capital, and Voyager. (2) FTX: Sam Bankman-Fried's exchange collapsed in November 2022 after revelations that FTX had misused customer funds, destroying confidence in crypto broadly and triggering further DeFi deleveraging. The Tornado Cash sanction (August 2022) was significant but not the primary driver of TVL collapse."
+                },
+                {
+                    "id": 20,
+                    "question": "Which of the following best explains why a high collateral ratio (e.g., 200%) in a DeFi lending protocol protects lenders but imposes a cost on borrowers?",
+                    "options": {
+                        "A": "A higher collateral ratio means more governance tokens are locked, reducing the borrower's voting power during the loan period",
+                        "B": "A higher collateral ratio protects lenders by ensuring the collateral value can absorb price declines before liquidation is triggered, but borrowers must lock up more capital than they receive, reducing capital efficiency",
+                        "C": "A higher collateral ratio increases smart contract complexity and therefore gas costs, which borrowers must pay",
+                        "D": "A higher collateral ratio signals lower credit quality, so lenders charge higher interest rates to compensate for perceived borrower risk"
+                    },
+                    "correct": "B",
+                    "explanation": "At a 200% collateral ratio, a borrower must lock $200 of ETH to borrow $100 of USDC. The lender is protected: even if ETH drops 40%, the collateral is still worth $120, safely exceeding the $100 loan. The borrower's cost is capital inefficiency: $100 is tied up earning nothing (the ETH cannot be redeployed) just to secure $100 of borrowing capacity. This is the fundamental DeFi borrowing trade-off: trust-free lending requires over-collateralisation, which is capital-inefficient compared to undercollateralised credit in TradFi."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

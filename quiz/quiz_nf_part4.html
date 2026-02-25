@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz NF-4: NFT Valuation, Advanced Topics &amp; Future | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz NF-4: NFT Valuation, Advanced Topics &amp; Future</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz NF-4: NFT Valuation, Advanced Topics &amp; Future</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "NFT valuation is widely considered more challenging than valuing fungible assets such as equities or bonds. Which combination of characteristics creates the most severe valuation difficulty?",
+                    "options": {
+                        "A": "High transaction costs and mandatory KYC requirements that restrict who can participate in price discovery",
+                        "B": "Extreme illiquidity (infrequent comparable sales), radical subjectivity of aesthetic and cultural value, and absence of cash flow streams that could anchor a discounted cash flow model",
+                        "C": "Blockchain gas fees that introduce bid-ask spreads of 20-30%, making observed transaction prices unreliable proxies for fundamental value",
+                        "D": "Regulatory uncertainty that prevents institutional investors from holding NFTs, artificially suppressing demand below true fundamental value"
+                    },
+                    "correct": "B",
+                    "explanation": "NFT valuation faces a trio of compounding challenges: (1) Illiquidity — a given NFT may trade once every few months, yielding very few comparable transactions; (2) Subjectivity — unlike a bond with defined cash flows, a digital artwork's value depends on aesthetic preferences, cultural relevance, and community belonging that vary across buyers; (3) No intrinsic cash flow — discounted cash flow (DCF) methods, the backbone of equity/bond valuation, cannot be directly applied. Gas fees are real but marginal compared to these structural issues, and institutional participation has grown significantly since 2021."
+                },
+                {
+                    "id": 2,
+                    "question": "Wash trading in NFT markets involves a party selling an NFT to a wallet they also control, recording a high transaction price without genuine economic exchange. How does wash trading distort NFT valuation and what on-chain pattern can identify it?",
+                    "options": {
+                        "A": "Wash trading inflates transaction volume metrics, making a collection appear more liquid and desirable; it can be identified by transactions where the same address appears as both buyer and seller, or where ETH flows in a cycle returning to the originating wallet within a short time window",
+                        "B": "Wash trading deflates floor prices by flooding the market with artificial supply; it is identified by an unusual spike in unique buyer count with no corresponding increase in floor price",
+                        "C": "Wash trading primarily affects rarity scores by inflating the apparent number of times a common trait has been traded; it is identified by trait frequency anomalies in the metadata",
+                        "D": "Wash trading creates false royalty signals that mislead creators about their collection's secondary market performance; it is identified by royalty payments exceeding 10% of transaction value"
+                    },
+                    "correct": "A",
+                    "explanation": "Wash trading inflates volume and apparent price history without real value exchange, making collections appear liquid and attracting organic buyers based on false signals. Chainalysis (2022) estimated that wash traders on LooksRare profited significantly from inflated token rewards. On-chain detection methods include: (1) same-address buy-sell cycles, (2) ETH flow graph analysis showing circular fund flows (A pays B pays C pays A), (3) suspiciously round transaction prices, (4) no time gap between purchase and resale. Tools like Nansen and Dune Analytics publish wash trade filters using these heuristics."
+                },
+                {
+                    "id": 3,
+                    "question": "The 'winner's curse' from auction theory is particularly relevant to NFT markets. Which scenario best illustrates the winner's curse in the context of NFT sales?",
+                    "options": {
+                        "A": "A collector who wins a Sotheby's NFT auction discovers the seller did not actually own the NFT, because the auction house failed to verify on-chain ownership before listing",
+                        "B": "In a common-value auction for a rare NFT, the winning bidder systematically overpays relative to the true market value because they hold the most optimistic private valuation among all bidders, and winning signals that all other informed bidders valued the item lower",
+                        "C": "An NFT buyer wins an auction but loses money because the gas cost of the minting transaction exceeds the resale value of the token in a bear market",
+                        "D": "A collector who wins multiple NFTs in rapid succession depletes their liquidity, leaving them unable to pay gas fees for subsequent transactions and missing further opportunities"
+                    },
+                    "correct": "B",
+                    "explanation": "The winner's curse (Kagel & Levin, 1986) applies when bidders have private valuations of a common-value item. The auction winner is the person with the highest private estimate; but if estimates are noisy, winning implies the winner was the most optimistic — systematically biased upward relative to the true value. In NFT auctions, where future demand and cultural relevance are uncertain, the most aggressive bidder often overpays. This is exacerbated by FOMO during bull markets. Rational bidders should 'shade' their bids downward to compensate, but behavioural factors prevent this in practice."
+                },
+                {
+                    "id": 4,
+                    "question": "NFT markets exhibit extreme price volatility with correlation to broader cryptocurrency market cycles. What is the primary mechanism linking NFT market prices to ETH price movements?",
+                    "options": {
+                        "A": "Smart contract gas costs denominated in ETH create a mechanical link: rising ETH prices increase the real cost of NFT transactions, suppressing demand",
+                        "B": "NFTs are primarily priced and traded in ETH; when ETH price rises in USD terms, existing ETH-denominated NFT holders feel wealthier (wealth effect) and new buyers must convert more fiat to participate, while falling ETH causes USD-denominated NFT values to fall even if ETH-denominated prices hold",
+                        "C": "Ethereum validators who stake ETH to secure the network receive NFT rewards, creating a direct arbitrage channel between ETH staking yields and NFT floor prices",
+                        "D": "The Ethereum Foundation algorithmically adjusts NFT royalty rates based on ETH price to stabilise creator incomes during bear markets"
+                    },
+                    "correct": "B",
+                    "explanation": "ETH is the primary settlement currency for most NFT markets. The correlation mechanism operates through multiple channels: (1) USD valuation — a 1 ETH floor NFT is worth $2,000 when ETH = $2,000 and $4,000 when ETH = $4,000; (2) Wealth effect — ETH holders feel richer in bull markets and spend more on NFTs; (3) Collateral value — ETH used as DeFi collateral loses value in bear markets, forcing margin liquidations that cascade into NFT sell pressure; (4) Sentiment correlation — both NFTs and ETH track risk-on/risk-off cycles. Gas costs are real but secondary to these valuation linkages."
+                },
+                {
+                    "id": 5,
+                    "question": "The 'statistical rarity' method for scoring NFT traits uses the product of trait frequencies. If a token has three traits with frequencies 5%, 10%, and 2% in a collection of 10,000, what is its statistical rarity score and what does a lower score indicate?",
+                    "options": {
+                        "A": "Score = 5 + 10 + 2 = 17; a lower score indicates more common traits and thus lower rarity",
+                        "B": "Score = 0.05 × 0.10 × 0.02 = 0.0001 (or 1 in 10,000); a lower score indicates a rarer combination because the joint probability of all traits occurring together is smaller",
+                        "C": "Score = (1/0.05) + (1/0.10) + (1/0.02) = 20 + 10 + 50 = 80; a lower score indicates rarer traits",
+                        "D": "Score = 1 − (0.05 × 0.10 × 0.02) = 0.9999; a score closer to 1 indicates maximum rarity"
+                    },
+                    "correct": "B",
+                    "explanation": "Statistical rarity multiplies the trait frequencies: P(trait combo) = 0.05 × 0.10 × 0.02 = 0.0001. This represents the expected number of tokens with this exact combination: 10,000 × 0.0001 = 1 token. Lower probability = rarer combination. This method is intuitive but has a known flaw: it is dominated by the rarest single trait regardless of other traits (multiplication pulls the product toward the minimum frequency). Option C describes the 'rarity sum' method (sum of inverse frequencies), which is also widely used. Option A (simple sum) ignores the multiplicative independence assumption."
+                },
+                {
+                    "id": 6,
+                    "question": "The 'information content' rarity scoring method uses Shannon entropy to measure trait rarity. What is the information content (in bits) of observing a trait that appears in 25% of a 10,000-token collection?",
+                    "options": {
+                        "A": "$IC = -\\log_2(0.25) = 2$ bits; higher IC means higher rarity",
+                        "B": "$IC = \\log_2(0.25) = -2$ bits; negative IC means the trait is below average rarity",
+                        "C": "$IC = 0.25 \\times \\log_2(0.25) = -0.5$ bits; this is the contribution to collection entropy",
+                        "D": "$IC = 1/0.25 = 4$; a score of 4 means the trait is 4 times rarer than a uniform distribution"
+                    },
+                    "correct": "A",
+                    "explanation": "Shannon information content: $IC = -\\log_2(p)$ where $p$ is the trait frequency. For $p = 0.25$: $IC = -\\log_2(0.25) = -\\log_2(2^{-2}) = 2$ bits. A trait occurring in 50% of tokens has IC = 1 bit; 25% has IC = 2 bits; 12.5% has IC = 3 bits; 1% has IC ≈ 6.64 bits. Higher IC = more surprising/rare = higher information content. Option C computes $p \\cdot \\log_2(p)$, which is the per-trait contribution to Shannon entropy $H = -\\sum p_i \\log_2(p_i)$ — a different (though related) quantity. Rarity scores using IC sum the information content across all traits of a given token."
+                },
+                {
+                    "id": 7,
+                    "question": "A limitation of rarity-based scoring is that it may not reflect actual market prices. Which empirical observation best supports this claim?",
+                    "options": {
+                        "A": "Rarity scoring tools consistently overestimate prices by exactly 2x due to a systematic bias in their frequency estimation algorithms",
+                        "B": "Tokens with the highest composite rarity scores do not always achieve the highest sale prices; cultural preferences, aesthetic appeal, and specific trait combinations (e.g., 'alien' CryptoPunks) can command premiums that pure frequency-based rarity scores underpredict",
+                        "C": "Rarity scores are perfectly correlated with prices within a collection (R² > 0.99) but fail to predict prices across different collections",
+                        "D": "Market prices always exceed rarity-based estimates because collectors pay an additional 'blockchain premium' for the on-chain storage of metadata"
+                    },
+                    "correct": "B",
+                    "explanation": "Empirical studies (e.g., Mekacher et al. 2022, Nadini et al. 2021) find that rarity explains a significant portion of within-collection price variation, but correlation is far from perfect (R² typically 0.3-0.7 depending on collection). CryptoPunks 'type' (Alien, Zombie, Ape) creates discrete jumps in value that exceed what frequency-based rarity scoring predicts, because these types carry cultural cachet beyond statistical scarcity. Similarly, BAYC 'golden fur' commands premiums because of its distinct aesthetic popularity. Rarity is necessary but not sufficient for NFT valuation."
+                },
+                {
+                    "id": 8,
+                    "question": "Which hedonic regression approach is most suitable for estimating the marginal contribution of individual NFT traits to sale price?",
+                    "options": {
+                        "A": "Ordinary least squares (OLS) regression of trait dummy variables on log sale price, with collection fixed effects to control for collection-level demand shifts across time",
+                        "B": "A vector autoregression (VAR) model relating NFT floor prices to ETH price and Bitcoin dominance index over time",
+                        "C": "A principal component analysis (PCA) of the trait frequency matrix to reduce dimensionality before clustering tokens by visual similarity",
+                        "D": "A copula model estimating the joint distribution of bid prices across competing auction platforms to derive a single consensus valuation"
+                    },
+                    "correct": "A",
+                    "explanation": "Hedonic pricing (Rosen 1974) decomposes a good's price into the implicit prices of its constituent attributes. For NFTs: $\\ln(P_{it}) = \\alpha + \\sum_j \\beta_j T_{ijt} + \\gamma_t + \\epsilon_{it}$ where $T_{ij}$ are trait dummies, $\\gamma_t$ are time fixed effects (controlling for market cycle), and $\\beta_j$ estimates the log-price premium of each trait. OLS with log price is standard to handle the right-skewed price distribution. VAR is appropriate for time-series analysis of market-level dynamics, not cross-sectional trait pricing. PCA and copulas serve other analytical purposes."
+                },
+                {
+                    "id": 9,
+                    "question": "NFT market volume exhibits strong seasonality and event-driven spikes. Which of the following events has historically caused the largest short-term spike in NFT trading volume?",
+                    "options": {
+                        "A": "Ethereum gas price reductions from network upgrades, which lower transaction costs and incentivise marginal buyers",
+                        "B": "High-profile collection launches or 'drops' — particularly free mints or allowlist-based mints for major collections — which generate immediate secondary market trading as mint participants flip tokens for profit",
+                        "C": "Federal Reserve interest rate decisions, which shift risk appetite globally and cause synchronised buy or sell waves across all NFT collections",
+                        "D": "Monthly expiry of NFT options contracts on regulated derivatives exchanges, which forces delta-hedging in the spot NFT market"
+                    },
+                    "correct": "B",
+                    "explanation": "Collection launches are the primary event-driven volume spikes in NFT markets. Free or cheap mints (e.g., Goblintown at 0 ETH cost, BAYC at 0.08 ETH in 2021) create immediate flipping opportunities: mint participants sell on secondary markets within hours. High-profile drops can generate 10-100x normal collection volume on launch day. Gas fee reductions help at the margin but do not create spike events. Fed decisions affect sentiment gradually, not acutely. NFT options markets are nascent (Putty Finance, NFTperp) and have minimal liquidity relative to spot."
+                },
+                {
+                    "id": 10,
+                    "question": "Constructing an NFT price index analogous to the S&P 500 or CPI faces a fundamental methodological challenge. What is this challenge and how do existing indices attempt to address it?",
+                    "options": {
+                        "A": "NFTs lack standardised unit sizes, so indices weight by token count rather than market capitalisation; this is addressed by normalising all tokens to a common 'ETH-equivalent' unit",
+                        "B": "NFTs trade infrequently and non-synchronously, creating a 'stale price' problem; repeat-sales methods (tracking the same token across sales) or hedonic imputation (estimating prices for non-traded tokens) are used to address this",
+                        "C": "NFT indices cannot be computed in real time because smart contract execution delays cause a 12-second lag in price discovery that compounds over multi-token portfolios",
+                        "D": "All NFTs within a collection are identical in value, making within-collection index construction trivial but cross-collection aggregation impossible due to incomparable utility"
+                    },
+                    "correct": "B",
+                    "explanation": "The core NFT index construction problem is thin trading: unlike stocks with continuous price discovery, an NFT may not trade for weeks or months, leaving the index with stale prices. Standard stock index methods assume synchronous pricing. Solutions: (1) Repeat-sales indices (Case-Shiller methodology) use only tokens with multiple observed sales to estimate price appreciation, avoiding selection bias from non-random trading; (2) Hedonic imputation estimates daily prices for all tokens using regression models trained on observed sales. Indices like NFT-500 (Upshot) and Nansen's Blue Chip index use variants of these methods."
+                },
+                {
+                    "id": 11,
+                    "question": "Floor price sweeping is a strategy where a buyer purchases multiple NFTs at or near the floor price of a collection. What market impact does a large floor sweep typically have, and what strategic motive might drive it?",
+                    "options": {
+                        "A": "A floor sweep increases short-term floor price by removing cheap supply from the market; it can signal bullish conviction or be used to manipulate perception of demand before offloading tokens at higher prices",
+                        "B": "A floor sweep decreases floor price because the buyer's large purchase forces other holders to lower their ask prices to compete for remaining buyers",
+                        "C": "A floor sweep has no effect on floor price because new listings immediately replace swept tokens at the original price level, as other holders observe the purchase and relist at equivalent prices",
+                        "D": "A floor sweep reduces collection liquidity by concentrating ownership, which lowers trading volume and thus the collection's visibility ranking on major marketplaces"
+                    },
+                    "correct": "A",
+                    "explanation": "Removing the cheapest listings immediately raises the displayed floor price, creating a visible signal of demand strength. This can trigger FOMO in prospective buyers who see the floor rising and rush to purchase before prices increase further. Strategically, a whale can sweep the floor, generate news/social media attention at the inflated price, and then sell tokens into the resulting demand spike — a legal but ethically questionable 'pump and exit'. Conversely, genuine believers sweep floors to accumulate positions they expect to appreciate. Floor sweeps are tracked in real time on Blur and generate significant social media discussion."
+                },
+                {
+                    "id": 12,
+                    "question": "Bid-ask spreads in NFT markets are typically far wider than in equity markets. What structural feature of NFT markets creates this wide spread?",
+                    "options": {
+                        "A": "NFT smart contracts impose mandatory minimum spreads of 5% to fund protocol development through transaction fee accumulation",
+                        "B": "NFT markets are quote-driven rather than order-driven, meaning market makers set fixed spreads based on inventory risk models calibrated to 30-day volatility",
+                        "C": "Each NFT is unique, making it difficult for potential sellers to agree on a reservation price with potential buyers; combined with infrequent trading, large information asymmetry between buyers and sellers widens spreads, as sellers with private information about trait demand set high asks while buyers face uncertainty",
+                        "D": "Ethereum's 12-second block time creates a technological minimum spread equal to 12 seconds of price movement, which maps to several percentage points during high-volatility periods"
+                    },
+                    "correct": "C",
+                    "explanation": "NFT bid-ask spreads are wide due to: (1) Uniqueness — unlike fungible tokens, no identical substitute exists, so there is no arbitrage mechanism compressing spreads; (2) Information asymmetry — sellers know the history and community sentiment around their specific token better than buyers; (3) Thin markets — fewer competing sellers means less price competition; (4) Search costs — buyers must evaluate individual tokens rather than accepting any unit at the market price. This is analogous to real estate markets, which exhibit similar spreads and illiquidity. There are no protocol-mandated minimum spreads or technological spread floors from block times."
+                },
+                {
+                    "id": 13,
+                    "question": "Fractional NFTs (F-NFTs) split ownership of a single high-value NFT into multiple fungible tokens. Which protocol mechanism enables this, and what market efficiency benefit does it theoretically provide?",
+                    "options": {
+                        "A": "The NFT is destroyed and replaced by an ERC-20 token that tracks the original artwork's appraised value; this improves price accuracy by allowing continuous mark-to-market by certified appraisers",
+                        "B": "The NFT is locked in a smart contract vault, which mints a fixed supply of ERC-20 fractional tokens; this lowers the capital barrier to ownership, improves price discovery through continuous fungible token trading, and increases liquidity for otherwise illiquid blue-chip NFTs",
+                        "C": "The NFT is split into multiple ERC-721 tokens representing different portions of the image, each independently tradeable; this enables collectors to own only their favourite section of a high-value artwork",
+                        "D": "Fractional NFT protocols use a bonding curve to continuously mint new fractions as demand increases, ensuring the total fractional token supply always equals the NFT's current floor price in ETH"
+                    },
+                    "correct": "B",
+                    "explanation": "Platforms like Fractional.art (now Tessera) lock an ERC-721 NFT in a vault contract, then mint a predetermined supply (e.g., 1,000,000) of ERC-20 fractional tokens. These tokens trade on DEXs like Uniswap, enabling continuous price discovery. Benefits: (1) Democratisation — retail investors can own fractions of a CryptoPunk for $10 rather than $100,000; (2) Liquidity — ERC-20 tokens trade continuously vs. infrequent NFT sales; (3) Price discovery — the DEX price of fractions implies a valuation for the underlying NFT. Challenges: governance of the whole (who decides to sell the underlying NFT?) and potential securities law classification."
+                },
+                {
+                    "id": 14,
+                    "question": "Dynamic NFTs (dNFTs) have metadata or visual properties that change in response to external conditions. What technical mechanism enables an NFT's on-chain metadata to update based on off-chain real-world data?",
+                    "options": {
+                        "A": "dNFTs use a special ERC-721 variant called ERC-721D, which adds a built-in API polling function that queries external servers every Ethereum block",
+                        "B": "dNFTs rely on oracle networks (e.g., Chainlink) to bring verified off-chain data on-chain; smart contract logic then updates the token's metadata URI or on-chain state variables based on oracle-delivered data inputs",
+                        "C": "dNFT metadata is stored in mutable IPFS files that the original creator can update at will; each update is signed with the creator's private key to verify authenticity",
+                        "D": "dNFTs use zero-knowledge proofs to verify real-world conditions without revealing the underlying data, then update metadata within the ZK proof circuit without any oracle involvement"
+                    },
+                    "correct": "B",
+                    "explanation": "Blockchains cannot natively access off-chain data; oracles bridge this gap. Chainlink's oracle network aggregates real-world data (sports scores, weather, asset prices, event outcomes) from multiple sources, aggregates it, and delivers signed data on-chain. A dNFT smart contract listens for oracle updates and modifies the token's metadata URI or on-chain attributes accordingly. Examples: NBA Top Shot moments that update player stats; Chainlink's 'dynamic NFT' demos that change artwork based on ETH/USD price; insurance NFTs that evolve based on weather data. IPFS files are mutable but creator-controlled, not oracle-driven."
+                },
+                {
+                    "id": 15,
+                    "question": "ERC-6551 (Token Bound Accounts, TBA) is an Ethereum standard that gives NFTs their own smart contract wallet accounts. What novel capability does this unlock that is not possible with standard ERC-721 tokens?",
+                    "options": {
+                        "A": "ERC-6551 allows NFTs to be listed on multiple marketplaces simultaneously, with the smart contract automatically cancelling other listings when a sale occurs on any platform",
+                        "B": "Each NFT gains a unique Ethereum address (wallet) that can hold ETH, ERC-20 tokens, and other NFTs; this enables NFTs to accumulate assets over time, carry their own history of transactions, and serve as composable 'identity containers' or 'character inventories' in games",
+                        "C": "ERC-6551 enables NFTs to vote in DAO governance proposals proportional to their rarity score, weighted by the oracle-verified floor price of their collection",
+                        "D": "ERC-6551 creates a cross-chain bridge for NFTs, allowing any ERC-721 token to be atomically swapped with an equivalent-rarity NFT on any EVM-compatible chain without wrapping"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-6551 (proposed by Benny Giang et al., deployed 2023) uses a registry contract to deterministically create a smart contract account for any ERC-721 token. The account address is derived from the chain ID, registry address, token contract address, and token ID. This TBA can: (1) hold ETH, ERC-20s, and other NFTs; (2) interact with DeFi protocols; (3) accumulate transaction history. Applications: a gaming character NFT whose inventory items are NFTs held in its TBA, an 'NFT backpack' that transfers with the character. When the parent NFT is sold, the new owner controls the TBA and all its contents. This is fundamentally different from cross-chain bridging or multi-marketplace listing."
+                },
+                {
+                    "id": 16,
+                    "question": "Soulbound Tokens (SBTs) as proposed by Buterin, Weyl, and Ohlhaver create new possibilities for 'decentralised society' (DeSoc). Which specific social mechanism do SBTs enable that fungible tokens and transferable NFTs cannot?",
+                    "options": {
+                        "A": "SBTs enable quadratic funding allocation to public goods projects, where the number of unique SBT holders contributing to a project determines matching funds from a pool",
+                        "B": "SBTs allow persistent, non-transferable social attestations — credentials, memberships, reputation — that form a verifiable digital identity anchored to a wallet, enabling undercollateralised lending based on on-chain reputation and community-based fraud recovery",
+                        "C": "SBTs create legally binding smart contracts between wallets, enabling parties to form enforceable digital agreements without requiring wet signatures or notarisation",
+                        "D": "SBTs implement a universal basic income mechanism by distributing equal SBT allocations to verified humans, ensuring Sybil-resistant airdrop distributions for all future Ethereum protocol upgrades"
+                    },
+                    "correct": "B",
+                    "explanation": "The DeSoc paper proposes SBTs as the building blocks of digital reputation and community. Key mechanisms: (1) Attestation — issuers (universities, employers, DAOs) issue non-transferable SBTs to recipients, creating verifiable credentials; (2) Undercollateralised lending — a wallet with SBTs from known counterparties (employment, creditworthiness attestations) could receive loans based on reputation rather than only crypto collateral; (3) Community recovery — losing access to a soul wallet can be recovered if enough SBTs from trusted community issuers vote to restore access, without relying on a single seed phrase. Quadratic funding (option A) is a separate mechanism by Buterin and Weyl that complements but predates SBTs."
+                },
+                {
+                    "id": 17,
+                    "question": "The US SEC has brought enforcement actions related to NFTs. Under which theory has the SEC argued that certain NFTs qualify as securities subject to federal securities law?",
+                    "options": {
+                        "A": "NFTs are classified as commodities under the Commodity Exchange Act, and the SEC has joint jurisdiction with the CFTC over all digital asset commodities including NFTs",
+                        "B": "Under the Howey test, NFTs that are sold as part of a scheme where buyers invest money in a common enterprise with an expectation of profit primarily from the efforts of others — such as fractional NFTs of a collection with a roadmap promising value appreciation — may qualify as investment contracts (securities)",
+                        "C": "The SEC classifies all NFTs as unregistered money services because they can be exchanged for fiat currency, triggering Bank Secrecy Act reporting requirements for all NFT marketplace operators",
+                        "D": "The SEC's securities classification of NFTs derives from the Income Tax Act, which defines any asset generating taxable capital gains as a security subject to SEC oversight"
+                    },
+                    "correct": "B",
+                    "explanation": "The Howey test (SEC v. W.J. Howey Co., 1946) defines a security as: (1) investment of money, (2) in a common enterprise, (3) with expectation of profits, (4) predominantly from the efforts of others. The SEC's 2023 action against Impact Theory and Stoner Cats applied Howey to NFT collections promoted with 'roadmaps' promising ecosystem development, passive investment returns, and revenue sharing — meeting all four Howey prongs. Simple digital collectibles without profit promises are less likely to qualify, but fractionalized NFTs (closer to shares) and utility-promised NFTs are higher-risk. NFTs are not commodities (CFTC jurisdiction) and the classification does not derive from tax law."
+                },
+                {
+                    "id": 18,
+                    "question": "The EU's Markets in Crypto-Assets (MiCA) regulation, effective 2024, explicitly exempts 'unique and non-fungible' NFTs from most of its provisions. Under what circumstances does MiCA suggest an NFT might nevertheless fall within its scope?",
+                    "options": {
+                        "A": "Any NFT priced above 10,000 EUR falls within MiCA scope regardless of its uniqueness, due to the regulation's systemic risk threshold for high-value digital assets",
+                        "B": "NFTs issued in large series or collections where individual tokens are not genuinely unique, or fractionalised NFTs, may be deemed functionally fungible and thus fall within MiCA as e-money tokens or asset-referenced tokens",
+                        "C": "NFTs held by EU-based issuers for more than 12 months automatically transition from exempt collectibles to MiCA-regulated assets due to the long-term holding reclassification provision",
+                        "D": "NFTs featuring intellectual property of EU-listed companies always fall within MiCA scope because the underlying IP has a regulated market value that the NFT references"
+                    },
+                    "correct": "B",
+                    "explanation": "MiCA Recital 6c excludes NFTs that are 'unique and non-fungible'. However, MiCA Recital 6d and ESMA guidance note that large-scale identical or near-identical collections (e.g., 10,000 PFPs with minor trait variations) may be de facto fungible — collectors can substitute one common-trait token for another without material difference in value. Similarly, fractional NFTs (ERC-20 tokens representing shares in an NFT) are clearly fungible and could be classified as asset-referenced tokens. Regulators retain discretion in classification, creating legal uncertainty for large generative collections. There is no EUR threshold or 12-month rule in MiCA."
+                },
+                {
+                    "id": 19,
+                    "question": "NFTs on layer-2 blockchains (e.g., Polygon, Immutable X, Starknet) address a specific limitation of Ethereum mainnet NFTs. What is this limitation and what trade-off does migrating to L2 introduce?",
+                    "options": {
+                        "A": "Ethereum mainnet NFTs cannot store metadata larger than 32 bytes; L2 solutions enable unlimited metadata storage but sacrifice ERC-721 compatibility, requiring new wallet software",
+                        "B": "Ethereum mainnet has high gas costs and low throughput that make frequent, low-value NFT transactions (gaming items, small-edition art) economically impractical; L2 solutions reduce fees and increase throughput but introduce trust assumptions about the L2 bridge/sequencer and reduce the native security guarantee of Ethereum L1 settlement",
+                        "C": "Ethereum mainnet NFTs expire after 10 years due to state pruning in EIP-4444; L2 solutions provide permanent storage but require annual renewal fees paid in L2 native tokens",
+                        "D": "Ethereum mainnet enforces a 24-hour transfer cooldown for all NFTs to prevent wash trading; L2 solutions remove this restriction, enabling instant secondary market trading at the cost of increased wash trade risk"
+                    },
+                    "correct": "B",
+                    "explanation": "Ethereum mainnet gas costs made NFT minting ($50-200 during peak congestion) and trading expensive, excluding games (requiring thousands of micro-transactions) and lower-value art. L2 solutions: Polygon (sidechain, lower security guarantees), Immutable X (StarkEx ZK-rollup, optimised for NFTs, gas-free for users), Starknet (ZK-rollup) reduce fees by 10-100x. Trade-offs: (1) Bridge risk — assets moving between L1 and L2 pass through bridge contracts (historically a major hack vector); (2) Sequencer centralisation — most L2s have centralised sequencers that could censor transactions; (3) Liquidity fragmentation — NFT liquidity is split across chains. There is no 10-year expiry or transfer cooldown in Ethereum."
+                },
+                {
+                    "id": 20,
+                    "question": "Looking at long-term trajectories, which academic or industry research finding most strongly supports the view that NFTs represent a durable technological primitive rather than a speculative bubble that will leave no lasting infrastructure?",
+                    "options": {
+                        "A": "NFT trading volume has remained consistently above $1 billion per month since 2020, demonstrating sustained organic demand independent of cryptocurrency market cycles",
+                        "B": "The underlying technical capabilities of NFTs — verifiable digital scarcity, programmable ownership, composable on-chain provenance — are being adopted by traditional institutions (Sotheby's, Christie's, Ticketmaster, Nike, Louis Vuitton) for use cases where these properties solve genuine problems, independent of speculative token prices",
+                        "C": "Peer-reviewed academic studies have demonstrated that NFT artwork consistently appreciates faster than traditional fine art over 10-year holding periods, providing a financial basis for long-term investment",
+                        "D": "The BIS (Bank for International Settlements) has classified NFTs as Tier 1 capital for bank reserve purposes, indicating that regulators consider them equivalent in permanence to gold"
+                    },
+                    "correct": "B",
+                    "explanation": "The strongest evidence for NFTs as a durable primitive is enterprise and institutional adoption of the underlying technology for non-speculative use cases: Nike's .SWOOSH platform for digital sneaker ownership, Louis Vuitton's Aura blockchain for luxury product authentication, Ticketmaster's POAP-based fan engagement, Sotheby's Metaverse marketplace, and traditional fine art houses integrating on-chain provenance for physical works. These adoptions use NFT infrastructure (unique identifiers, on-chain ownership, programmable rules) for supply chain, authentication, and loyalty applications where the technology solves genuine problems. Volume consistency (option A) is false — volume collapsed 90%+ in 2022-2023. No 10-year academic return studies exist. BIS has not classified NFTs as Tier 1 capital."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

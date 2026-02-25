@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz NF-1: NFT Fundamentals &amp; Standards | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz NF-1: NFT Fundamentals &amp; Standards</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz NF-1: NFT Fundamentals &amp; Standards</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Which of the following best defines a Non-Fungible Token (NFT)?",
+                    "options": {
+                        "A": "A token that can be freely exchanged one-to-one with any other token of the same type, like currency",
+                        "B": "A cryptographic token on a blockchain that has a unique identifier, making it distinguishable from all other tokens and not interchangeable on a one-to-one basis",
+                        "C": "A token that represents fractional ownership of a fungible asset such as gold or real estate",
+                        "D": "Any ERC-20 token issued on Ethereum with a total supply of exactly one"
+                    },
+                    "correct": "B",
+                    "explanation": "An NFT is defined by its non-fungibility: each token carries a unique identifier (token ID) that distinguishes it from every other token, even within the same contract. This contrasts with fungible tokens (e.g., ETH, USDC) where each unit is identical and interchangeable. A single-supply ERC-20 is technically fungible; an NFT requires a standard (ERC-721 or ERC-1155) that tracks per-token identity and ownership."
+                },
+                {
+                    "id": 2,
+                    "question": "What does 'fungibility' mean in economics, and why does its absence make NFTs suitable for representing digital art ownership?",
+                    "options": {
+                        "A": "Fungibility means an asset cannot be divided; NFTs are suitable because digital art should never be split",
+                        "B": "Fungibility means units of an asset are mutually interchangeable; NFTs lack fungibility so each token is unique, which is appropriate for representing ownership of a distinct creative work that is not equivalent to any other",
+                        "C": "Fungibility refers to an asset's liquidity; NFTs are illiquid, making them ideal for long-term art investment",
+                        "D": "Fungibility describes regulatory status; non-fungible assets escape securities classification, making NFTs legally simpler"
+                    },
+                    "correct": "B",
+                    "explanation": "In economics, fungibility means each unit of an asset is identical and substitutable — one dollar bill equals any other. Fungible assets are appropriate for money and commodities. Digital art, however, is inherently distinct: 'CryptoPunk #7804' is not equivalent to 'CryptoPunk #3100'. NFTs model this uniqueness by assigning each token a distinct on-chain identity, making provenance, ownership history, and authenticity verifiable without a central authority."
+                },
+                {
+                    "id": 3,
+                    "question": "Which property of NFTs enables provenance tracking — the ability to verify the entire ownership history of a digital asset?",
+                    "options": {
+                        "A": "The fact that NFT metadata is stored on IPFS, which is immutable once pinned",
+                        "B": "The blockchain's append-only ledger records every transfer of the NFT's token ID, creating an immutable, publicly verifiable chain of custody from mint to current owner",
+                        "C": "NFTs embed digital watermarks in their image files that cannot be removed",
+                        "D": "Smart contract audits verify the authenticity of each NFT before it can be sold on a marketplace"
+                    },
+                    "correct": "B",
+                    "explanation": "Provenance tracking relies on the blockchain's immutable transaction history. Every Transfer event emitted by the NFT contract is permanently recorded: from the zero address (mint) to the first buyer, then to each subsequent owner. Anyone can query this history on-chain without trusting the marketplace or artist. This is fundamentally different from physical art, where provenance depends on paper certificates that can be forged. IPFS pinning and watermarks are separate concerns about the media file, not the ownership record."
+                },
+                {
+                    "id": 4,
+                    "question": "A collector says: 'I own the NFT, so I own the copyright to the underlying artwork.' Is this statement correct?",
+                    "options": {
+                        "A": "Yes — purchasing an NFT automatically transfers all intellectual property rights from the creator to the buyer under international copyright law",
+                        "B": "No — owning an NFT typically grants ownership of a token on the blockchain and a licence to display the work, but copyright remains with the creator unless explicitly transferred via a separate legal agreement",
+                        "C": "Yes — smart contracts are legally binding in all jurisdictions, so the on-chain transfer of the NFT constitutes a copyright assignment",
+                        "D": "No — NFT buyers receive no rights whatsoever; they only purchase a URL pointing to an image file"
+                    },
+                    "correct": "B",
+                    "explanation": "This is a critical legal misconception. Copyright law (in the US, EU, and most jurisdictions) does not automatically transfer with an NFT purchase. The NFT is a blockchain record of token ownership, not a legal instrument conveying IP rights. Most NFT projects grant only a limited personal display licence. Some (e.g., Bored Ape Yacht Club) grant broader commercial rights via Terms of Service, but this is a contractual licence, not a copyright assignment. Copyright transfer requires an explicit written agreement signed by the copyright holder."
+                },
+                {
+                    "id": 5,
+                    "question": "ERC-721 is the primary Ethereum standard for NFTs. Which interface function returns the address that owns a specific token?",
+                    "options": {
+                        "A": "balanceOf(address owner)",
+                        "B": "ownerOf(uint256 tokenId)",
+                        "C": "getApproved(uint256 tokenId)",
+                        "D": "tokenURI(uint256 tokenId)"
+                    },
+                    "correct": "B",
+                    "explanation": "The ERC-721 standard (EIP-721) defines ownerOf(uint256 tokenId) as the function that returns the address of the owner of a given token. balanceOf(address owner) returns how many NFTs an address owns across the contract (not which specific tokens). getApproved(uint256 tokenId) returns the approved operator for a single token. tokenURI(uint256 tokenId) returns the metadata URI (an optional extension). ownerOf is the canonical ownership lookup."
+                },
+                {
+                    "id": 6,
+                    "question": "The ERC-721 standard requires contracts to implement the ERC-165 supportsInterface function. What purpose does ERC-165 serve?",
+                    "options": {
+                        "A": "It allows NFT contracts to specify the maximum number of tokens that can ever be minted",
+                        "B": "It provides a standardised method for a contract to publish which interfaces it implements, enabling other contracts and wallets to query capabilities before calling functions that may not exist",
+                        "C": "It enforces royalty payments by requiring all NFT contracts to register with a central royalty registry",
+                        "D": "It defines the encoding format for token metadata so wallets can parse JSON consistently"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-165 (Interface Detection Standard) allows any contract to advertise which interfaces it supports via supportsInterface(bytes4 interfaceId). Before calling ERC-721-specific functions, a marketplace or wallet can call supportsInterface(0x80ac58cd) to confirm the contract is ERC-721 compliant, and supportsInterface(0x5b5e139f) to check for the optional metadata extension. This prevents failed calls to non-existent functions and enables composable protocol interactions."
+                },
+                {
+                    "id": 7,
+                    "question": "An ERC-721 contract emits which event when a token is transferred from one address to another (including minting)?",
+                    "options": {
+                        "A": "Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)",
+                        "B": "Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+                        "C": "Mint(address indexed to, uint256 indexed tokenId, string uri)",
+                        "D": "TokenCreated(uint256 indexed tokenId, address indexed creator)"
+                    },
+                    "correct": "B",
+                    "explanation": "The ERC-721 standard mandates the Transfer event: Transfer(address indexed from, address indexed to, uint256 indexed tokenId). During minting, from is the zero address (address(0)). During burning, to is the zero address. During a normal transfer, both addresses are non-zero. Indexing all three parameters allows efficient off-chain filtering. The Approval event handles operator approvals but is not emitted on transfer. There is no standard Mint event in ERC-721."
+                },
+                {
+                    "id": 8,
+                    "question": "What is the difference between setApprovalForAll and approve in ERC-721, and what security risk does setApprovalForAll introduce?",
+                    "options": {
+                        "A": "setApprovalForAll grants an operator permission to transfer all tokens in the contract owned by the caller; approve grants permission for a single token. setApprovalForAll is dangerous because a malicious operator can drain all NFTs from the approving wallet.",
+                        "B": "setApprovalForAll is an admin function only callable by the contract owner; approve is callable by any token holder",
+                        "C": "setApprovalForAll sets a global royalty percentage; approve approves a specific buyer's purchase",
+                        "D": "Both functions are identical; setApprovalForAll is simply a batch version of approve for gas efficiency"
+                    },
+                    "correct": "A",
+                    "explanation": "approve(address to, uint256 tokenId) grants a single address permission to transfer one specific token. setApprovalForAll(address operator, bool approved) grants or revokes an operator's permission to transfer ALL tokens the caller owns in that contract. The security risk is significant: phishing sites routinely trick users into signing setApprovalForAll transactions, after which the malicious operator can immediately transfer every NFT in the victim's wallet. Users should grant setApprovalForAll only to trusted, audited marketplaces."
+                },
+                {
+                    "id": 9,
+                    "question": "ERC-1155 is described as a 'multi-token standard'. What key advantage does it offer over deploying separate ERC-721 contracts for each token type?",
+                    "options": {
+                        "A": "ERC-1155 tokens are automatically fungible, removing the need for separate liquidity pools",
+                        "B": "A single ERC-1155 contract can manage both fungible and non-fungible token types simultaneously, and batch transfer functions reduce gas costs dramatically compared to multiple individual ERC-721 transfers",
+                        "C": "ERC-1155 enforces on-chain royalties natively, whereas ERC-721 has no royalty support",
+                        "D": "ERC-1155 tokens are compatible with Ethereum's native ETH transfer mechanism, enabling gasless transfers"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-1155 (proposed by Enjin, EIP-1155) introduces a multi-token contract that handles arbitrary token types under one address. Each token type has an ID; if total supply for an ID is 1 it behaves as an NFT; if supply > 1 it behaves as a fungible token. The key gas saving is safeBatchTransferFrom, which transfers multiple token types in a single transaction instead of N separate ERC-721 transfers. This is critical for gaming assets where a player might transfer 100 sword tokens and 1 unique hero token simultaneously."
+                },
+                {
+                    "id": 10,
+                    "question": "In ERC-1155, how does the balanceOf function signature differ from ERC-721's balanceOf, and what does this reveal about the design philosophy?",
+                    "options": {
+                        "A": "ERC-1155 balanceOf(address account, uint256 id) takes both an account and a token ID, returning how many of that specific token type the account holds — reflecting that accounts can hold multiple copies of any token type",
+                        "B": "ERC-1155 balanceOf takes only an address and returns the total number of all token types held, regardless of quantity",
+                        "C": "ERC-1155 has no balanceOf function; ownership is tracked via the ownerOf function inherited from ERC-721",
+                        "D": "ERC-1155 balanceOf returns a boolean indicating whether the address holds at least one token of the given type"
+                    },
+                    "correct": "A",
+                    "explanation": "ERC-721's balanceOf(address owner) returns the total count of NFTs owned (but not which ones). ERC-1155's balanceOf(address account, uint256 id) adds the token ID parameter because an account can hold quantities of many different token types. For example, balanceOf(alice, 5) might return 10 (Alice holds 10 of sword token #5) while balanceOf(alice, 7) returns 1 (Alice holds 1 of legendary sword #7, an NFT). This design accommodates both fungible items (potions, currency) and unique items (hero characters) in the same contract."
+                },
+                {
+                    "id": 11,
+                    "question": "ERC-1155 introduces balanceOfBatch. If a game wants to check how many of token IDs [1, 2, 3] an address holds in a single call, what does balanceOfBatch return?",
+                    "options": {
+                        "A": "The sum of all balances across the three token IDs as a single uint256",
+                        "B": "An array of uint256 values [balance_of_id1, balance_of_id2, balance_of_id3] corresponding to the input arrays of accounts and IDs",
+                        "C": "A mapping from token ID to balance, returned as ABI-encoded bytes",
+                        "D": "A boolean indicating whether the address holds a non-zero balance of all three token IDs simultaneously"
+                    },
+                    "correct": "B",
+                    "explanation": "balanceOfBatch(address[] calldata accounts, uint256[] calldata ids) accepts parallel arrays of accounts and token IDs and returns a uint256[] array of balances in the same order. To check one address's balance across three tokens, you pass [alice, alice, alice] and [1, 2, 3] and receive [10, 0, 1] (for example). This eliminates N sequential RPC calls, reducing both latency and Ethereum node load significantly for applications that need to display multi-asset inventories."
+                },
+                {
+                    "id": 12,
+                    "question": "Why does ERC-1155 require recipient contracts to implement the onERC1155Received callback, and what happens if a contract does not implement it?",
+                    "options": {
+                        "A": "The callback is optional and only affects royalty distribution; contracts without it receive tokens normally but cannot claim royalties",
+                        "B": "The callback is a safety mechanism: safeTransferFrom checks that the recipient contract can handle ERC-1155 tokens before completing the transfer, reverting the transaction if the callback is absent or returns an unexpected value — preventing tokens from being permanently locked in incompatible contracts",
+                        "C": "The callback triggers an automatic token swap; without it, the recipient contract cannot exchange ERC-1155 tokens on decentralised exchanges",
+                        "D": "The callback is only required for batch transfers; single-token transfers to contracts with no callback still succeed"
+                    },
+                    "correct": "B",
+                    "explanation": "The ERC-1155 safeTransferFrom function calls onERC1155Received on the recipient if it is a smart contract. The recipient must return the magic value bytes4(keccak256('onERC1155Received(address,address,uint256,uint256,bytes)')) or the transfer reverts. This prevents the classic 'lost tokens' problem where tokens sent to contracts that don't handle them (e.g., a simple multisig or DEX pool) become permanently inaccessible. ERC-721's safeTransferFrom has an analogous mechanism via onERC721Received."
+                },
+                {
+                    "id": 13,
+                    "question": "The ERC-721 metadata extension defines the tokenURI(uint256 tokenId) function. What format does the returned URI typically point to, and what fields does the metadata standard specify?",
+                    "options": {
+                        "A": "A base64-encoded PNG image file with EXIF metadata containing the owner's address and mint timestamp",
+                        "B": "A JSON document (typically served over HTTPS or IPFS) with standardised fields: name, description, image (URI to the artwork), and an optional attributes array of trait_type / value pairs",
+                        "C": "A Solidity ABI-encoded struct containing the NFT's name, creator address, and royalty percentage",
+                        "D": "A binary file embedding the full artwork with DRM protection that only the token owner can decrypt"
+                    },
+                    "correct": "B",
+                    "explanation": "The ERC-721 metadata JSON schema (originally proposed alongside EIP-721) specifies: { \"name\": \"...\", \"description\": \"...\", \"image\": \"ipfs://...\" }. The OpenSea metadata standard extends this with an attributes array: [{\"trait_type\": \"Background\", \"value\": \"Blue\"}, ...]. The image field is a URI to the media file (HTTPS, IPFS, or data URI). This schema is not enforced by the smart contract — it is a social convention that marketplaces and wallets follow to display NFTs correctly. Deviation means the NFT may not render properly on OpenSea."
+                },
+                {
+                    "id": 14,
+                    "question": "A developer builds an NFT where tokenURI returns 'https://api.myproject.com/token/1'. What is the primary risk of this approach compared to using an IPFS URI?",
+                    "options": {
+                        "A": "HTTPS URIs are not supported by Ethereum nodes, so wallets cannot retrieve the metadata",
+                        "B": "The metadata is controlled by a centralised server; if the project shuts down, the server disappears, or the operator changes the JSON file, the NFT's displayed name, description, and image can be altered or lost entirely — a property known as 'rug-pull of metadata'",
+                        "C": "HTTPS URIs charge per-request fees that reduce the NFT's resale value over time",
+                        "D": "Using HTTPS requires the buyer to hold a valid TLS certificate, which is impossible for a blockchain address"
+                    },
+                    "correct": "B",
+                    "explanation": "Centralised metadata hosting creates counterparty risk on the presentation layer. The on-chain token ID is permanent, but what it 'points to' is mutable if the URI resolves to a server controlled by the project team. Historical examples include projects that changed token images after sale, or servers that went offline making NFTs appear as broken links. IPFS content-addressed URIs (ipfs://Qm...) are immutable by design: the hash in the URI IS the content. Changing the content changes the hash, making the original URI no longer valid for the new content."
+                },
+                {
+                    "id": 15,
+                    "question": "What does it mean for NFT metadata to be stored 'fully on-chain', and which collection is often cited as a pioneering example?",
+                    "options": {
+                        "A": "The NFT image is uploaded to the Ethereum blockchain as raw binary data in the contract's storage, and CryptoPunks was the first to do this",
+                        "B": "Both the token ownership record and the metadata (including the artwork, typically encoded as an SVG or base64 data URI) are stored directly in the smart contract's state or generated deterministically from on-chain data, with no external dependencies — Loot (for Adventurers) and Autoglyphs are prominent examples",
+                        "C": "The metadata JSON is stored in a DAO-governed IPFS cluster that only token holders can modify",
+                        "D": "The artwork is registered with the US Copyright Office and linked via a legal hash in the contract's storage"
+                    },
+                    "correct": "B",
+                    "explanation": "Fully on-chain NFTs embed all data — artwork and metadata — within the smart contract itself. tokenURI returns a data URI (e.g., 'data:application/json;base64,...') that contains the complete JSON, which in turn contains a base64-encoded SVG or generated artwork. This eliminates all external dependencies: as long as Ethereum exists, the NFT is viewable. Loot (2021) stores items as plain text SVGs generated from the token ID. Autoglyphs (2019) generates ASCII art on-chain. CryptoPunks originally used an IPFS hash for the composite image, not fully on-chain; later the composite was embedded."
+                },
+                {
+                    "id": 16,
+                    "question": "An NFT project uses IPFS for metadata storage. The tokenURI returns 'ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco/1.json'. What must the project do to ensure long-term accessibility of this file?",
+                    "options": {
+                        "A": "Register the IPFS hash with Ethereum Name Service (ENS) so that it resolves to an HTTPS URL automatically",
+                        "B": "Pin the file on at least one IPFS node (or use a pinning service like Pinata or NFT.Storage) because IPFS does not guarantee persistence — files are only available if at least one node chooses to store and serve them",
+                        "C": "The file is automatically replicated across all Ethereum nodes because IPFS and Ethereum share the same peer-to-peer network",
+                        "D": "Upload the file to the Ethereum blockchain using calldata compression to reduce gas costs"
+                    },
+                    "correct": "B",
+                    "explanation": "IPFS is a content-addressed peer-to-peer network, but it provides no persistence guarantees. A file is only available if at least one connected peer is storing (pinning) it. If the project team's IPFS node goes offline and no one else has pinned the file, the CID becomes unreachable. Pinning services (Pinata, NFT.Storage backed by Filecoin, Infura IPFS) pay storage providers to keep files available persistently. Projects that minted without a pinning strategy have seen their metadata disappear. Arweave offers an alternative permanent storage model with a one-time payment."
+                },
+                {
+                    "id": 17,
+                    "question": "Arweave is an alternative to IPFS for NFT storage. What is the key economic difference between the two, and which NFT platforms use Arweave?",
+                    "options": {
+                        "A": "Arweave requires ongoing monthly subscription fees; IPFS is free for all users; Arweave is used by Ethereum-based NFTs and IPFS by Solana NFTs",
+                        "B": "Arweave uses a one-time payment model to fund permanent storage via an endowment mechanism (the 'permaweb'); IPFS requires active, ongoing pinning to remain available. Metaplex (Solana's NFT standard) and many generative art platforms use Arweave via Bundlr",
+                        "C": "Arweave stores only metadata JSON; IPFS stores only media files; both are required for complete NFT storage",
+                        "D": "Arweave is centralised, making it faster but less censorship-resistant than IPFS"
+                    },
+                    "correct": "B",
+                    "explanation": "Arweave's model: users pay once in AR tokens; a portion goes into an endowment that funds storage indefinitely by investing the principal and paying miners from interest. The protocol targets 200 years of storage. IPFS requires continuous pinning incentives (e.g., Filecoin deals or centralised pinning services). Metaplex, the dominant Solana NFT standard, defaults to Arweave for permanent storage via Bundlr Network (which batches Arweave transactions). Many Ethereum NFT generative art projects (Art Blocks' Chromie Squiggles, etc.) also use Arweave for media permanence."
+                },
+                {
+                    "id": 18,
+                    "question": "The 'minting' process for an NFT typically involves which on-chain operations?",
+                    "options": {
+                        "A": "Burning a quantity of ETH equal to the NFT's appraised value and recording the destruction in the contract's ledger",
+                        "B": "Calling a mint function on the ERC-721 contract that creates a new token ID, assigns ownership to the caller (or specified recipient), emits a Transfer event from the zero address, and optionally stores or links metadata",
+                        "C": "Uploading the artwork to a centralised server and paying a notary fee to certify the file hash on Ethereum",
+                        "D": "Transferring an existing token from the creator's wallet to the buyer's wallet via the marketplace's escrow contract"
+                    },
+                    "correct": "B",
+                    "explanation": "Minting creates a new NFT from nothing. The canonical ERC-721 mint flow: (1) the mint function is called (with payment if the collection charges a mint price); (2) the contract assigns the next available tokenId; (3) _mint(to, tokenId) updates the ownership mapping and increments balanceOf; (4) a Transfer event is emitted from address(0) to the recipient — this zero-address-as-sender convention is how indexers detect mints vs. secondary transfers. Optionally, a tokenURI is set or derived from the tokenId. No ETH is burned in standard minting."
+                },
+                {
+                    "id": 19,
+                    "question": "A 10,000-piece NFT collection uses a 'reveal' mechanism: all tokens show a placeholder image at mint, then after the collection sells out, the baseURI is updated to reveal the actual traits. What is the primary trust issue with this approach?",
+                    "options": {
+                        "A": "Updating the baseURI requires a hard fork of Ethereum, which only core developers can execute",
+                        "B": "The contract owner (or team) knows the final trait assignments before buyers do, potentially allowing insiders to preferentially mint or acquire rare tokens; buyers must trust the team not to manipulate the reveal based on who holds which token ID",
+                        "C": "Revealing traits increases the contract's gas costs by 200%, making future transfers prohibitively expensive",
+                        "D": "Placeholder images are not compliant with ERC-721, so pre-reveal NFTs cannot be listed on OpenSea"
+                    },
+                    "correct": "B",
+                    "explanation": "The centralised reveal problem is a well-known NFT fairness issue. If the team controls which token ID maps to which traits post-mint, they could observe who bought which IDs and then assign rare traits to their own wallets. The solution is verifiable randomness committed before the sale: projects use Chainlink VRF (Verifiable Random Function) to generate a provably random shuffle seed, or commit a hash of the provenance record before minting begins (so any post-hoc manipulation would change the hash). The Bored Ape Yacht Club used a provenance hash for this purpose."
+                },
+                {
+                    "id": 20,
+                    "question": "What is a 'gas war' in the context of NFT minting, and how have modern minting mechanisms evolved to address it?",
+                    "options": {
+                        "A": "A coordinated attack where bots flood an NFT contract with failed transactions to crash the Ethereum network during a popular mint",
+                        "B": "A situation where many buyers simultaneously compete to mint by bidding up gas fees during a popular launch — the highest gas payers get their transactions included first, wasting ETH on failed transactions for those outbid. Modern solutions include allowlists (whitelists), ERC-721A batch minting for gas efficiency, Dutch auctions, and off-chain signature-based allowlist mints",
+                        "C": "A legal dispute between NFT projects about which contract was deployed first, resolved by comparing block timestamps",
+                        "D": "The process by which miners receive a share of NFT royalties in exchange for prioritising NFT transfer transactions"
+                    },
+                    "correct": "B",
+                    "explanation": "Gas wars occur when demand for a mint far exceeds supply. Buyers set high gas prices to outcompete others; failed transactions still cost gas; the winning bots may flip rare traits immediately. Solutions: (1) Allowlist/presale with merkle-proof verification — only pre-approved addresses can mint, reducing competition; (2) ERC-721A (Azuki's standard) — optimises storage to allow minting multiple tokens for nearly the same gas as one; (3) Dutch auction — price starts high and decreases over time, clearing at a fair market price; (4) Commit-reveal schemes — reduce bot advantages by separating commitment and execution."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

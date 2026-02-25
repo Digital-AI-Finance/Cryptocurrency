@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SC-1: Stablecoin Fundamentals | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz SC-1: Stablecoin Fundamentals</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz SC-1: Stablecoin Fundamentals</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Which fundamental problem in cryptocurrency markets motivates the creation of stablecoins, and why is this problem particularly acute for everyday commercial transactions?",
+                    "options": {
+                        "A": "Cryptocurrencies are too slow to confirm; stablecoins use off-chain settlement to achieve instant finality",
+                        "B": "Cryptocurrencies have fixed supply schedules that cause chronic deflation; stablecoins introduce algorithmic inflation to maintain purchasing power",
+                        "C": "Cryptocurrencies exhibit extreme price volatility — Bitcoin can move 10–20% in a single day — making them impractical as a unit of account or medium of exchange, since merchants cannot reliably price goods and borrowers face unpredictable debt burdens denominated in a fluctuating asset",
+                        "D": "Cryptocurrencies are pseudonymous; stablecoins attach KYC identity to every token to satisfy AML requirements"
+                    },
+                    "correct": "C",
+                    "explanation": "The defining motivation for stablecoins is volatility. Bitcoin's annualised volatility historically exceeds 60–80%, compared with 1–2% for major fiat currencies. A merchant accepting Bitcoin for a $100 item risks the receipt being worth $90 by week's end. Similarly, a DeFi borrower collateralised in ETH faces margin calls during sudden price drops. Stablecoins decouple the 'store of value' function (held in the collateral or reserve) from the 'medium of exchange' function (expressed in the stable token), solving volatility without abandoning blockchain infrastructure."
+                },
+                {
+                    "id": 2,
+                    "question": "A stablecoin is said to fulfil the three classical functions of money better than volatile cryptocurrencies. Which combination correctly matches each function to the relevant stablecoin property?",
+                    "options": {
+                        "A": "Store of value → price stability; medium of exchange → blockchain settlement speed; unit of account → 1:1 fiat denomination",
+                        "B": "Store of value → deflationary supply cap; medium of exchange → KYC-gated transfers; unit of account → algorithmic interest rates",
+                        "C": "Store of value → over-collateralisation ratio; medium of exchange → atomic swap compatibility; unit of account → oracle price feeds",
+                        "D": "Store of value → reserve audit frequency; medium of exchange → Layer-2 throughput; unit of account → governance token voting weight"
+                    },
+                    "correct": "A",
+                    "explanation": "Classical monetary theory identifies three functions: (1) Store of value — the ability to hold value over time, enabled by price stability (your $1 stablecoin is still worth $1 next month); (2) Medium of exchange — accepted in transactions, enabled by blockchain's permissionless, borderless settlement; (3) Unit of account — prices expressed in the currency, enabled by the 1:1 fiat denomination making invoicing and accounting familiar. Stablecoins uniquely combine all three where volatile cryptocurrencies fail primarily on (1) and (3)."
+                },
+                {
+                    "id": 3,
+                    "question": "Beyond reducing volatility, what additional use-case do stablecoins serve for users in countries with high inflation or strict capital controls?",
+                    "options": {
+                        "A": "Stablecoins enable users to speculate on foreign exchange markets anonymously, bypassing domestic brokerage licence requirements",
+                        "B": "Stablecoins automatically rebalance into the highest-yielding fiat currency, shielding users from both inflation and exchange-rate risk simultaneously",
+                        "C": "Stablecoins are backed by IMF Special Drawing Rights, giving users a diversified basket of reserve currencies approved by international regulators",
+                        "D": "Stablecoins — particularly USD-pegged tokens — give citizens access to a hard-currency store of value and cross-border transfer mechanism that bypasses domestic banking restrictions and currency devaluation, effectively providing dollarisation without a US bank account"
+                    },
+                    "correct": "D",
+                    "explanation": "In hyperinflationary economies (Argentina, Venezuela, Turkey, Zimbabwe), USD-pegged stablecoins like USDT are heavily used as inflation hedges. Citizens convert local currency to USDT to preserve purchasing power. In capital-controlled economies, stablecoins enable cross-border remittances that bypass official channels. This is a major driver of real-world stablecoin adoption: the primary demand is not DeFi speculation but basic monetary stability. This use-case also exposes stablecoins to regulatory risk, as governments may view them as tools of capital flight."
+                },
+                {
+                    "id": 4,
+                    "question": "The 'stablecoin trilemma' (analogous to the monetary policy trilemma) holds that a stablecoin cannot simultaneously achieve all three of which properties?",
+                    "options": {
+                        "A": "Infinite scalability, cryptographic security, and fiat convertibility",
+                        "B": "Fast settlement, low fees, and regulatory compliance",
+                        "C": "Price stability, capital efficiency, and decentralisation — optimising any two necessarily compromises the third",
+                        "D": "On-chain transparency, reserve backing, and governance token appreciation"
+                    },
+                    "correct": "C",
+                    "explanation": "The stablecoin trilemma was popularised by Robert Sams and others: (1) Price stability requires robust peg mechanisms (collateral or algorithms); (2) Capital efficiency means not locking up more value than the stablecoin is worth (e.g., DAI requires $150 locked to issue $100); (3) Decentralisation means no trusted issuer who can be regulated or coerced. Fiat-backed stablecoins (USDT, USDC) achieve stability and capital efficiency but sacrifice decentralisation. Crypto-backed stablecoins (DAI) achieve stability and decentralisation but sacrifice capital efficiency via over-collateralisation. Pure algorithmic stablecoins attempt all three but have historically failed catastrophically (TerraUSD)."
+                },
+                {
+                    "id": 5,
+                    "question": "How are stablecoins most accurately classified in a taxonomy based on their peg mechanism and collateral type?",
+                    "options": {
+                        "A": "Hot stablecoins (centrally issued) vs. cold stablecoins (algorithmically managed), based on server location of the issuer",
+                        "B": "Layer-1 stablecoins (native to a blockchain), Layer-2 stablecoins (bridge-wrapped), and Layer-3 stablecoins (rollup-native)",
+                        "C": "Custodial stablecoins (held in regulated banks), non-custodial stablecoins (held in smart contracts), and semi-custodial stablecoins (multisig governance)",
+                        "D": "Fiat-backed (off-chain collateral), crypto-backed (on-chain collateral), commodity-backed (physical assets), and algorithmic (no direct collateral, supply managed by code) — each representing a distinct risk/efficiency trade-off"
+                    },
+                    "correct": "D",
+                    "explanation": "The standard four-category taxonomy reflects fundamentally different economic architectures. Fiat-backed (USDT, USDC, BUSD): a custodian holds USD reserves, issues tokens 1:1 — simple but centralised. Crypto-backed (DAI, sUSD): smart contracts hold cryptocurrency collateral, over-collateralised to absorb price volatility — decentralised but capital-inefficient. Commodity-backed (PAXG, XAUT): tokens redeemable for gold or other physical assets — tangible backing but custody risk. Algorithmic (UST, AMPL, Basis): supply expands/contracts algorithmically without direct collateral — maximally capital-efficient but fragile under reflexive bank-run dynamics."
+                },
+                {
+                    "id": 6,
+                    "question": "Within the algorithmic stablecoin category, what distinguishes a 'seigniorage shares' model from a 'rebase' model?",
+                    "options": {
+                        "A": "Seigniorage shares models issue new governance tokens when the stablecoin trades above peg and burn governance tokens when below peg; rebase models adjust every wallet's token balance proportionally to maintain a target price",
+                        "B": "Seigniorage shares models back the stablecoin with a basket of other cryptocurrencies; rebase models back the stablecoin with seigniorage revenue from block rewards",
+                        "C": "Seigniorage shares models require a central bank licence; rebase models are permissionless and require no KYC",
+                        "D": "The two models are functionally identical — 'seigniorage shares' is simply the academic term for what practitioners call 'rebase'"
+                    },
+                    "correct": "A",
+                    "explanation": "These are two distinct algorithmic mechanisms. Rebase (Ampleforth/AMPL): the protocol automatically adjusts all holders' wallet balances — if AMPL trades above $1, everyone's balance increases proportionally; if below, everyone's balance decreases. The price targets $1 by changing quantity held, not by market operations. Seigniorage shares (Basis Cash, TerraUSD/LUNA): the stablecoin is paired with a governance/bond token. When the stablecoin trades above $1, new stablecoins are minted and distributed to governance token holders (seigniorage). When below $1, bonds are sold at a discount to remove stablecoins from circulation. This model's fatal flaw is that bond demand collapses precisely when it is most needed."
+                },
+                {
+                    "id": 7,
+                    "question": "A 'fractional-algorithmic' stablecoin (e.g., FRAX) combines elements of fiat-backed and algorithmic designs. What does the 'collateral ratio' parameter control in this hybrid model?",
+                    "options": {
+                        "A": "The ratio of stablecoins that can be redeemed by governance token holders versus retail users",
+                        "B": "The maximum percentage of total supply that can be minted in a single block to prevent flash-loan manipulation",
+                        "C": "The fee split between liquidity providers and the protocol treasury when stablecoins are minted",
+                        "D": "The fraction of each stablecoin's value backed by real fiat collateral (e.g., USDC) versus the fraction backed algorithmically by the protocol's governance token — the ratio adjusts dynamically based on market demand and peg stability"
+                    },
+                    "correct": "D",
+                    "explanation": "FRAX pioneered the fractional-algorithmic model. At launch with 100% collateral ratio, FRAX is fully backed by USDC — identical to a fiat-backed stablecoin. As market confidence grows, the collateral ratio decreases: at 85% collateral ratio, minting 1 FRAX requires $0.85 of USDC plus $0.15 worth of FXS (the governance token, burned). The protocol's AMO (Algorithmic Market Operations) controller adjusts this ratio algorithmically based on whether FRAX is above or below peg. This design attempts capital efficiency (less USDC locked per FRAX) while maintaining partial collateral backing as a safety margin."
+                },
+                {
+                    "id": 8,
+                    "question": "Commodity-backed stablecoins like PAX Gold (PAXG) face a unique trade-off compared to fiat-backed tokens. Which statement best captures this trade-off?",
+                    "options": {
+                        "A": "Commodity-backed stablecoins eliminate volatility entirely because commodity prices are regulated by international commodity exchanges",
+                        "B": "Commodity-backed stablecoins introduce a layer of price volatility (the commodity's own fluctuations versus USD) but potentially offer a better long-run store of value than fiat if the commodity appreciates — users exchange fiat-peg stability for commodity-peg stability",
+                        "C": "Commodity-backed stablecoins are identical in risk profile to fiat-backed stablecoins because gold and USD are equally stable assets",
+                        "D": "Commodity-backed stablecoins eliminate custodial risk because physical commodities cannot be confiscated by governments"
+                    },
+                    "correct": "B",
+                    "explanation": "PAXG (backed 1:1 by LBMA gold bars) is not a USD stablecoin — it is a gold stablecoin. Its USD price fluctuates with the gold price (e.g., from $1,700 to $2,400 per ounce). This makes it better described as a tokenised commodity than a 'stable' coin in the traditional sense. However, gold's long-run track record as an inflation hedge makes PAXG attractive as a store of value for investors who want blockchain liquidity without USD counterparty risk. The custodial risk (Paxos holding physical gold) is analogous to fiat-backed stablecoins — government confiscation of gold is a historical precedent (US Executive Order 6102, 1933)."
+                },
+                {
+                    "id": 9,
+                    "question": "The core mechanism maintaining a fiat-backed stablecoin's peg is arbitrage. If USDC trades at $0.98 on a decentralised exchange, what is the precise arbitrage trade that restores the peg to $1.00?",
+                    "options": {
+                        "A": "Sell USDC on the DEX to push the price further down, triggering a stop-loss cascade that creates a sharp bounce back to $1.00",
+                        "B": "Buy USDC on the DEX at $0.98 and redeem it with Circle (the issuer) for $1.00 in USD — pocketing a $0.02 profit per USDC — which reduces DEX supply of USDC (buying pressure) until the price recovers to $1.00",
+                        "C": "Mint new USDC directly from Circle at $1.00 and immediately sell on the DEX at $0.98, taking a loss to stabilise the price",
+                        "D": "Borrow USDC from Aave at the current rate, stake it in a yield protocol, and use the yield differential to subsidise the price gap"
+                    },
+                    "correct": "B",
+                    "explanation": "This is the fundamental arbitrage loop for redeemable fiat-backed stablecoins. When USDC < $1.00: buy cheap USDC on market, redeem with Circle for $1.00 USD, profit = $1.00 - market price. The buying pressure on USDC raises its price back to $1.00. When USDC > $1.00: deposit $1.00 USD with Circle, receive 1 USDC, sell on market for > $1.00. The selling pressure lowers USDC back to $1.00. This arbitrage works only if redemption is credible — i.e., Circle actually holds $1.00 per USDC and honours redemptions. Any doubt about reserve solvency breaks the arbitrage and allows persistent de-pegging."
+                },
+                {
+                    "id": 10,
+                    "question": "For a crypto-backed stablecoin like DAI, the peg-restoration mechanism differs from fiat-backed stablecoins because no redemption with an external issuer is possible. How does DAI maintain its $1.00 peg when it trades at $0.95?",
+                    "options": {
+                        "A": "MakerDAO governance votes to print DAI and buy it on the open market using the Maker treasury",
+                        "B": "Chainlink oracles detect the de-peg and automatically trigger collateral liquidations that inject USDC into the system to restore backing",
+                        "C": "The DAI Savings Rate (DSR) is set to 0% until DAI recovers, forcing holders to sell DAI for yield-bearing alternatives",
+                        "D": "When DAI < $1.00, borrowers can repay their DAI-denominated debt at a discount by buying cheap DAI, reducing total DAI supply; simultaneously, the Maker Stability Fee (interest rate) is raised to disincentivise new DAI issuance, both mechanisms reducing supply to push price back toward $1.00"
+                    },
+                    "correct": "D",
+                    "explanation": "DAI's peg operates through supply contraction. When DAI < $1.00: (1) Vault owners (those who borrowed DAI against ETH) can repay their loans by buying cheap DAI on market — a profitable trade since their debt is denominated at $1.00 DAI par value, but they are buying DAI for $0.95. This buying demand and supply destruction (DAI returned and burned) push the price up. (2) MakerDAO's governance can raise the Stability Fee (annual interest), making DAI borrowing more expensive and reducing demand to mint new DAI. When DAI > $1.00, the Stability Fee is lowered and the DSR raised to attract capital deployment, expanding supply."
+                },
+                {
+                    "id": 11,
+                    "question": "The Maker Protocol uses a 'Price Stability Module' (PSM) that allows direct 1:1 swaps between DAI and approved stablecoins (e.g., USDC). What is the primary benefit and the primary risk of this mechanism?",
+                    "options": {
+                        "A": "Benefit: eliminates liquidation risk for all DAI vaults; Risk: makes DAI inflationary when USDC supply expands",
+                        "B": "Benefit: the PSM provides a hard arbitrage floor and ceiling, making DAI's peg extremely tight (often within $0.001); Risk: large PSM holdings of USDC mean DAI's decentralisation and censorship-resistance is compromised if Circle blacklists the PSM's USDC",
+                        "C": "Benefit: the PSM earns yield on USDC holdings that accrues to MKR token holders; Risk: DAI becomes fully backed by USDC and loses its cryptocurrency collateral entirely",
+                        "D": "Benefit: the PSM eliminates the need for Chainlink price oracles; Risk: DAI can only be minted during business hours when PSM operators are available"
+                    },
+                    "correct": "B",
+                    "explanation": "The PSM allows swapping 1 USDC for 1 DAI (and vice versa) with minimal fees, creating a direct arbitrage floor (DAI cannot fall much below $1.00 if you can swap USDC for DAI at par) and ceiling (DAI cannot rise much above $1.00 if you can swap DAI for USDC at par). This dramatically tightened DAI's peg. The decentralisation risk is significant: by 2022, USDC constituted over 50% of DAI's collateral. Circle can blacklist Ethereum addresses — if they blacklisted the PSM contract or a major DAI vault, DAI would face a severe collateral crisis. This prompted debate within MakerDAO about the 'endgame' strategy to reduce USDC dependency."
+                },
+                {
+                    "id": 12,
+                    "question": "What role do 'keeper bots' play in maintaining the health of crypto-backed stablecoin systems like MakerDAO?",
+                    "options": {
+                        "A": "Keeper bots automatically adjust the Stability Fee in real-time based on DAI's market price, replacing the need for governance votes",
+                        "B": "Keeper bots are Circle's automated redemption servers that process USDC minting and burning requests to maintain DAI's USDC backing",
+                        "C": "Keeper bots stake MKR tokens on behalf of passive holders and distribute staking rewards proportionally to all DAI holders",
+                        "D": "Keeper bots monitor vault collateralisation ratios and, when a vault falls below the liquidation ratio, trigger the liquidation auction to sell the collateral — earning a liquidation penalty as incentive — preventing the system from accumulating bad debt"
+                    },
+                    "correct": "D",
+                    "explanation": "Keeper bots are economically incentivised autonomous agents external to MakerDAO that monitor vault health. When ETH (or other collateral) falls in price, a vault's collateralisation ratio may breach the minimum (e.g., 150%). A keeper bot calls the liquidation function on the Maker smart contract, triggering a collateral auction. The bot can bid DAI for the discounted collateral, earning a profit equal to the liquidation penalty (typically 13%). This creates a profitable incentive for bots to run continuously, ensuring timely liquidations. If liquidations fail to occur quickly enough (e.g., Black Thursday March 2020 when Ethereum gas prices spiked), vaults can go under-collateralised, creating bad debt absorbed by the system."
+                },
+                {
+                    "id": 13,
+                    "question": "As of 2023-2024, which stablecoin held the largest market capitalisation, and what does its dominance reveal about market preferences?",
+                    "options": {
+                        "A": "Tether (USDT) has historically maintained the largest stablecoin market cap (exceeding $80 billion), revealing that market participants prioritise liquidity, exchange integrations, and familiarity over concerns about reserve transparency and regulatory risk",
+                        "B": "DAI leads the market, demonstrating that users strongly prefer decentralised, crypto-backed stablecoins over centralised alternatives",
+                        "C": "USDC leads the market because Circle's regular audits and US regulatory compliance make it the preferred stablecoin for institutional investors in all market conditions",
+                        "D": "TerraUSD (UST) briefly held the top position in 2022, demonstrating that algorithmic stablecoins are the preferred long-term model"
+                    },
+                    "correct": "A",
+                    "explanation": "Tether (USDT) has consistently held the largest stablecoin market cap since its launch in 2014. Despite persistent controversies about reserve composition (partial commercial paper backing, the Bitfinex relationship, regulatory settlements with the NY Attorney General and CFTC), USDT's deep liquidity across hundreds of exchanges makes it the default trading pair. This reveals market 'stickiness': traders value ease of use and liquidity depth over counterparty quality. USDC briefly narrowed the gap but declined after the March 2023 Silicon Valley Bank episode (Circle held $3.3B of USDC reserves at SVB). DAI's market cap is roughly one-tenth of USDT's."
+                },
+                {
+                    "id": 14,
+                    "question": "The total stablecoin market capitalisation crossed $180 billion at its peak in 2022. What does stablecoin market cap growth primarily reflect about the broader crypto market?",
+                    "options": {
+                        "A": "Stablecoin market cap growth directly equals the amount of fiat money that has been converted to cryptocurrency, serving as the definitive metric of crypto adoption",
+                        "B": "Growing stablecoin market cap reflects expanding DeFi liquidity, trading volume demand (stablecoins are base pairs), and a growing preference for dollar-denominated value storage within the crypto ecosystem — essentially measuring how much 'dry powder' and transactional liquidity exists on-chain",
+                        "C": "Stablecoin market cap growth means central banks are minting more USD, which automatically flows into crypto through reserve requirements",
+                        "D": "Stablecoin growth directly measures on-chain remittance volumes because stablecoins are exclusively used for cross-border payments"
+                    },
+                    "correct": "B",
+                    "explanation": "Stablecoin market cap is a multidimensional indicator. It measures: (1) DeFi liquidity — stablecoins are the dominant collateral and trading pair in Uniswap, Aave, Compound, Curve; (2) 'waiting room' capital — investors convert to stablecoins to avoid volatility while remaining on-chain, ready to deploy into assets; (3) trading infrastructure — major exchanges use USDT/USDC as settlement and base pairs; (4) actual usage in payments and remittances. Stablecoin market cap contracted sharply after the UST collapse and crypto bear market in 2022, as capital exited the ecosystem. The figure does not equal new fiat inflows because stablecoins can be minted against crypto collateral (DAI) or through leveraged rehypothecation."
+                },
+                {
+                    "id": 15,
+                    "question": "Curve Finance's '3pool' (DAI/USDC/USDT) AMM is considered critical infrastructure for the stablecoin ecosystem. Why does a stablecoin's inclusion in Curve's 3pool significantly affect its market viability?",
+                    "options": {
+                        "A": "Curve's 3pool is regulated by the SEC as a money market fund; inclusion signals regulatory approval and allows institutional investors to purchase the stablecoin",
+                        "B": "Curve's 3pool automatically rebalances reserves between issuers, effectively making DAI, USDC, and USDT interchangeable reserve components that share credit risk",
+                        "C": "The 3pool provides deep liquidity for swapping between the three major stablecoins with minimal slippage, making inclusion in or close integration with the 3pool essential for any stablecoin seeking DeFi adoption — protocols that cannot efficiently convert to/from DAI, USDC, and USDT face severe liquidity fragmentation",
+                        "D": "Being in the 3pool legally obligates the issuer to redeem tokens at exactly $1.00 with no minimum balance requirement"
+                    },
+                    "correct": "C",
+                    "explanation": "Curve Finance's stableswap invariant is optimised for assets that should trade near parity, providing dramatically lower slippage for stablecoin swaps than standard AMMs. The 3pool (also called 'Tri-pool') holds billions in combined liquidity. Any new stablecoin that wants DeFi adoption creates a 'meta-pool' that pairs against the 3pool (e.g., FRAX/3CRV), leveraging the 3pool's liquidity depth. This created the 'Curve Wars': protocols (Convex Finance, Yearn, Frax) competed intensely to accumulate CRV governance tokens to direct Curve emissions to their pools — recognising that deep Curve liquidity is essential for maintaining a credible peg."
+                },
+                {
+                    "id": 16,
+                    "question": "What does the metric 'peg deviation' measure for a stablecoin, and why do investors and protocol designers treat even small sustained deviations (e.g., $0.995 to $1.005) as meaningful signals?",
+                    "options": {
+                        "A": "Peg deviation measures the difference between the stablecoin's market price and its target price ($1.00); even 0.5% deviations matter because they signal arbitrage breakdown — if arbitrageurs are not correcting small deviations, it suggests redemption friction, insufficient liquidity, or loss of confidence in the peg mechanism",
+                        "B": "Peg deviation is a regulatory metric defined by the Basel Committee; breaching 1% triggers automatic FDIC insurance claims",
+                        "C": "Peg deviation measures the difference between two competing price oracles; discrepancies indicate oracle manipulation and are used to halt contract execution",
+                        "D": "Peg deviation only matters for algorithmic stablecoins; fiat-backed stablecoins are always exactly $1.00 by regulatory requirement"
+                    },
+                    "correct": "A",
+                    "explanation": "Peg deviation is the realised market price minus $1.00. For a stablecoin that claims to always trade at $1.00, persistent deviation is informative: (1) A positive deviation (+$0.01) suggests excess demand that the issuance mechanism isn't clearing fast enough (possibly because minting is throttled or requires identity verification). (2) A negative deviation (-$0.01) suggests excess supply or eroding confidence — if arbitrageurs aren't buying the cheap stablecoin, they may doubt the redemption mechanism. During the March 2023 USDC de-peg (USDC briefly traded at $0.87 after SVB news), the deviation signalled panic about Circle's solvency, resolved only after the US government guaranteed SVB deposits."
+                },
+                {
+                    "id": 17,
+                    "question": "The TerraUSD (UST) collapse in May 2022 wiped out approximately $40 billion in value in 72 hours. What was the primary mechanism by which UST's peg failure became self-reinforcing?",
+                    "options": {
+                        "A": "UST was hacked: attackers stole LUNA tokens from the Terra blockchain validators and used them to destroy UST's smart contracts",
+                        "B": "Tether's lawyers obtained a court order freezing UST issuance, causing a liquidity crisis that UST's reserves couldn't cover",
+                        "C": "The Anchor Protocol's yield rate was cut from 20% to 2%, causing mass UST withdrawals that overwhelmed the redemption mechanism",
+                        "D": "UST used a seigniorage model where 1 UST could always be swapped for $1 worth of LUNA. When UST lost its peg, massive UST-to-LUNA redemptions minted enormous quantities of LUNA, hyperinflating LUNA's supply and crashing its price — which further undermined UST's backing, creating a death spiral where both assets raced to zero"
+                    },
+                    "correct": "D",
+                    "explanation": "The UST-LUNA death spiral is the canonical example of algorithmic stablecoin fragility. The Terra protocol's mint-burn mechanism: burn 1 UST, receive $1 of LUNA (newly minted); burn $1 of LUNA, receive 1 UST. When large UST sell orders (allegedly initiated by a coordinated attacker who also exploited Curve) dropped UST below $1.00, holders panicked and redeemed UST for LUNA. LUNA supply ballooned from ~350 million to trillions of tokens in days, making LUNA essentially worthless. With worthless LUNA backing, the mechanism provided no floor — UST fell to near zero. The trigger was likely the withdrawal of ~$2B of UST liquidity from the Anchor/Curve pools, but the true cause was the system's inherent reflexivity."
+                },
+                {
+                    "id": 18,
+                    "question": "What was the structural role of the Anchor Protocol's 20% APY in enabling the UST ecosystem to reach its ~$18 billion market cap, and why did economists warn this was unsustainable?",
+                    "options": {
+                        "A": "Anchor's 20% yield was risk-free because it was collateralised by US Treasury bonds held by the Luna Foundation Guard",
+                        "B": "Anchor's subsidised 20% yield on UST deposits artificially inflated demand for UST beyond its fundamental use-case, creating a Ponzi-like dynamic where the yield reserve (funded by Luna Foundation Guard injections and LUNA token sales) was depleting faster than borrower demand could replenish it — the yield was a customer acquisition cost masquerading as a sustainable return",
+                        "C": "Anchor's yield was actually 5% in real terms; the 20% figure was nominal yield that did not account for LUNA's inflation rate, making economists' concerns overblown",
+                        "D": "Anchor's 20% yield was generated by real-world lending to businesses; economists warned it would collapse if borrowers defaulted"
+                    },
+                    "correct": "B",
+                    "explanation": "Anchor Protocol offered ~20% APY on UST deposits — roughly 10x the yields available in traditional finance. This was funded not by organic borrowing demand but by the Luna Foundation Guard (LFG) injecting reserves. The deposit-to-borrow ratio was severely imbalanced: far more UST deposited than borrowed, meaning the protocol ran structural deficits. Do Kwon and TFL acknowledged the yield was a 'customer acquisition' strategy. Economists from the outset pointed out that 20% sustainable yield requires borrowers willing to pay >20% — which implies extremely high-risk activities. The yield was effectively a subsidy to grow the UST supply, creating a fragile equilibrium dependent on continuous LUNA token appreciation."
+                },
+                {
+                    "id": 19,
+                    "question": "Following the UST collapse, regulators globally accelerated stablecoin legislation. Which regulatory approach was most commonly proposed to prevent a repeat, and what is its key trade-off?",
+                    "options": {
+                        "A": "Requiring full reserve backing with high-quality liquid assets (HQLA) such as short-term US Treasuries or central bank deposits, combined with mandatory audits and redemption guarantees; the trade-off is that this approach effectively excludes algorithmic stablecoins and crypto-backed stablecoins from regulated markets, potentially driving innovation to unregulated jurisdictions",
+                        "B": "Banning all non-USD stablecoins; trade-off is reduced monetary competition in global markets",
+                        "C": "Requiring all stablecoin issuers to obtain FDIC insurance, making stablecoins functionally equivalent to bank deposits",
+                        "D": "Mandating that stablecoins be pegged only to a central bank digital currency (CBDC) rather than directly to fiat currency"
+                    },
+                    "correct": "A",
+                    "explanation": "Post-UST, the dominant regulatory response (MiCA in Europe, proposed US legislation, FSB guidelines) converged on full reserve requirements. The EU's MiCA (Markets in Crypto-Assets Regulation) requires 'e-money tokens' (stablecoins pegged to a single fiat currency) to maintain 1:1 reserves in HQLA, subject to authorisation and redemption rights. This effectively outlaws uncollateralised algorithmic stablecoins in regulated markets. The trade-off is regulatory arbitrage: strict reserve rules advantage incumbents (Circle, Tether) and push algorithmic experimentation offshore. It also raises the question of whether reserve-backed stablecoins should be regulated as narrow banks or e-money institutions — with significant implications for deposit insurance and systemic risk."
+                },
+                {
+                    "id": 20,
+                    "question": "The USDC de-peg event of March 2023 (USDC briefly traded at $0.87) illustrates which fundamental risk even for fully-reserved fiat-backed stablecoins?",
+                    "options": {
+                        "A": "Smart contract vulnerability risk — the USDC ERC-20 contract was exploited, allowing attackers to steal $3.3 billion in reserves",
+                        "B": "Regulatory risk — the SEC issued an emergency order to freeze all USDC trading after classifying it as an unregistered security",
+                        "C": "Reserve custodian risk — USDC had $3.3 billion of reserves deposited at Silicon Valley Bank (SVB), which was closed by the FDIC; uncertainty about whether Circle could recover these funds caused rational holders to sell USDC before potential insolvency, demonstrating that stablecoin safety depends critically on the creditworthiness of reserve custodians",
+                        "D": "Oracle manipulation risk — attackers manipulated Chainlink price feeds to report USDC at $0.87, triggering automated liquidations across DeFi protocols"
+                    },
+                    "correct": "C",
+                    "explanation": "Circle disclosed on March 10, 2023, that $3.3 billion of USDC's ~$40 billion reserves were held at Silicon Valley Bank, which had just been closed by California regulators. This represented ~8% of USDC's backing. Holders rationally feared that if those deposits were unrecoverable, USDC would be under-backed. USDC fell to $0.87 on secondary markets before the FDIC (backed by US Treasury) guaranteed all SVB deposits on March 12. The episode demonstrated: (1) fiat-backed stablecoins are only as safe as their custodians; (2) even diversified reserves carry correlated risks in banking crises; (3) the backstop of US government deposit guarantees was ultimately required to restore confidence — raising questions about whether stablecoins provide genuine financial system resilience or parasitically depend on it."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

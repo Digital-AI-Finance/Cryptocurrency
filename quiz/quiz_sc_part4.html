@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SC-4: CBDCs &amp; Advanced Topics | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz SC-4: CBDCs &amp; Advanced Topics</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz SC-4: CBDCs &amp; Advanced Topics</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is a Central Bank Digital Currency (CBDC), and how does it differ fundamentally from commercial bank deposits and private stablecoins?",
+                    "options": {
+                        "A": "A CBDC is a cryptocurrency issued by a private bank consortium under central bank supervision, differing from stablecoins only in its regulatory status",
+                        "B": "A CBDC is identical to existing central bank reserves; the term simply rebrands interbank settlement infrastructure for public marketing purposes",
+                        "C": "A CBDC is a digital form of a country's sovereign currency issued directly by the central bank, representing a direct liability of the central bank — unlike commercial bank deposits (which are liabilities of private banks and carry counterparty risk) and unlike private stablecoins (which are liabilities of private issuers)",
+                        "D": "A CBDC is a government-issued stablecoin backed by gold reserves, distinct from fiat money which has no physical backing"
+                    },
+                    "correct": "C",
+                    "explanation": "The defining characteristic of a CBDC is its issuer: it is direct sovereign currency issued by and representing a liability of the central bank, placing it at the apex of the monetary hierarchy. Commercial bank deposits are liabilities of private institutions — they carry bank default risk and are protected only by deposit insurance up to limits. Private stablecoins (USDC, USDT) are liabilities of private companies. Physical cash is already a central bank liability but is analog and bearer-instrument based. A CBDC digitises this direct-claim-on-the-central-bank relationship, potentially allowing citizens to hold central bank money without the intermediation of commercial banks."
+                },
+                {
+                    "id": 2,
+                    "question": "Central banks cite multiple motivations for exploring CBDCs. Which combination of motivations most accurately reflects the academic and policy consensus?",
+                    "options": {
+                        "A": "Financial inclusion (reaching unbanked populations), maintaining sovereignty as private digital money proliferates, improving cross-border payment efficiency, enabling programmable monetary policy, and ensuring continuity of public money as cash usage declines",
+                        "B": "Primarily to eliminate physical cash, reduce tax evasion, and allow negative interest rates by making cash unviable",
+                        "C": "Primarily to compete with Bitcoin and prevent citizens from holding non-government-controlled assets",
+                        "D": "Exclusively for interbank settlement modernisation; retail CBDC is not a central bank motivation and is rejected by most central banks"
+                    },
+                    "correct": "A",
+                    "explanation": "Central bank research (BIS, ECB, Federal Reserve, Bank of England) identifies a consistent set of motivations: (1) Financial inclusion — 1.4 billion adults remain unbanked globally; a CBDC wallet on a basic smartphone could provide access; (2) Digital sovereignty — without a public digital currency option, the monetary system could be dominated by private stablecoins (Facebook's Libra/Diem catalysed much CBDC research) or foreign CBDCs; (3) Cross-border payments — current correspondent banking is slow (2-5 days) and expensive (~6% fees); (4) Programmability — conditional payments, targeted stimulus; (5) Cash decline — as digital payments grow, central bank money may disappear from everyday transactions if no digital form is offered."
+                },
+                {
+                    "id": 3,
+                    "question": "The BIS (Bank for International Settlements) identifies a 'two-tier' CBDC model as the most likely implementation framework. What does this mean?",
+                    "options": {
+                        "A": "Tier 1 CBDCs are available to wholesale banks only; Tier 2 CBDCs are issued to retail users after a two-year waiting period",
+                        "B": "Two-tier refers to two separate CBDC systems: one for domestic transactions and one for international transfers, each with different technical standards",
+                        "C": "Tier 1 is the tokenised form of CBDC on a blockchain; Tier 2 is the account-based form in a centralised database — both must be maintained simultaneously",
+                        "D": "The central bank issues CBDC to licensed intermediaries (commercial banks, payment providers) who then distribute it to end users — the central bank does not maintain direct relationships with millions of retail customers but provides the underlying digital currency infrastructure"
+                    },
+                    "correct": "D",
+                    "explanation": "The two-tier (or intermediated) model is favoured because it preserves existing financial infrastructure and avoids disrupting commercial banking. In Tier 1, the central bank issues CBDC only to licensed intermediaries (banks, regulated payment institutions). In Tier 2, these intermediaries distribute CBDC wallets and services to retail users. The central bank never knows individual users' identities or transaction details directly (a privacy benefit) and avoids the operational challenge of serving hundreds of millions of customers directly. China's e-CNY uses this model: the PBoC issues to commercial banks, which provide user-facing apps. The alternative — direct CBDC (Tier 1 only, central bank to retail) — raises disintermediation concerns."
+                },
+                {
+                    "id": 4,
+                    "question": "What macroeconomic risk does a retail CBDC pose to commercial banks, and how do most CBDC design proposals attempt to mitigate it?",
+                    "options": {
+                        "A": "CBDCs could cause bank runs in reverse: banks might park excess reserves in CBDC rather than lending to households, increasing interest rates",
+                        "B": "CBDCs would give central banks direct lending authority, displacing commercial bank credit creation and causing deflation",
+                        "C": "In a financial crisis, rational depositors could instantly move bank deposits into risk-free CBDC at the central bank, causing a rapid bank run and credit contraction; proposals mitigate this via holding limits (e.g., caps of €3,000 per person) and non-remuneration (no interest on CBDC) to make it less attractive as a savings vehicle",
+                        "D": "The risk is minimal because bank deposits and CBDC serve different functions and rational actors would never prefer a non-interest-bearing CBDC over insured deposits"
+                    },
+                    "correct": "C",
+                    "explanation": "Disintermediation is the central concern in CBDC design. If citizens can hold risk-free central bank money digitally, they have strong incentives to convert commercial bank deposits to CBDC during stress — potentially triggering or accelerating bank runs. In a severe crisis, this could happen rapidly at digital speed ('digital bank run'). Design mitigations: (1) Holding limits — the ECB's Digital Euro proposal suggests limits of €3,000; (2) Non-remuneration or penalising rates on large CBDC holdings; (3) Tiered remuneration — zero or negative rates above a threshold; (4) Intermediated model — routing through banks who can manage limits. The BIS notes this tension is fundamental: a CBDC that is too attractive disintermediates banks; one too unattractive won't be used."
+                },
+                {
+                    "id": 5,
+                    "question": "What is the difference between 'wholesale CBDC' and 'retail CBDC', and which has seen more actual deployment globally?",
+                    "options": {
+                        "A": "Wholesale CBDC is for consumer retail payments; retail CBDC is for institutional wholesale settlement — the terminology is inverted from common usage",
+                        "B": "Wholesale CBDC is restricted to financial institutions for interbank settlement and securities clearing; retail CBDC is accessible to the general public for everyday payments. Wholesale CBDC pilots have been more numerous and technically successful globally, while retail CBDCs face greater design complexity around privacy and financial stability",
+                        "C": "Both terms refer to the same technology; 'wholesale' is used by central banks and 'retail' by commercial banks to describe the same system",
+                        "D": "Retail CBDC has seen far more deployment because central banks prioritise financial inclusion above interbank efficiency"
+                    },
+                    "correct": "B",
+                    "explanation": "The wholesale/retail distinction is fundamental. Wholesale CBDC targets financial institutions — it replaces or upgrades existing reserves and central bank settlement systems. Retail CBDC targets households and businesses for everyday commerce. Wholesale CBDC pilots (Project Jasper in Canada, Project Ubin in Singapore, Project Helvetia in Switzerland, mBridge for cross-border) have been more technically mature because they operate in a familiar regulated environment with known counterparties. Retail CBDC involves designing for hundreds of millions of users with diverse technical capabilities, privacy requirements, offline functionality, and AML/KYC compliance. The Bahamas Sand Dollar and Nigeria's eNaira are notable retail deployments, though both have faced low adoption challenges."
+                },
+                {
+                    "id": 6,
+                    "question": "In CBDC design, what is the distinction between an 'account-based' CBDC and a 'token-based' CBDC, and what are the privacy implications of each?",
+                    "options": {
+                        "A": "Account-based CBDCs require a smartphone; token-based CBDCs work on feature phones — the distinction is purely about device compatibility",
+                        "B": "Account-based means the CBDC is stored in a cloud database; token-based means it is stored locally on the user's device — both are fully anonymous",
+                        "C": "Token-based CBDCs require full KYC and biometric verification for every transaction; account-based CBDCs allow pseudonymous transactions",
+                        "D": "Account-based CBDCs link transactions to verified identities (like bank accounts — the central bank or intermediary knows who holds how much); token-based CBDCs transfer value through possession of a digital token where validity is verified cryptographically without necessarily revealing the holder's identity, analogous to physical cash"
+                    },
+                    "correct": "D",
+                    "explanation": "The account vs. token distinction is fundamental to privacy architecture. Account-based: identity is the security anchor — you authenticate as Alice to prove you own Alice's CBDC balance. The issuer/intermediary maintains an identity-linked ledger. This is how commercial bank accounts work. Token-based: possession and valid cryptographic proof is the security anchor — whoever holds a valid token can spend it, similar to physical cash. Tokens can theoretically support higher anonymity (the system validates the token, not the holder's identity). In practice, most retail CBDC proposals are account-based for AML/KYC compliance, but privacy-preserving token designs using zero-knowledge proofs are being researched to provide 'privacy by design' while still enabling regulatory oversight."
+                },
+                {
+                    "id": 7,
+                    "question": "Project mBridge is a multi-CBDC platform for cross-border payments. Which central banks are participating, and what problem does it aim to solve?",
+                    "options": {
+                        "A": "The Hong Kong Monetary Authority, Bank of Thailand, Digital Currency Institute of the People's Bank of China, Central Bank of the UAE, and BIS Innovation Hub — solving the inefficiency, cost, and time delays of current correspondent banking for cross-border transactions among participating jurisdictions",
+                        "B": "The US Federal Reserve, ECB, Bank of Japan, and Bank of England — solving domestic payment fragmentation within the G4 economies",
+                        "C": "The IMF and World Bank are the primary sponsors alongside 15 developing-country central banks — aiming to replace SWIFT for all international trade finance",
+                        "D": "mBridge is a purely theoretical BIS research project with no participating central banks and no live transactions processed"
+                    },
+                    "correct": "A",
+                    "explanation": "mBridge (Multiple Central Bank Digital Currency Bridge) is a real-world pilot involving the HK Monetary Authority, Bank of Thailand, PBoC's Digital Currency Institute, Central Bank of UAE, and BIS Innovation Hub. It uses a purpose-built blockchain (mBridge Ledger) to enable direct CBDC-to-CBDC cross-border transfers between participating central banks without correspondent banking intermediaries. By May 2024, mBridge reached 'Minimum Viable Product' stage and processed real transactions. It addresses the 'three Ts' of cross-border payments: Time (2-5 days reduced to near-instant), Transparency (opaque correspondent chains vs. direct settlement), and Transaction costs (~6% average vs. potential near-zero). The participation of China is notable given geopolitical dimensions around dollar-denominated correspondent banking."
+                },
+                {
+                    "id": 8,
+                    "question": "What does a 'direct CBDC' architecture mean, and why do most economists and central banks prefer the intermediated alternative?",
+                    "options": {
+                        "A": "Direct CBDC means users transact peer-to-peer without any infrastructure; intermediated means all payments route through a government data centre",
+                        "B": "Direct CBDC is technically superior because it eliminates intermediary fees; central banks reject it only for political reasons favoring incumbent banks",
+                        "C": "In a direct CBDC model, the central bank maintains retail accounts and relationships directly with every citizen; economists warn this would require central banks to build massive customer-service operations, make KYC/AML decisions for millions, and could trigger systemic disintermediation of commercial banking — roles that central banks lack expertise for and that would undermine credit creation",
+                        "D": "Direct CBDC is the model used by China's e-CNY; intermediated CBDC is used only by the Bahamas"
+                    },
+                    "correct": "C",
+                    "explanation": "A direct CBDC would have the central bank as the sole point of contact for all retail CBDC users — maintaining KYC records, processing transactions, providing customer support, and managing billions of accounts. Central banks would need to replicate the entire retail banking infrastructure. More fundamentally, it would disintermediate commercial banks: every dollar in CBDC is a dollar not in bank deposits, reducing banks' funding base and their ability to extend credit to households and businesses. The intermediated model preserves commercial banks' role in credit creation and customer relationships while the central bank provides the underlying currency. The Fed, ECB, Bank of England, and most major central banks explicitly favour intermediation for these reasons."
+                },
+                {
+                    "id": 9,
+                    "question": "China's e-CNY (Digital Yuan, DC/EP) is the world's most advanced large-economy CBDC. What are its key design characteristics?",
+                    "options": {
+                        "A": "e-CNY is a permissionless blockchain-based currency accessible globally; it replaced all physical yuan by 2022",
+                        "B": "e-CNY uses a two-tier distribution model (PBoC to commercial banks to users), operates on a centralised ledger maintained by the PBoC, supports controlled anonymity (tiered: small transactions more private, large transactions require full KYC), enables offline payments via NFC chips, and has been distributed via lottery programs during major events",
+                        "C": "e-CNY is fully anonymous and cannot be traced by Chinese authorities; privacy protection was the primary design goal",
+                        "D": "e-CNY is backed by gold reserves at a 1:1 ratio and is designed as a commodity-backed alternative to the USD in international trade"
+                    },
+                    "correct": "B",
+                    "explanation": "e-CNY's design reflects China's monetary and policy priorities. The two-tier model uses the PBoC as issuer and six major state-owned banks plus Alipay/WeChat Pay as distributors. The ledger is centralised, not blockchain-based, giving the PBoC full visibility and control. Tiered anonymity provides 'controllable anonymity': small wallet transactions require only a phone number (more private); larger transactions require full identity verification. Offline NFC capability allows payments without internet connectivity, important for rural areas. Distribution via 'red packet' lotteries (notably during Chinese New Year 2022 in Beijing) generated public adoption. By 2023, e-CNY had been tested in over 20 cities with hundreds of billions of yuan transacted, making it by far the most advanced retail CBDC globally."
+                },
+                {
+                    "id": 10,
+                    "question": "The European Central Bank's Digital Euro project is in its 'preparation phase' as of 2024. What design principles has the ECB emphasised, and what remains unresolved?",
+                    "options": {
+                        "A": "The ECB has committed to a fully anonymous Digital Euro with no holding limits, and the only unresolved issue is the technical blockchain platform to use",
+                        "B": "The Digital Euro is designed to replace the euro cash entirely by 2030 and will be blockchain-based using a public Ethereum sidechain",
+                        "C": "The ECB has paused the Digital Euro project indefinitely after the Terra/LUNA collapse demonstrated that digital currencies are inherently unstable",
+                        "D": "The ECB emphasises privacy (the Digital Euro should be more private than commercial bank payments, approaching cash-like privacy for small transactions), financial inclusion, and preserving financial stability; unresolved issues include the holding limit level, remuneration policy, whether offline functionality is required, and the legal framework requiring EU legislative approval"
+                    },
+                    "correct": "D",
+                    "explanation": "The ECB's October 2023 decision to enter the 'preparation phase' (following a two-year investigation phase) confirmed the Digital Euro project continues but noted many design parameters remain open. Privacy is a central stated commitment — ECB President Lagarde explicitly compared targeted privacy to the level of a Mastercard payment (intermediary knows the transaction) for low-value retail, with stronger protections for small amounts. Key open questions: (1) Holding limit — the ECB has suggested €3,000 but this is not finalised; (2) Remuneration — will it earn interest? (3) Offline functionality requirements; (4) Legislative framework — requires EU regulation that must pass the European Parliament and Council. Issuance is not expected before 2027-2028 at earliest."
+                },
+                {
+                    "id": 11,
+                    "question": "The United States has taken a notably cautious approach to CBDC. What are the main arguments made by Federal Reserve officials and US legislators against a retail CBDC?",
+                    "options": {
+                        "A": "Key concerns include: financial privacy (a CBDC could enable unprecedented government surveillance of citizen spending); financial disintermediation of banks; the Fed's mandate does not include providing retail financial services; potential for political misuse (programmable money enabling government to restrict spending); and that existing private innovation (FedNow, Venmo, Zelle) already improves payment speed without CBDC risks",
+                        "B": "The US rejects CBDC solely because the Federal Reserve lacks the technical expertise to build digital payment infrastructure",
+                        "C": "The US supports a retail CBDC but cannot implement it due to constitutional constraints that prohibit the Federal Reserve from issuing currency",
+                        "D": "US opposition is purely geopolitical — the US wants to prevent China from being first to launch a CBDC and is waiting until e-CNY fails before launching its own"
+                    },
+                    "correct": "A",
+                    "explanation": "US CBDC debate has been unusually politically charged. The Federal Reserve has stated it would not proceed without clear Congressional authorisation. Key opposing arguments: (1) Privacy — Senator Cruz and others introduced bills to prohibit a retail CBDC, citing surveillance risk; (2) Disintermediation — bank lobbying groups argue CBDCs threaten the commercial banking model; (3) Mandate question — the Fed's legal authority to issue retail CBDC is contested; (4) Programmability fears — concerns about programmable restrictions (expiration dates, spending categories), seen as incompatible with economic freedom; (5) Innovation argument — FedNow instant payment system (launched 2023) and private fintech provide payment modernisation without CBDC risks. The US remains significantly behind China, the EU, and other jurisdictions in CBDC development."
+                },
+                {
+                    "id": 12,
+                    "question": "Nigeria launched the eNaira in October 2021, becoming Africa's first CBDC. What lessons has the eNaira deployment taught about CBDC adoption challenges?",
+                    "options": {
+                        "A": "The eNaira was an immediate success, achieving 80% adoption among Nigerian adults within six months of launch",
+                        "B": "Nigeria cancelled the eNaira after three months due to a technical failure that caused all wallets to be drained, discrediting the concept",
+                        "C": "The eNaira demonstrated that a CBDC requires compelling use cases and user incentives to achieve adoption: by mid-2022 only ~0.5% of Nigerians had used it, citing lack of awareness, poor merchant acceptance, app reliability issues, and insufficient differentiation from existing mobile money services — adoption improved only after government welfare payment programs were tied to the eNaira",
+                        "D": "The eNaira succeeded because Nigeria had no existing digital payment infrastructure, making it the default digital currency by default"
+                    },
+                    "correct": "C",
+                    "explanation": "Nigeria's eNaira experience is instructive for global CBDC planning. Initial adoption was very low — the Central Bank of Nigeria reported only 802,000 wallets downloaded (0.5% of population) by mid-2022 versus a target of 8 million. Key barriers: lack of public awareness campaigns, limited merchant acceptance creating a 'why bother?' problem, app performance issues, and competition from well-established mobile money platforms (OPay, PalmPay) offering better UX. Adoption improved significantly from late 2022 after the CBN launched cash redesign policies that created artificial cash shortages, and after welfare payment programs (ANCHOR, LEAF) began disbursing through eNaira. This illustrates that CBDCs rarely succeed purely on technical merits — government-mandated use cases often drive adoption."
+                },
+                {
+                    "id": 13,
+                    "question": "What is the 'privacy spectrum' in CBDC design, and where do different CBDC architectures fall on this spectrum?",
+                    "options": {
+                        "A": "The privacy spectrum refers to the range of encryption algorithms available for CBDC implementation, from weak (AES-128) to strong (AES-256)",
+                        "B": "The spectrum ranges from full anonymity (like physical cash — no transaction records) to full traceability (every transaction linked to verified identity). Physical cash is maximally private; commercial bank accounts require KYC and are traceable; most CBDC proposals fall in the middle, offering 'controlled anonymity' for small transactions while requiring identity verification above thresholds",
+                        "C": "Privacy in CBDCs refers only to encryption of data in transit; all CBDCs are identical in their data retention practices",
+                        "D": "The privacy spectrum is irrelevant to CBDC design because central bank legislation in all jurisdictions mandates full transaction transparency for anti-money laundering purposes"
+                    },
+                    "correct": "B",
+                    "explanation": "The privacy spectrum is a core CBDC design dimension with significant political implications. At one extreme, physical cash is 'bearer instrument' anonymous — the central bank has no record of who holds currency notes or what they purchase. At the other extreme, a CBDC with full KYC and centralised ledger would give authorities comprehensive real-time visibility into citizen spending. Most proposals attempt middle positions: the ECB's Digital Euro targets 'offline cash-like' privacy for small transactions using hardware tokens or zero-knowledge proofs, while requiring identity above thresholds. China's e-CNY uses tiered KYC with 'controllable anonymity' — private to commercial actors but transparent to the PBoC with appropriate legal process. Privacy advocates argue most CBDC proposals provide far less privacy than cash despite claims to the contrary."
+                },
+                {
+                    "id": 14,
+                    "question": "Zero-knowledge proofs (ZKPs) are proposed for privacy-preserving CBDC designs. How would a ZKP-based CBDC allow regulatory compliance while protecting user privacy?",
+                    "options": {
+                        "A": "ZKPs encrypt transaction data using keys held by regulators, who can decrypt any transaction on demand — providing compliance while keeping data encrypted from public view",
+                        "B": "ZKPs are used only for identity verification at onboarding; all transactions are then processed in plaintext on a public blockchain",
+                        "C": "ZKPs allow users to hide transactions from regulators completely, making them unsuitable for regulated CBDC implementations",
+                        "D": "A ZKP allows a user to cryptographically prove that a transaction satisfies regulatory requirements (e.g., 'this transaction is below €1,000 and the sender holds sufficient funds') without revealing the specific amounts, parties, or other transaction details — compliance is verified mathematically without data disclosure"
+                    },
+                    "correct": "D",
+                    "explanation": "Zero-knowledge proofs are cryptographic protocols allowing one party to prove a statement is true without revealing any information beyond the truth of that statement. In a CBDC context: a user can prove 'my balance exceeds the payment amount AND this transaction is below the AML reporting threshold AND I am not on a sanctions list' — all without revealing their identity, balance, or transaction history. The regulator receives a mathematical proof of compliance, not raw data. Projects like Zcash demonstrate this for cryptocurrency. The ECB and BIS have research on ZKP-based CBDC privacy. The practical challenge is computational cost (ZKPs are expensive to generate) and the question of what information is encoded in the proof itself, since the parameters of the proof reveal something about the prover."
+                },
+                {
+                    "id": 15,
+                    "question": "What is 'programmable money' in the CBDC context, and what are the legitimate use cases versus the concerning abuse cases?",
+                    "options": {
+                        "A": "Programmable money allows conditions to be attached to CBDC: legitimate uses include automatic tax remittance, welfare payments restricted to food/medicine, smart contract integration, and automatic savings. Concerning uses include expiration dates that force spending, geographic restrictions on where money can be spent, political disqualification of citizens from accessing their funds, or algorithmic credit scoring determining individual spending rights",
+                        "B": "Programmable money means CBDC can earn interest automatically; there are no concerning use cases since interest-bearing accounts are already common",
+                        "C": "Programmable money is only relevant for wholesale CBDCs used in securities settlement; retail CBDCs are never programmable by design",
+                        "D": "Programmability is purely a technical feature with no policy implications; the central bank would never use programmability for social control purposes"
+                    },
+                    "correct": "A",
+                    "explanation": "Programmability is both the most exciting and most alarming feature of CBDCs. Legitimate use cases: (1) Conditional welfare — SNAP-like food assistance that can only purchase eligible items, reducing fraud; (2) Automatic tax remittance — VAT paid atomically at point of sale; (3) Smart contract integration — programmable trade finance, supply chain payments; (4) Targeted stimulus — payments valid for 3 months to encourage spending, not saving. Concerning uses: (1) Expiry dates that coerce spending behavior; (2) Geographic restrictions — money that cannot leave a defined area; (3) Political/social credit scoring affecting financial access; (4) Real-time carbon footprint enforcement; (5) Penalising dissidents by restricting their digital currency access. Many CBDC critics, particularly in the US and UK, focus specifically on programmability as incompatible with financial freedom."
+                },
+                {
+                    "id": 16,
+                    "question": "The EU's Markets in Crypto-Assets (MiCA) regulation, which came into full effect in 2024, establishes specific requirements for stablecoin issuers. What are the key requirements for 'asset-referenced tokens' (ARTs) under MiCA?",
+                    "options": {
+                        "A": "MiCA requires all stablecoins to be backed by physical gold and stored in EU-regulated vaults; algorithmic stablecoins are completely banned under any circumstances",
+                        "B": "MiCA applies only to stablecoins that explicitly claim to track the euro; USD-backed stablecoins are exempt as foreign currency instruments",
+                        "C": "ARTs under MiCA must be issued by EU-authorised entities, maintain a reserve of highly liquid assets at least equal to outstanding tokens (1:1 backing), limit daily transaction volume (€1 billion threshold triggers additional requirements), publish a white paper approved by competent authorities, and maintain segregated reserves protected in insolvency",
+                        "D": "MiCA requires all stablecoin issuers to become licensed banks under the EU Banking Directive before issuing any tokens"
+                    },
+                    "correct": "C",
+                    "explanation": "MiCA's stablecoin titles (Titles III and IV) create two categories: Asset-Referenced Tokens (ARTs, backed by multiple assets or non-euro fiat) and E-Money Tokens (EMTs, backed 1:1 by a single fiat currency). Key ART requirements: authorisation by home member state competent authority; minimum own funds (3% of average reserve assets or 2% for EMTs); reserve assets must be segregated and invested in low-risk, high-liquidity instruments; white paper pre-approval; transaction limits — if an ART reaches €1 billion daily transactions, the EBA steps in and may suspend issuance; quarterly reserve reporting. Significant stablecoins (large ARTs/EMTs) face stricter prudential requirements. The regulation explicitly states that algorithmic stablecoins — those that rely on algorithms to maintain their peg without backing assets — do not qualify as ARTs or EMTs under MiCA."
+                },
+                {
+                    "id": 17,
+                    "question": "How does MiCA regulation treat Tether (USDT) and Circle's USDC, and what operational changes did these issuers make to comply?",
+                    "options": {
+                        "A": "Both USDT and USDC are exempt from MiCA because they are issued outside the EU and MiCA has no extraterritorial jurisdiction",
+                        "B": "USDC issuer Circle obtained an EMT licence in France enabling continued euro-denominated USDC use in the EU. Tether initially did not obtain EU authorisation, leading some EU exchanges to delist or restrict USDT for EU customers — though Tether subsequently engaged with EU regulators. Non-compliant stablecoins face trading restrictions on EU-regulated platforms",
+                        "C": "MiCA banned both USDT and USDC outright as foreign stablecoins; all EU transactions must use only Digital Euro or EUR-backed stablecoins",
+                        "D": "Both issuers moved their operations to Switzerland, which has equivalent regulations that MiCA accepts as equivalent under a mutual recognition agreement"
+                    },
+                    "correct": "B",
+                    "explanation": "MiCA's extraterritorial reach was a major compliance challenge. EMTs and ARTs offered to EU retail customers must be issued by EU-authorised entities. Circle (USDC issuer) obtained an Electronic Money Institution licence in France in June 2024, making Circle's EU entity the authorised EMT issuer. This allowed USDC to continue being traded on EU-regulated platforms. Tether (USDT) did not initially secure authorisation, leading Coinbase Europe and other regulated platforms to delist USDT for EU customers by the end of 2024 deadline. Tether's situation remained complex given the scale of USDT usage globally. This episode demonstrated MiCA's real-world enforcement mechanism: without authorisation, EU-regulated exchanges cannot list the token."
+                },
+                {
+                    "id": 18,
+                    "question": "In the United States, multiple bills have been proposed to regulate stablecoins. What is the core regulatory debate between the 'banking charter' camp and the 'payment charter' camp?",
+                    "options": {
+                        "A": "The banking charter camp argues stablecoins should be regulated as securities; the payment charter camp argues they are commodities — both sides want oversight by the CFTC",
+                        "B": "Both camps agree on the regulatory framework; the only dispute is whether the OCC or the Federal Reserve should be the primary regulator",
+                        "C": "The banking charter camp wants stablecoins banned; the payment charter camp wants them unregulated — the debate is between prohibition and laissez-faire",
+                        "D": "The banking charter camp (supported by bank regulators) argues stablecoin issuers should obtain full bank charters, hold reserves at the Fed, and be subject to bank capital and supervision requirements — preventing non-bank tech companies from becoming de facto banks. The payment charter camp argues a lighter-touch payments licence is sufficient if 1:1 liquid reserve requirements are met, allowing fintech innovation without full bank regulation"
+                    },
+                    "correct": "D",
+                    "explanation": "The US stablecoin regulatory debate (as reflected in the GENIUS Act, STABLE Act, and Clarity for Payment Stablecoins Act proposals) centres on competitive and systemic concerns. The banking charter position (championed by bank trade associations and Fed-aligned legislators): stablecoin issuers accepting 'deposits' (customer funds) are functionally banks and should be supervised as such, with Fed access, capital requirements, and FDIC-like protections. The payment charter position (supported by Circle, Coinbase, and fintech-aligned legislators): stablecoin issuers offering 1:1 redeemable tokens backed by cash and Treasuries are providing a narrow payment service, not taking deposits — a payments licence with reserve requirements and redemption rights is sufficient. This debate also has competition dimensions: banks want regulatory parity to prevent non-bank fintechs from gaining a structural cost advantage."
+                },
+                {
+                    "id": 19,
+                    "question": "What systemic risk could arise if a dominant stablecoin like USDT or USDC experienced a sudden loss of confidence, and how does this compare to traditional money market fund (MMF) risks?",
+                    "options": {
+                        "A": "A run on a major stablecoin could force rapid liquidation of the reserve assets (commercial paper, Treasury bills, repo) backing that stablecoin, creating fire-sale dynamics in short-term funding markets similar to the 2008 Reserve Fund MMF 'breaking the buck' event — but potentially faster and larger given stablecoins' 24/7 redemption capability and the possibility of coordinated algorithmic withdrawals",
+                        "B": "Stablecoin systemic risk is confined to the crypto ecosystem and cannot affect traditional financial markets because stablecoins are not integrated into the mainstream financial system",
+                        "C": "Stablecoins are safer than MMFs because they are backed 100% by US Treasury securities, whereas MMFs can hold riskier corporate paper",
+                        "D": "Systemic risk from stablecoins would only affect Ethereum miners and DeFi protocols; the traditional banking system is entirely insulated"
+                    },
+                    "correct": "A",
+                    "explanation": "The systemic risk concern is precisely the stablecoin-TradFi nexus. Tether held significant commercial paper (reduced post-2022), and Circle's USDC reserves include short-term Treasuries and cash at banks. A rapid redemption wave requiring liquidation of $80-100B+ in assets could move short-term Treasury markets. The analogy to 2008's Reserve Primary Fund is apt: that MMF 'broke the buck' after Lehman paper became worthless, triggering a broader MMF run that required Fed intervention. Stablecoins differ in that redemptions can occur 24/7, settlement is immediate, and redemption requests could be algorithmically coordinated. The FSB, BIS, and US FSOC have all identified large stablecoins as potential sources of systemic risk, which is why reserve composition, redemption rights, and run-prevention mechanisms are central to regulatory proposals."
+                },
+                {
+                    "id": 20,
+                    "question": "Looking at the convergence of CBDCs, regulated stablecoins, and tokenised deposits, what is the most likely structure of the global digital monetary system in 2030?",
+                    "options": {
+                        "A": "A single global CBDC issued by the IMF will replace all national currencies and private stablecoins, creating a unified digital monetary system",
+                        "B": "Bitcoin will become the global reserve currency, making CBDCs and stablecoins obsolete by 2030",
+                        "C": "A layered coexistence: central bank wholesale CBDCs for interbank settlement and cross-border (mBridge-type), retail CBDCs in some jurisdictions (China, EU, emerging markets), regulated private stablecoins (MiCA-compliant, US-licensed) for crypto ecosystem and payments, tokenised commercial bank deposits for enterprise finance — with ongoing competition between these layers and continued dominance of existing payment rails in most consumer transactions",
+                        "D": "All jurisdictions will adopt a single CBDC standard developed by the BIS, eliminating the need for private stablecoins and resolving current fragmentation"
+                    },
+                    "correct": "C",
+                    "explanation": "The emerging consensus among monetary economists and policymakers is a layered, multi-form digital monetary system rather than any single winner. Wholesale CBDC is advancing rapidly (mBridge, Project Mariana, Helvetia) for interbank and cross-border settlement where efficiency gains are clearest. Retail CBDC is advancing in China, the Bahamas, Jamaica, Nigeria, and likely the EU, but facing resistance in the US and UK. Regulated private stablecoins will persist for crypto-native applications, DeFi, and jurisdictions without retail CBDC. Tokenised bank deposits (JPMorgan JPM Coin, Citi Token Services) serve institutional clients. Physical cash and existing card networks will likely remain dominant for consumer retail payments for years. The competitive and cooperative dynamics between these layers — especially CBDC-vs-stablecoin and central bank-vs-commercial bank — will shape monetary policy transmission and financial stability for decades."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

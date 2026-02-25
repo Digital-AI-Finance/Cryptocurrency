@@ -1,0 +1,193 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Stablecoins \& CBDCs} \textcolor{mlgray}{|} Lesson 07 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{Stablecoins \& CBDCs}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 07 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% ── Activity 1 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 1: Explore Stablecoin Markets}{10 min}{%
+Visit \url{https://www.coingecko.com/en/categories/stablecoins} and explore. Answer:
+\begin{enumerate}
+\item What are the top 5 stablecoins by market cap? What blockchain are they primarily on?
+\item Pick one stablecoin --- what is its 24h trading volume vs market cap ratio?
+\item Check the price chart --- has it ever significantly de-pegged? When?
+\item Compare USDT and USDC --- what differences do you notice in reserve reporting?
+\end{enumerate}
+\textbf{Bonus:} Compare stablecoin dominance chart over the last 2 years.
+}
+
+\vspace{2pt}
+
+% ── Activity 2 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 2: MakerDAO Vault Investigation}{5 min}{%
+Look up MakerDAO on \url{https://defillama.com/protocol/makerdao}. Answer:
+\begin{enumerate}
+\item What collateral types does MakerDAO accept?
+\item What is the current collateral ratio requirement for ETH vaults?
+\item What is the DAI Savings Rate (DSR)?
+\item How much total collateral is locked in MakerDAO?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{4pt}%
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Collateral Type} & \textbf{Min Ratio} & \textbf{Stability Fee} & \textbf{TVL} \\
+\midrule
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% ── Activity 3 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 3: CBDC Tracker Research}{10 min}{%
+Visit \url{https://www.atlanticcouncil.org/cbdctracker/} and complete the table.\\[2pt]
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{CBDC} & \textbf{Status} & \textbf{Architecture} & \textbf{Privacy Model} & \textbf{Pilot Scale} \\
+\midrule
+China e-CNY          & \fillcell & \fillcell & \fillcell & \fillcell \\
+EU Digital Euro      & \fillcell & \fillcell & \fillcell & \fillcell \\
+US Digital Dollar    & \fillcell & \fillcell & \fillcell & \fillcell \\
+India e-Rupee        & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}
+\end{center}
+}
+
+\vspace{2pt}
+
+% ── Activity 4 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 4: Design Your Stablecoin}{5 min}{%
+Fill in the form below. Bring your design to class for discussion.
+\begin{enumerate}
+\item \textbf{Stablecoin Name:}~\rule{5cm}{0.3pt}
+\item \textbf{Peg Target:}\quad
+      $\square$~USD\quad
+      $\square$~EUR\quad
+      $\square$~Gold\quad
+      $\square$~Basket\quad
+      $\square$~Other
+\item \textbf{Mechanism:}\quad
+      $\square$~Fiat-backed\quad
+      $\square$~Crypto-backed\quad
+      $\square$~Algorithmic\quad
+      $\square$~Hybrid
+\item \textbf{Collateral Ratio:}~\rule{1.5cm}{0.3pt}\%
+\item \textbf{Reserve Transparency:}\quad
+      $\square$~Daily attestation\quad
+      $\square$~Monthly audit\quad
+      $\square$~Annual\quad
+      $\square$~None
+\item \textbf{Target Use Case:}\quad
+      $\square$~Payments\quad
+      $\square$~DeFi\quad
+      $\square$~Cross-border\quad
+      $\square$~Savings
+\item \textbf{Biggest Risk:}\quad
+      $\square$~De-peg\quad
+      $\square$~Regulatory\quad
+      $\square$~Bank run\quad
+      $\square$~Smart contract
+\end{enumerate}
+}
+
+\vspace{4pt}
+
+% ── Glossary ───────────────────────────────────────────────────────────────────
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.2cm}p{11.4cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{Stablecoin}               & A cryptocurrency designed to maintain a stable value relative to a reference asset (usually USD). Achieved through collateral reserves, algorithmic mechanisms, or a combination. \\
+\textbf{Peg}                      & The target price a stablecoin aims to maintain (e.g., 1 USDC = 1 USD). Maintaining the peg requires active mechanisms such as redemption guarantees or supply adjustments. \\
+\textbf{De-peg}                   & When a stablecoin's market price diverges significantly from its target peg. Can be temporary (USDC during SVB) or permanent (UST collapse). \\
+\textbf{Collateral Ratio}         & The ratio of collateral value to stablecoin value issued. Fiat-backed: 100\%. Crypto-backed: typically 150\%+ to absorb volatility. \\
+\textbf{Over-collateralization}   & Requiring more collateral than the value of stablecoins minted (e.g., \$150 ETH to mint \$100 DAI), providing a safety buffer against price drops. \\
+\textbf{Liquidation}              & The forced sale of collateral when its value drops below the minimum ratio, protecting the protocol from undercollateralization. \\
+\textbf{CDP / Vault}              & Collateralized Debt Position. A smart contract that locks crypto collateral and mints stablecoins against it. Used by MakerDAO for DAI. \\
+\textbf{Algorithmic Stablecoin}   & A stablecoin that maintains its peg through algorithmic supply adjustments rather than holding collateral reserves. Most have failed historically. \\
+\textbf{Death Spiral}             & A self-reinforcing feedback loop where loss of confidence causes selling, which further breaks the peg, causing more selling. Exemplified by Terra/LUNA. \\
+\textbf{CBDC}                     & Central Bank Digital Currency. A digital form of fiat money issued directly by a central bank as legal tender, distinct from commercial bank deposits. \\
+\textbf{Wholesale CBDC}           & A CBDC restricted to financial institutions for interbank settlement, improving speed and reducing counterparty risk in large-value payments. \\
+\textbf{Retail CBDC}              & A CBDC available to the general public for everyday transactions, potentially replacing or supplementing physical cash. \\
+\textbf{Seigniorage}              & The profit a currency issuer makes from the difference between face value and production cost. In algorithmic stablecoins, captured when new tokens are minted above peg. \\
+\textbf{Peg Stability Module (PSM)} & A MakerDAO mechanism allowing 1:1 swaps between DAI and approved stablecoins (like USDC) to maintain the DAI peg with minimal slippage. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Stablecoins \& CBDCs --- Lesson 07 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

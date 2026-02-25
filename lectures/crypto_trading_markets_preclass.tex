@@ -1,0 +1,184 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Crypto Trading \& Markets} \textcolor{mlgray}{|} Lesson 08 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{Crypto Trading \& Markets}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 08 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% ── Activity 1 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 1: Explore a Live Order Book}{10 min}{%
+Visit a crypto exchange such as Binance, Coinbase, or TradingView and open the BTC/USDT order book. Answer:
+\begin{enumerate}
+\item What is the current bid-ask spread for BTC/USDT? How does it compare to the ETH/USDT spread?
+\item Identify large buy and sell walls. At which price levels do you see them?
+\item Estimate the slippage if you placed a market order to buy \$10{,}000 worth of BTC right now.
+\item Observe the order book at two different times of day. How does the spread change?
+\end{enumerate}
+\textbf{Bonus:} Take a screenshot of the order book and annotate the bid side, ask side, spread, and any visible walls.
+}
+
+\vspace{2pt}
+
+% ── Activity 2 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 2: Backtest a Simple Strategy}{10 min}{%
+Open TradingView or CoinGecko charts for BTC and examine the last 6 months of daily price data. Answer:
+\begin{enumerate}
+\item Add a 20-day and a 50-day simple moving average (SMA). How many crossovers occurred in 6 months?
+\item Identify the most recent golden cross and death cross signals. Were they profitable if traded?
+\item Add Bollinger Bands. How many times did price touch or break the lower band?
+\item Would a simple mean-reversion strategy (buy lower band, sell upper band) have been profitable?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Signal Date} & \textbf{Type} & \textbf{Price} & \textbf{Outcome} \\
+\midrule
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% ── Activity 3 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 3: Risk Metrics Calculation}{5 min}{%
+Download or look up BTC's daily closing prices for the last 30 days and calculate the following:
+\begin{enumerate}
+\item What is the daily standard deviation of BTC returns over the last 30 days?
+\item Compute the 95\% one-day Value at Risk: $\text{VaR}_{95\%} = 1.65 \times \sigma_{\text{daily}}$.
+\item If you hold a \$10{,}000 BTC position, what is your dollar VaR?
+\item What was the maximum drawdown over the same 30-day period?
+\end{enumerate}
+\vspace{4pt}
+\noindent
+\textbf{Daily Std Dev:}~\fillcell\quad
+\textbf{95\% VaR:}~\fillcell\%\quad
+\textbf{Dollar VaR:}~\$\fillcell\quad
+\textbf{Max Drawdown:}~\fillcell\%
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% ── Activity 4 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 4: CEX vs DEX Comparison}{5 min}{%
+Choose one centralised exchange (e.g.\ Binance, Coinbase) and one decentralised exchange (e.g.\ Uniswap, dYdX). Answer:
+\begin{enumerate}
+\item What are the trading fees on each platform for a \$10{,}000 trade?
+\item What KYC requirements does each platform impose?
+\item Using a DEX aggregator (e.g.\ 1inch), estimate the slippage for swapping \$10{,}000 USDC to ETH.
+\item For a trade of \$100{,}000+, which venue would you prefer and why?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Feature} & \textbf{CEX} & \textbf{DEX} & \textbf{Preference} \\
+\midrule
+Trading fee         & \fillcell & \fillcell & \fillcell \\
+KYC required        & \fillcell & \fillcell & \fillcell \\
+Slippage (\$10k)    & \fillcell & \fillcell & \fillcell \\
+Custody of funds    & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{4pt}
+
+% ── Glossary ───────────────────────────────────────────────────────────────────
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.6cm}p{11.0cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{Order Book}              & A real-time list of outstanding buy (bid) and sell (ask) orders for an asset, organised by price level. Depth of the order book reflects market liquidity. \\
+\textbf{Bid-Ask Spread}          & The difference between the highest price a buyer will pay (bid) and the lowest price a seller will accept (ask). Tighter spreads indicate higher liquidity. \\
+\textbf{Slippage}                & The difference between the expected execution price of a trade and the actual price received, caused by insufficient liquidity at the desired price level. \\
+\textbf{Market Maker}            & A participant who continuously posts both bid and ask quotes, providing liquidity to the market and earning the spread as compensation for bearing inventory risk. \\
+\textbf{Momentum Strategy}       & A trading approach that buys assets exhibiting recent upward price trends and sells those in downtrends, betting that short-term performance continues. \\
+\textbf{Mean Reversion}          & A strategy based on the assumption that asset prices oscillate around a long-run average and will revert toward that mean after deviating from it. \\
+\textbf{Arbitrage}               & The simultaneous purchase and sale of the same asset (or equivalent assets) on different venues to profit from price discrepancies, with minimal risk. \\
+\textbf{Value at Risk (VaR)}     & A statistical measure of the maximum expected loss over a given time horizon at a specified confidence level (e.g., 95\% 1-day VaR = $1.65 \times \sigma_{\text{daily}}$). \\
+\textbf{Sharpe Ratio}            & A risk-adjusted performance measure calculated as excess return divided by volatility. Higher values indicate better return per unit of risk taken. \\
+\textbf{Maximum Drawdown}        & The largest peak-to-trough decline in portfolio value over a given period, expressed as a percentage. A key measure of downside risk. \\
+\textbf{AMM}                     & Automated Market Maker. A DEX mechanism that uses a mathematical formula (e.g., $x \cdot y = k$) and liquidity pools instead of an order book to price assets. \\
+\textbf{MEV}                     & Maximal Extractable Value. Profit that block validators or searchers can capture by reordering, inserting, or censoring transactions within a block. \\
+\textbf{Wash Trading}            & An illegal practice where a trader simultaneously buys and sells the same asset to generate artificial trading volume and create a misleading impression of market activity. \\
+\textbf{Spoofing}                & A form of market manipulation where large orders are placed with no intention of execution to mislead other participants about supply or demand, then cancelled. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Crypto Trading \& Markets --- Lesson 08 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz CT-4: DEX/CEX & Regulation | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz CT-4: DEX/CEX &amp; Regulation</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz CT-4: DEX/CEX &amp; Regulation</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "A centralised exchange (CEX) like Binance or Coinbase maintains an order book to match buyers and sellers. What is the fundamental architectural difference between a CEX order book and a traditional stock exchange order book, and why does this difference create unique risks?",
+                    "options": {
+                        "A": "CEX order books are identical to stock exchange order books because both use the same FIX protocol for order routing; the only difference is the trading hours",
+                        "B": "CEX order books are maintained on the exchange's private servers, meaning users' funds and orders are in the custody of the exchange operator — creating counterparty risk where the exchange can misappropriate assets, halt withdrawals, or become insolvent, without the on-chain transparency that would make such actions immediately visible",
+                        "C": "CEX order books use a batch auction mechanism that clears once per block, while stock exchanges use continuous matching; this makes CEX trading slower but more fair",
+                        "D": "CEX order books are fully transparent on-chain; the difference from stock exchanges is that anyone can run a CEX node and verify all trades independently"
+                    },
+                    "correct": "B",
+                    "explanation": "The core architectural distinction: a traditional stock exchange (NYSE, NASDAQ) operates under strict regulatory oversight with segregated custody (DTCC holds securities separately from broker operations), real-time regulatory reporting, and multiple layers of investor protection (SIPC insurance, SEC oversight). A CEX holds customer funds in an omnibus wallet controlled by the exchange operator — customers have only a contractual claim, not direct asset ownership. FTX's collapse in November 2022 demonstrated the catastrophic consequences: SBF's team used customer Bitcoin and USD deposits (valued at $8B+) to fund Alameda Research's trading operations, investments, and personal expenses. Users discovered their balances were IOUs rather than actual assets only when FTX halted withdrawals."
+                },
+                {
+                    "id": 2,
+                    "question": "The FTX collapse in November 2022 destroyed approximately $32 billion in value. Which specific CEX risk was most directly responsible, and what 'proof of reserves' mechanism was proposed as a remedy?",
+                    "options": {
+                        "A": "FTX suffered a smart contract exploit that drained customer funds; proof of reserves via on-chain auditing would prevent future smart contract vulnerabilities",
+                        "B": "FTX was hacked by North Korean actors who breached its hot wallet; proof of reserves using hardware security modules (HSMs) would prevent future breaches",
+                        "C": "FTX misappropriated customer deposits — using them as collateral for Alameda Research's leveraged trades without customer knowledge or consent. The proposed remedy is cryptographic Proof of Reserves using Merkle trees: the exchange publishes a Merkle tree of all customer balances with on-chain proof that total on-chain assets exceed total customer liabilities, allowing any user to verify their balance is included without revealing others' balances",
+                        "D": "FTX suffered a bank run caused by a false rumour on Twitter; proof of reserves using real-time balance APIs would allow users to verify solvency before any bank run develops"
+                    },
+                    "correct": "C",
+                    "explanation": "The FTX fraud was fundamentally about commingling: FTX's terms of service explicitly stated customer deposits should not be lent to third parties, yet approximately $8B of customer fiat and crypto was transferred to Alameda Research. Alameda used these funds for leveraged bets, VC investments, real estate, and political donations. When Binance's CZ publicly doubted FTX's solvency and announced he was selling his FTT holdings (November 6, 2022), a bank run developed that FTX could not meet — the funds were simply not there. Merkle tree Proof of Reserves (PoR) would allow exchanges to prove: (1) they hold on-chain assets equal to customer liabilities; (2) each specific customer's balance is included in the committed total — without revealing other users' data. Limitations: PoR proves assets exist at a snapshot moment but does not prevent pledging the same assets multiple times or off-balance-sheet liabilities."
+                },
+                {
+                    "id": 3,
+                    "question": "CEX market makers provide liquidity by simultaneously posting buy (bid) and sell (ask) orders, earning the bid-ask spread. How does a CEX's incentive to maximise trading volume create a potential conflict of interest with its role as a fair marketplace?",
+                    "options": {
+                        "A": "CEXs have no conflict of interest because market makers are always independent firms; exchanges are prohibited by law from operating their own trading desks",
+                        "B": "CEXs may operate proprietary trading desks (like Binance with its market makers or FTX with Alameda Research) that have privileged access to order flow data, allowing them to front-run customer orders — seeing that a large buy order is incoming before it executes and positioning ahead of it. This is legal in crypto (unlike equities) because no market structure rules prevent it",
+                        "C": "The conflict only arises for futures trading; spot exchanges have no proprietary trading because they cannot short-sell",
+                        "D": "CEX trading volume conflicts are irrelevant because all major exchanges use randomised order matching that prevents any party from predicting outcomes"
+                    },
+                    "correct": "B",
+                    "explanation": "Equity exchanges are prohibited from operating proprietary trading desks that compete with customers (the 'Volcker Rule' for banks; exchange neutrality requirements for US exchanges). Crypto CEXs face no equivalent prohibition. FTX and Alameda Research's relationship exemplified the conflict: Alameda reportedly had special access to FTX's liquidation engine, could hold negative balances without automatic liquidation, and may have seen aggregated order flow. Similarly, Binance's relationship with its internal market makers and the management of its BNB token (used for fee discounts) creates potential for information advantages. This conflict is not merely theoretical — it directly affects price discovery and trading costs for retail users of the platform."
+                },
+                {
+                    "id": 4,
+                    "question": "CEX custody models vary in their security architecture. What distinguishes a 'hot wallet' from a 'cold wallet' in CEX operations, and what trade-off does this create?",
+                    "options": {
+                        "A": "Hot wallets use proof-of-work mining for security; cold wallets use proof-of-stake. The trade-off is security vs. energy consumption",
+                        "B": "Hot wallets are internet-connected wallets used for active trading and withdrawal processing, vulnerable to hacking but enabling fast transactions. Cold wallets are offline (air-gapped hardware or paper), immune to remote hacking but requiring manual processes to access. CEXs balance between holding 2-10% of assets in hot wallets for liquidity and 90-98% in cold storage — the hot wallet portion represents the maximum loss from a single hack",
+                        "C": "Hot wallets are owned by exchanges; cold wallets are owned by customers. The trade-off is who bears the custody risk",
+                        "D": "Hot and cold wallets have identical security; 'hot' and 'cold' refer only to transaction processing speed — hot wallets confirm in seconds, cold wallets confirm in hours"
+                    },
+                    "correct": "B",
+                    "explanation": "Major CEX hacks have consistently targeted hot wallets: Bitfinex (2016, $72M), Binance (2019, $40M), KuCoin (2020, $275M), Crypto.com (2022, $35M). Attackers target the internet-connected portion because cold wallets require physical access or manual signing ceremonies involving multiple hardware devices in separate locations. The 2-10% hot wallet ratio is designed so that even a complete hot wallet breach is survivable — Binance's 2019 hack ($40M from a $2B exchange) was covered by their SAFU fund without customer losses. However, this ratio requires continuous judgment: during high-volume periods, exchanges move more funds to hot wallets for withdrawal processing, temporarily increasing exposure. A sophisticated attack timed to coincide with peak withdrawal periods could target a temporarily enlarged hot wallet."
+                },
+                {
+                    "id": 5,
+                    "question": "A decentralised exchange (DEX) like Uniswap v3 uses an Automated Market Maker (AMM) instead of a traditional order book. What is the core mathematical mechanism of a constant product AMM, and what problem does it solve compared to order-book DEXs?",
+                    "options": {
+                        "A": "AMMs use a constant sum formula $x + y = k$ to maintain fixed prices regardless of trade size; this eliminates slippage entirely for any trade",
+                        "B": "AMMs maintain the invariant $x \\cdot y = k$ where $x$ and $y$ are the quantities of two tokens in a liquidity pool and $k$ is a constant. Any trade that changes $x$ must change $y$ proportionally to maintain $k$, with the price at any moment equal to $y/x$. This solves the 'bootstrap problem' of order-book DEXs: an on-chain order book requires market makers to actively post and cancel orders, which is prohibitively expensive in gas costs on Ethereum",
+                        "C": "AMMs use a Dutch auction mechanism where the price starts high and decreases until a buyer accepts; this ensures price discovery without needing active market makers",
+                        "D": "AMMs replicate traditional order book matching using zero-knowledge proofs to verify that off-chain matched orders are legitimate before settling on-chain"
+                    },
+                    "correct": "B",
+                    "explanation": "Uniswap v1/v2's constant product formula $x \\cdot y = k$ (where $x$ = ETH reserves, $y$ = token reserves) means that buying ETH reduces $x$, which requires $y$ to increase to maintain $k$ — automatically raising the ETH price (more tokens per ETH). The price moves along the hyperbola $xy = k$. This is elegant because: (1) no active market makers needed — anyone can deposit liquidity and earn fees passively; (2) no gas cost for posting/cancelling orders — liquidity is always available; (3) price discovery is automatic via arbitrage (if the AMM price diverges from CEX price, arbitrageurs buy the cheap side until prices converge). The limitation: constant product AMMs concentrate equal liquidity at every price point, making them capital-inefficient (most liquidity is never used). Uniswap v3's 'concentrated liquidity' allows LPs to focus liquidity within specific price ranges, dramatically improving capital efficiency."
+                },
+                {
+                    "id": 6,
+                    "question": "Liquidity providers (LPs) in Uniswap v2 pools face 'impermanent loss' (IL). What is impermanent loss, and under what condition does it become permanent?",
+                    "options": {
+                        "A": "Impermanent loss is the opportunity cost of not holding the higher-performing asset; it becomes permanent when the LP withdraws before the underperforming asset recovers",
+                        "B": "Impermanent loss is the reduction in LP portfolio value compared to simply holding the two assets in a 50/50 split, caused by the AMM's forced rebalancing when prices change. If ETH price doubles relative to USDC, an LP holding an ETH/USDC pool ends up with less ETH and more USDC than they started (the AMM automatically sold ETH as it rose). IL becomes permanent when the LP withdraws at a price different from the deposit price",
+                        "C": "Impermanent loss only occurs during sharp price declines; price increases always benefit LPs because fee revenue more than compensates for any rebalancing",
+                        "D": "Impermanent loss is a regulatory term for the tax treatment of LP positions; it becomes permanent when the holding period exceeds one year and the position qualifies for long-term capital gains treatment"
+                    },
+                    "correct": "B",
+                    "explanation": "For a constant product AMM with initial deposit of $x_0$ ETH and $y_0$ USDC at price $p_0 = y_0/x_0$: if the price moves to $p_1$, the LP's portfolio value is $2\\sqrt{p_0 \\cdot p_1} \\cdot L$ where $L$ is the liquidity parameter, compared to the HODL value of $p_1 x_0 + y_0$. The IL formula is $IL = 2\\sqrt{r}/(1+r) - 1$ where $r = p_1/p_0$. If ETH doubles ($r = 2$): $IL = 2\\sqrt{2}/3 - 1 \\approx -5.7\\%$. If ETH 10x's: $IL \\approx -42\\%$. IL is 'impermanent' because if price returns to $p_0$, IL = 0. It becomes 'permanent' upon withdrawal at any price other than $p_0$. LPs offset IL with trading fee revenue — the question is whether fees earned exceed IL suffered. In high-volume, low-volatility pools (stable/stable pairs), fees often exceed IL. In volatile pairs with thin volume, IL frequently dominates."
+                },
+                {
+                    "id": 7,
+                    "question": "Curve Finance's stableswap AMM uses a different invariant than Uniswap's constant product formula. What is the economic rationale for Curve's design, and what specific problem does it solve for stablecoin trading?",
+                    "options": {
+                        "A": "Curve uses a constant sum formula $x + y = k$ which keeps prices exactly at parity; this works because stablecoins should always trade at exactly $1.00 with zero slippage",
+                        "B": "Curve uses a hybrid invariant that blends constant sum (low slippage near parity, behaves like $x + y = k$) and constant product (stable reserve ratios when prices diverge, behaves like $xy = k$). This produces extremely low slippage for trades between stablecoins near their peg (e.g., USDC/USDT near $1.00) while maintaining the constant-product stability property if a stablecoin de-pegs significantly",
+                        "C": "Curve uses an order book mechanism but batches orders every 15 minutes using a Vickrey auction to determine clearing price, achieving lower gas costs than continuous order books",
+                        "D": "Curve's invariant is secret and proprietary; the key innovation is using Chainlink oracles to set prices rather than allowing AMM mechanics to determine them"
+                    },
+                    "correct": "B",
+                    "explanation": "The stableswap invariant introduced by Curve's Michael Egorov is: $A \\cdot n^n \\sum x_i + D = A \\cdot n^n \\cdot D + D^{n+1} / (n^n \\prod x_i)$ where $A$ is an amplification parameter, $D$ is total deposits, and $n$ is number of tokens. When balances are equal (near peg), the formula behaves like a constant sum $\\sum x_i = D$ — giving nearly zero slippage for stablecoin swaps near $1.00. When balances become very unequal (one stablecoin de-pegging), the formula transitions toward constant product behaviour, ensuring reserves are never fully drained. The parameter $A$ controls this transition: higher $A$ means more constant-sum behaviour (lower slippage near peg) but less protection against de-peg events. This design makes Curve vastly more capital-efficient than Uniswap for correlated assets — the same TVL supports 10-100x more volume without excessive slippage."
+                },
+                {
+                    "id": 8,
+                    "question": "DEX aggregators like 1inch and Paraswap route trades across multiple DEXs to find the best execution price. What economic advantage do aggregators provide, and what technical mechanism enables them to split trades across multiple pools?",
+                    "options": {
+                        "A": "Aggregators provide price improvements by pooling customer orders and submitting them as a single block to receive volume discounts from DEX protocols",
+                        "B": "Aggregators scan multiple DEXs for the best price on a single trade and route the entire order to the cheapest venue — functionally identical to a price comparison website",
+                        "C": "Aggregators compute the optimal split of a single trade across multiple DEX pools to minimise price impact (slippage), exploiting the fact that splitting a large trade across several pools avoids depleting any single pool's liquidity. The Pathfinder algorithm (1inch) or similar optimisation finds the weighted split $w_1, w_2, ..., w_n$ across $n$ pools that minimises the total effective price paid, including gas costs per route",
+                        "D": "Aggregators provide no economic advantage for trades below $10,000; they are only beneficial for institutional traders executing millions in single transactions"
+                    },
+                    "correct": "C",
+                    "explanation": "For a large trade on a single DEX pool with constant product AMM, slippage grows approximately as $\\Delta p / p \\approx \\Delta x / x$ where $\\Delta x$ is trade size and $x$ is pool reserves. Splitting a $1M trade across five $200M pools generates far less total slippage than routing the entire $1M through a single $200M pool. Aggregators solve this as an optimisation problem: given the price function (AMM invariant) and current reserves of each pool, find the allocation that minimises total cost subject to: $\\sum_i w_i = 1$, $w_i \\geq 0$, and routing gas costs. The optimal split for convex AMM price functions can be found using gradient descent or analytical solutions. For common stablecoin pairs, aggregators routinely achieve 0.1-0.3% better execution than naive single-pool routing on trades over $50,000, easily exceeding the marginal gas costs of multi-pool routing."
+                },
+                {
+                    "id": 9,
+                    "question": "Wash trading involves a party simultaneously buying and selling the same asset to create artificial trading volume. Why is wash trading particularly prevalent in crypto markets, and what regulatory and economic harms does it cause?",
+                    "options": {
+                        "A": "Wash trading is no more prevalent in crypto than in equity markets; the harm is purely theoretical because volume statistics are never used for any important decision",
+                        "B": "Wash trading inflates reported trading volume to attract genuine traders, improve exchange rankings on data aggregators, and create false impressions of asset liquidity — it is prevalent in crypto because: (1) CEXs have financial incentives to show high volume (rankings, prestige); (2) token projects inflate volume to appear liquid when seeking exchange listings; (3) crypto lacks effective surveillance mechanisms because pseudonymous wallets make coordinated buy/sell patterns hard to detect; (4) there is no unified cross-exchange surveillance as exists in equities",
+                        "C": "Wash trading only affects NFT markets, not fungible token markets, because NFT prices are set by individual sales rather than order books",
+                        "D": "Wash trading is only possible on CEXs; DEXs are immune because all trades are on-chain and wash trading would generate taxable events that deter the practice"
+                    },
+                    "correct": "B",
+                    "explanation": "Chainalysis and other blockchain analytics firms estimate that 50-70%+ of reported crypto trading volume on many CEXs may be wash traded. The harms are concrete: (1) Exchange selection — traders route to 'high volume' exchanges to minimise market impact, but if volume is fabricated, they are actually routing to low-liquidity venues with worse execution; (2) Token listings — exchanges demand minimum volume metrics for listing; projects wash trade to meet thresholds; (3) Index inclusions — crypto indices weight by volume/market cap; fabricated volume distorts index composition; (4) Regulatory assessment — regulators use volume data to assess market size; wash trading makes crypto appear more liquid and systemically important than it is. On-chain DEX volume is more reliable (every transaction costs gas, making wash trading expensive) but still occurs when token project teams cycle through wallets to inflate DeFi TVL metrics."
+                },
+                {
+                    "id": 10,
+                    "question": "Spoofing involves placing large orders with no intention of executing them, then cancelling before execution. How does spoofing affect price discovery in crypto order books, and why is it harder to detect in crypto than in equities?",
+                    "options": {
+                        "A": "Spoofing improves price discovery by providing more information about supply and demand, even if orders are later cancelled; regulators permit it in crypto for this reason",
+                        "B": "Spoofing manipulates price discovery by creating a false impression of supply or demand: a large fake buy order at $29,000 when Bitcoin trades at $30,000 suggests strong support, inducing real buyers to enter; the spoofer then cancels the order and short-sells. Detection is harder in crypto because: (1) no consolidated tape or surveillance system monitors all venues; (2) pseudonymous accounts obscure linked accounts; (3) most CEXs lack the surveillance obligations of regulated equities exchanges",
+                        "C": "Spoofing is technically impossible in crypto because all orders are irreversible once submitted to the blockchain",
+                        "D": "Spoofing is equally easy to detect in crypto and equities because both markets use identical FINRA surveillance algorithms that flag high cancel-to-fill ratios"
+                    },
+                    "correct": "B",
+                    "explanation": "Spoofing exploits the order book's informational role: traders look at the depth of bids and asks to assess market sentiment. A large visible bid suggests buyers are willing to support the price at that level, encouraging real buyers and discouraging sellers. The CFTC and DOJ have prosecuted spoofing in commodity and equity markets (e.g., JPMorgan traders spoofing gold futures, resulting in $920M fine in 2020). In crypto, the CFTC has jurisdiction over derivatives (Bitcoin/Ethereum futures) but not spot markets, which remain largely unsupervised. Cross-exchange spoofing — posting a large bid on Exchange A while short-selling on Exchange B — is nearly impossible for regulators to detect without access to both venues' data. The 2019 CFTC complaint against BitMEX cited market manipulation concerns, but enforcement has been limited compared to the scale of suspected activity."
+                },
+                {
+                    "id": 11,
+                    "question": "Pump-and-dump schemes in crypto typically follow a specific pattern. What is this pattern, and how do regulatory differences between crypto and equities enable it to operate at scale?",
+                    "options": {
+                        "A": "Pump-and-dump is impossible in crypto because decentralised tokens have no controlling party who could accumulate shares before pumping",
+                        "B": "The classic pattern: (1) accumulate a low-liquidity token quietly at low prices; (2) coordinate promotion via social media, influencer payments, and fake news ('alpha calls' in Telegram groups); (3) as retail investors buy on the hype, prices spike 5-20x; (4) dump accumulated holdings into retail demand. Crypto enables this at scale because: (1) small-cap tokens have market caps of $1-50M — trivial to move; (2) influencer marketing is largely unregulated; (3) no prospectus requirements; (4) cross-border operation evades any single regulator",
+                        "C": "Pump-and-dump only affects tokens on centralised exchanges; DEX-traded tokens are protected by AMM mechanics that prevent sharp price spikes",
+                        "D": "Regulators have effectively eliminated pump-and-dump in crypto through blockchain analytics that identify coordinated wallet activity within hours of scheme initiation"
+                    },
+                    "correct": "B",
+                    "explanation": "The anatomy of a crypto pump-and-dump is well-documented. In equities, the SEC monitors for coordinated buying patterns, suspicious volume spikes, and coordinated social media promotion — enforcement is regular and penalties are severe (the SEC brought 200+ pump-and-dump cases in 2022). In crypto, the equivalent oversight is fragmented. The FTC has pursued some influencer cases (Kim Kardashian paid $1.26M to settle charges for promoting EthereumMax without disclosing payment). However, anonymous Telegram channels and pseudonymous Twitter accounts coordinate thousands of participants simultaneously to pump tokens from $1M to $50M market cap in hours, then dump back to $1M within days — destroying retail investor capital. The tokens involved typically have no fundamental value and are abandoned after the scheme. Studies estimate 5-10% of new token launches involve coordinated pump activity."
+                },
+                {
+                    "id": 12,
+                    "question": "On-chain analytics tools like Chainalysis, Nansen, and Glassnode can detect wash trading and market manipulation by analysing blockchain data. What are the primary on-chain signals that indicate potential wash trading in an NFT collection or token market?",
+                    "options": {
+                        "A": "Wash trading cannot be detected on-chain because transactions are encrypted and only exchange operators can see the counterparties",
+                        "B": "Key on-chain signals include: (1) same wallet (or closely connected wallets) appearing on both sides of repeated trades; (2) volume concentrated in a small number of wallets that cycle assets between each other; (3) unusually high sell-to-buy ratio from the same cluster of addresses; (4) volume spikes with no corresponding new wallet activity (organic volume attracts new buyers); (5) circular fund flows — wallet A sends ETH to wallet B, which buys NFT from wallet A, then sells back to wallet A",
+                        "C": "The only reliable wash trading signal is a sudden volume increase exceeding 200% in 24 hours; any increase below this threshold reflects genuine organic demand",
+                        "D": "Wash trading detection requires comparing on-chain data with off-chain user records, which is impossible for public blockchains because wallet addresses are not linked to identities"
+                    },
+                    "correct": "B",
+                    "explanation": "On-chain data provides rich signals for wash trading detection precisely because blockchains are public and immutable. Chainalysis and Nansen apply graph analysis to identify wallet clusters: addresses that consistently fund each other (same source of ETH), trade with each other (reciprocal transactions), and show suspicious timing (transactions within seconds of each other) are flagged as likely wash trading clusters. A 2022 Chainalysis report found that $2.8B in NFT wash trading occurred in 2021-2022, concentrated in 262 wallets that sold NFTs to self-funded wallets and realised $8.9M in losses (paying gas fees net of any artificial price gains). The circular fund flow pattern — address A funds address B, which buys an asset from address A — is the most clear-cut signal, though sophisticated wash traders route through multiple intermediary wallets to obscure this pattern."
+                },
+                {
+                    "id": 13,
+                    "question": "Maximal Extractable Value (MEV) refers to the profit that block producers (miners or validators) can extract by reordering, inserting, or censoring transactions within blocks they produce. What is the most common MEV strategy, and why does it arise from the transparency of the public mempool?",
+                    "options": {
+                        "A": "The most common MEV strategy is block withholding, where miners find a valid block but delay broadcasting it to allow themselves more time to mine the next block; this exploits the time delay between block finding and propagation",
+                        "B": "The most common MEV strategy is 'arbitrage' — monitoring the mempool for large DEX trades that will move prices, then inserting arbitrage transactions in the same block to capture the price discrepancy. The public mempool enables this because pending transactions are visible before inclusion, allowing bots to observe a pending ETH purchase on Uniswap and simultaneously submit a transaction to buy ETH on another DEX at the old price and sell it on Uniswap at the new higher price",
+                        "C": "MEV primarily arises from proof-of-work mining, where miners can predict future block hashes and use this information to front-run gambling contracts; proof-of-stake eliminated MEV entirely",
+                        "D": "MEV is exclusively a Layer-2 phenomenon; Layer-1 Ethereum has no MEV because all transactions are processed by the Ethereum Foundation's neutral sequencer"
+                    },
+                    "correct": "B",
+                    "explanation": "The Ethereum public mempool contains all pending transactions before they are included in a block. Every pending transaction is broadcast to all nodes, making them visible to anyone monitoring the network. MEV searchers run bots that scan the mempool for profitable opportunities: (1) DEX arbitrage — a large pending swap will move the price on one DEX, creating arbitrage between DEXs; (2) Liquidations — a pending large ETH price update will trigger collateral liquidations; (3) Sandwich attacks (covered in Q14-15). Flashbots (2020) quantified MEV: over $1.3B was extracted from Ethereum users in the first year after launch. The 'MEV supply chain' emerged: searchers find opportunities, builders bundle transactions with MEV, validators (post-Merge) select the highest-paying bundle. This created a semi-regulated MEV marketplace (MEV-Boost) that partially redistributes MEV to ETH stakers rather than concentrating it in large mining pools."
+                },
+                {
+                    "id": 14,
+                    "question": "Front-running in crypto DEX trading occurs when a bot detects a pending transaction and inserts its own transaction ahead of it to profit. What specific property of gas auctions enables front-running, and how does EIP-1559 affect this dynamic?",
+                    "options": {
+                        "A": "Front-running requires the attacker to be a validator; EIP-1559 eliminated front-running by giving validators no control over transaction ordering",
+                        "B": "Front-running exploits priority gas auctions (PGA): validators include transactions in descending gas price order, so an attacker who observes a pending transaction at gas price $g$ can ensure priority inclusion by submitting their transaction at gas price $g + 1$. EIP-1559 introduced a mandatory base fee (burned) plus an optional priority tip — attackers now bid higher priority tips to front-run, but the base fee burn reduced the direct profit margin from gas bidding wars",
+                        "C": "Front-running is enabled by Ethereum's 15-second block time; front-running is impossible on blockchains with sub-second finality",
+                        "D": "EIP-1559 completely eliminated front-running by capping the maximum gas price at 2x the base fee, making it impossible to outbid other transactions"
+                    },
+                    "correct": "B",
+                    "explanation": "Pre-EIP-1559, priority gas auctions (PGA) were the primary mechanism for transaction ordering: bots would observe a valuable pending transaction and rapidly escalate gas bids in a 'gas war' until their transaction achieved priority. Phil Daian et al. (2019 'Flash Boys 2.0' paper) documented automated bots spending millions in gas to front-run Ethereum DEX trades. EIP-1559 (August 2021) introduced a two-component fee: a mandatory base fee (burned, not paid to validators) that adjusts dynamically with network usage, plus an optional priority tip paid directly to block proposers. This reduced but did not eliminate front-running: attackers now compete on priority tips rather than total gas price. The base fee burn does reduce profitability of marginal MEV extraction (the attacker pays gas even on failed attempts), but high-value front-running (e.g., large DEX trades, liquidations) remains profitable despite higher costs."
+                },
+                {
+                    "id": 15,
+                    "question": "A sandwich attack targets a specific pending DEX transaction. Describe the three-step mechanism of a sandwich attack and explain why the victim suffers worse execution than they would have received without the attack.",
+                    "options": {
+                        "A": "A sandwich attack: (1) the attacker monitors the mempool for large pending DEX swaps; (2) the attacker inserts a buy order immediately AFTER the victim's transaction (to buy at the higher post-trade price); (3) the attacker sells into the victim's buy pressure. The victim benefits slightly from the additional liquidity",
+                        "B": "A sandwich attack: (1) front-run — the attacker buys the target token BEFORE the victim's large buy, pushing the price up; (2) victim's transaction executes at the now-higher price due to additional slippage; (3) back-run — the attacker immediately sells the token at the inflated price into the liquidity provided by the victim's purchase — realising a risk-free profit at the victim's expense. The victim receives worse execution (higher average buy price) than they would have without the attack",
+                        "C": "A sandwich attack is a Layer-2 scaling mechanism where transactions are batched (sandwiched) between two proofs to reduce gas costs; it has no connection to market manipulation",
+                        "D": "Sandwich attacks only occur in lending protocols when a borrower's position is sandwiched between two liquidation events; DEX traders are not affected"
+                    },
+                    "correct": "B",
+                    "explanation": "The sandwich attack mechanics on a constant-product AMM: suppose a victim submits a 100 ETH buy of token X, expecting to receive Y tokens at price $p_0$ with 1% slippage tolerance. The attacker observes this in the mempool. Step 1 (front-run): attacker buys 50 ETH of token X, moving price to $p_1 > p_0$. Step 2 (victim executes): victim's 100 ETH trade executes at $p_1$, receiving fewer tokens than expected — the victim may hit their slippage limit or receive execution significantly worse than the original price. Step 3 (back-run): attacker sells their token X position into the victim's buy demand, receiving a price $p_2 > p_1$ and realising profit $= p_2 \\cdot \\text{tokens sold} - 50 \\text{ ETH cost}$. Victims can mitigate sandwich attacks by setting tight slippage tolerances (though this risks failed transactions if the market moves naturally) or using private mempools (Flashbots Protect) that hide transactions from searchers."
+                },
+                {
+                    "id": 16,
+                    "question": "The EU's Markets in Crypto-Assets Regulation (MiCA), fully effective by December 2024, represents the first comprehensive crypto regulatory framework of its scale. What are MiCA's three primary regulatory categories for crypto-assets, and what is its most significant exclusion?",
+                    "options": {
+                        "A": "MiCA regulates: (1) Bitcoin (Category 1), (2) Ethereum (Category 2), and (3) all other tokens (Category 3); its most significant exclusion is DeFi protocols operating through DAOs",
+                        "B": "MiCA regulates: (1) Asset-Referenced Tokens (ARTs) — stablecoins backed by multiple assets; (2) Electronic Money Tokens (EMTs) — single-currency stablecoins; (3) other crypto-assets (utility tokens, exchange tokens). Its most significant exclusion is NFTs (unique assets not fungible with others) and DeFi protocols — creating a regulatory gap for the fastest-growing segment of crypto",
+                        "C": "MiCA regulates all crypto-assets without exception, including NFTs, DeFi, and CBDCs, requiring all to obtain the same CASPe (Crypto-Asset Service Provider) licence",
+                        "D": "MiCA is limited to exchanges and custodians; it does not regulate the issuance of tokens, leaving token creation entirely unregulated across the EU"
+                    },
+                    "correct": "B",
+                    "explanation": "MiCA (Regulation 2023/1114) creates three distinct regulatory buckets: (1) Asset-Referenced Tokens (ARTs) — stablecoins backed by a basket of currencies, commodities, or crypto (similar to Libra/Diem proposal); subject to strict reserve requirements and potential transaction volume caps (€200M/day per issuer if deemed 'significant'); (2) Electronic Money Tokens (EMTs) — stablecoins referencing a single fiat currency (USDC, USDT); must be licensed as electronic money institutions with 1:1 liquid reserves; (3) Other crypto-assets not covered by existing financial law — utility tokens, governance tokens, exchange tokens. Bitcoin and Ethereum fall into category 3 with lighter-touch disclosure requirements. The DeFi exclusion is politically contentious: regulators acknowledge they cannot regulate immutable smart contracts, but DeFi protocols with active governance DAOs may ultimately be captured. NFT exclusion has a loophole: 'fractionalized' NFTs may qualify as securities."
+                },
+                {
+                    "id": 17,
+                    "question": "In the United States, there is ongoing jurisdictional debate between the SEC and CFTC over crypto regulation. What is the core legal distinction determining whether a crypto-asset falls under SEC or CFTC jurisdiction, and how does the Howey Test apply?",
+                    "options": {
+                        "A": "The SEC regulates all crypto-assets with market caps above $1 billion; the CFTC regulates all smaller tokens. This bright-line test has been legislatively codified",
+                        "B": "The SEC has jurisdiction over crypto-assets that qualify as 'securities' under the Howey Test: (1) investment of money; (2) in a common enterprise; (3) with expectation of profit; (4) derived from the efforts of others. If all four prongs are met, the SEC claims jurisdiction. The CFTC claims jurisdiction over crypto-assets deemed 'commodities' (Bitcoin and Ethereum are widely accepted as commodities). Most tokens issued by companies with active development teams likely satisfy the Howey Test, placing them under SEC jurisdiction — though the SEC has brought enforcement rather than establishing clear registration pathways",
+                        "C": "The CFTC has exclusive jurisdiction over all crypto derivatives; the SEC has exclusive jurisdiction over all spot markets. This clean division was established in the 2022 Digital Commodity Exchange Act",
+                        "D": "Bitcoin is under SEC jurisdiction because it was launched as an investment; Ethereum is under CFTC jurisdiction because it is used for utility (gas payments)"
+                    },
+                    "correct": "B",
+                    "explanation": "The Howey Test (SEC v. W.J. Howey Co., 1946) determines whether an arrangement constitutes an 'investment contract' (security). SEC Chair Gary Gensler stated in 2022 that 'the vast majority of crypto tokens are securities.' The SEC's position: ICO tokens (sold to investors with promises of future profit from the team's work) clearly satisfy Howey. Bitcoin likely does not (no central development team whose efforts drive value; no promise of profit at launch). Ethereum's status is disputed: pre-Merge ETH staking rewards resemble profit from others' efforts (validators). The 2023 SEC complaints against Binance and Coinbase named 13+ tokens (including SOL, ADA, MATIC) as unregistered securities. The CFTC simultaneously sued Binance claiming BTC, ETH, and USDT are commodities. This jurisdictional overlap creates regulatory uncertainty that impedes institutional adoption and forces many projects offshore."
+                },
+                {
+                    "id": 18,
+                    "question": "Anti-Money Laundering (AML) and Know Your Customer (KYC) requirements are central to crypto regulation globally. What specific challenge does the pseudonymous nature of public blockchains create for AML compliance, and how do blockchain analytics firms address it?",
+                    "options": {
+                        "A": "Pseudonymity makes AML compliance completely impossible for crypto; all AML requirements are waived for crypto businesses by the FATF",
+                        "B": "Pseudonymous blockchain transactions create challenges because wallet addresses are not inherently linked to real-world identities — a single person can control thousands of addresses. Blockchain analytics firms (Chainalysis, Elliptic, TRM Labs) address this through heuristic clustering: grouping addresses controlled by the same entity (e.g., addresses that co-spend inputs in a Bitcoin transaction share a common owner), tracking fund flows from known illicit addresses (darknet markets, hacked exchange wallets), and building identity databases linking on-chain addresses to off-chain entities from exchange KYC data and open-source intelligence",
+                        "C": "The pseudonymity problem is solved by Ethereum's ENS (Ethereum Name Service), which requires real-name registration for all wallet addresses, providing a built-in KYC layer",
+                        "D": "AML compliance is fully automated by OFAC's blockchain monitoring software that flags all transactions from sanctioned countries in real-time"
+                    },
+                    "correct": "B",
+                    "explanation": "The FATF (Financial Action Task Force) Travel Rule requires that crypto service providers transmit sender/recipient identifying information for transfers above $1,000 — analogous to wire transfer requirements. Implementation is technically complex: traditional banks communicate via SWIFT messaging; crypto transactions have no built-in field for identity data. Solutions like TRUST, OpenVASP, and Sygna Bridge allow compliant VASPs (Virtual Asset Service Providers) to exchange Travel Rule information. Chainalysis' Reactor tool maps blockchain transactions into a visual graph, applies clustering heuristics (common input ownership, change address detection, timing analysis), and overlays its database of 400+ identified entities (exchanges, mixers, darknet markets). When a CEX receives a deposit from a Tornado Cash withdrawal (a known mixer), Chainalysis flags it and the exchange can freeze the funds or file a Suspicious Activity Report (SAR). The 2022 OFAC sanctioning of Tornado Cash itself — a smart contract — raised novel questions about whether immutable code can be 'sanctioned.'"
+                },
+                {
+                    "id": 19,
+                    "question": "Central Bank Digital Currencies (CBDCs) are being developed by 130+ countries as sovereign digital money. How do retail CBDCs differ from both physical cash and existing crypto-assets, and what privacy concerns do they raise?",
+                    "options": {
+                        "A": "CBDCs are identical to existing bank deposits — they simply digitise the existing monetary system without any novel properties or risks",
+                        "B": "Retail CBDCs are direct liabilities of the central bank (unlike commercial bank deposits, which are private bank liabilities) and are programmable digital tokens on government-controlled infrastructure. Unlike physical cash (anonymous, bearer instrument), CBDCs can record every transaction — raising concerns that governments could monitor all spending, restrict purchases of disfavoured goods, apply expiry dates to money to force spending, or exclude citizens from the financial system by disabling their CBDC wallet",
+                        "C": "CBDCs are fully equivalent to decentralised cryptocurrencies like Bitcoin; the only difference is the issuer (central bank vs. algorithm)",
+                        "D": "CBDCs eliminate privacy concerns because they are built on public blockchains where all transactions are visible to everyone equally, including the government"
+                    },
+                    "correct": "B",
+                    "explanation": "The distinction between CBDC and commercial bank deposits is crucial: if a bank fails, depositors lose their money (subject to deposit insurance limits). CBDC balances are direct central bank liabilities — as safe as holding physical central bank notes, but digital. The programmability concern is legitimate and widely debated: China's e-CNY has demonstrated 'expiry features' (digital yuan coupons that expire if unspent). In principle, a CBDC could be programmed to only allow spending at approved merchants, deny transactions to sanctioned individuals in real-time, or implement negative interest rates by automatically reducing wallet balances. Privacy advocates like the ECB's own Christine Lagarde face internal pressure to build 'cash-like' anonymity for small transactions into the digital euro, while law enforcement demands surveillance capabilities for large transactions. The 2024 European Central Bank digital euro design includes privacy protections for offline transactions below €1,000."
+                },
+                {
+                    "id": 20,
+                    "question": "The future structure of crypto trading is being shaped by several converging trends. Which combination of developments is most likely to define the crypto trading landscape by 2030, based on current regulatory and technological trajectories?",
+                    "options": {
+                        "A": "All crypto trading will migrate to fully decentralised, anonymous protocols by 2030 as regulation drives activity underground; CEXs will cease to exist",
+                        "B": "Traditional finance will completely absorb crypto by 2030 through CBDC integration, effectively eliminating Bitcoin and Ethereum as separate assets from regulated markets",
+                        "C": "The 2030 landscape will likely feature: (1) regulated CEXs operating under MiCA, US/UK/Singapore frameworks with mandatory PoR and custody segregation; (2) institutional-grade DeFi with compliance layers (KYC-gated pools, on-chain identity via verifiable credentials); (3) Bitcoin/Ethereum spot ETFs normalising crypto in traditional portfolios; (4) continued coexistence of regulated and unregulated venues, with regulatory arbitrage remaining a feature; (5) MEV and DEX mechanics maturing as Layer-2 scaling enables higher-frequency on-chain trading",
+                        "D": "The future of crypto trading is unknowable because regulatory developments are entirely unpredictable; any forecast beyond 12 months is speculation"
+                    },
+                    "correct": "C",
+                    "explanation": "The convergence of forces shaping 2030 crypto markets: (1) Regulatory clarity is emerging — MiCA is fully effective from December 2024; US legislation is advancing; Singapore's MAS has established licensing; this regulatory clarity enables institutional entry. (2) Spot Bitcoin ETFs (approved by SEC in January 2024) and Ethereum ETFs (approved mid-2024) brought $50B+ in traditional finance flows, establishing crypto as a legitimate asset class. (3) Layer-2 scaling (Arbitrum, Optimism, Base, zkSync) reduces Ethereum gas costs 10-100x, making on-chain trading competitive with CEXs for the first time. (4) Zero-knowledge proofs enable privacy-preserving compliance: KYC can be proved without revealing identity (ZK-KYC), enabling regulated DeFi that maintains on-chain privacy. (5) MEV mitigation (Flashbots SUAVE, PBS) is evolving toward more equitable extraction, reducing the current penalty on retail traders. The coexistence of regulated and unregulated venues will persist because crypto's permissionless nature cannot be eliminated without shutting down the underlying blockchains."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

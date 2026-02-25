@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz DF-4: Advanced DeFi and Security | DeFi Fundamentals</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz DF-4: Advanced DeFi and Security</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz DF-4: Advanced DeFi and Security</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is a flash loan in DeFi, and what is the atomic constraint that makes it possible without collateral?",
+                    "options": {
+                        "A": "A loan that charges zero interest due to high protocol liquidity",
+                        "B": "An uncollateralized loan where borrowed funds must be returned within the same Ethereum transaction; if not repaid, the entire transaction reverts as if the loan never occurred",
+                        "C": "A loan that is automatically repaid from the borrower's future yield farming rewards",
+                        "D": "A short-term loan backed by a credit score stored on-chain via a decentralized identity protocol"
+                    },
+                    "correct": "B",
+                    "explanation": "Flash loans exploit Ethereum's atomicity: either every step in a transaction succeeds or the entire transaction reverts. A flash loan smart contract lends funds, executes the borrower's logic, then verifies repayment — all within one transaction. If the final balance check fails, everything unwinds. This makes uncollateralized lending safe for the protocol: if you can't repay, no state change persists. Aave pioneered this feature and charges a small fee (typically 0.09%)."
+                },
+                {
+                    "id": 2,
+                    "question": "Which of the following is a LEGITIMATE use case for flash loans?",
+                    "options": {
+                        "A": "Creating artificial trading volume on a DEX to inflate a token's price metrics",
+                        "B": "Atomically swapping collateral between two lending protocols without needing upfront capital for the swap",
+                        "C": "Permanently draining a lending pool's reserves without repayment",
+                        "D": "Bypassing KYC requirements on centralized exchanges"
+                    },
+                    "correct": "B",
+                    "explanation": "Legitimate flash loan use cases include: (1) collateral swaps — borrow Asset B via flash loan, repay loan in Asset A, closing the position without owning both assets upfront; (2) arbitrage — exploit price differences across DEXes atomically; (3) self-liquidation — use a flash loan to repay debt and retrieve collateral before a liquidator can seize it at a penalty. All legitimate uses must repay the loan in full within the transaction."
+                },
+                {
+                    "id": 3,
+                    "question": "The bZx protocol suffered two flash loan attacks in February 2020. What vulnerability was exploited in the first attack?",
+                    "options": {
+                        "A": "A reentrancy bug that allowed the attacker to withdraw funds multiple times",
+                        "B": "Flash loan funds were used to manipulate a thin on-chain price oracle (Uniswap V1 spot price), creating a massively inflated collateral valuation that allowed under-collateralized borrowing",
+                        "C": "An integer overflow in the interest calculation allowed the attacker to set their debt to zero",
+                        "D": "The admin private key was compromised, allowing a direct drain of the treasury"
+                    },
+                    "correct": "B",
+                    "explanation": "The attacker used a flash loan to borrow ETH, then used part of it to short WBTC on bZx and simultaneously pump the WBTC/ETH price on the thin Uniswap V1 pool. Because bZx used that Uniswap spot price as its oracle, the manipulated price made the attacker's WBTC collateral appear worth far more than it was, enabling a massively undercollateralized loan. This attack demonstrated that using single-source, manipulable on-chain spot prices as oracles is dangerous."
+                },
+                {
+                    "id": 4,
+                    "question": "What is MEV (Maximal Extractable Value), and who extracts it?",
+                    "options": {
+                        "A": "The maximum amount a user can earn from yield farming in a single block",
+                        "B": "Profit extracted by block producers (miners/validators) and searchers by reordering, inserting, or censoring transactions within a block",
+                        "C": "The maximum value of tokens that can be minted per block under protocol rules",
+                        "D": "The total fees earned by liquidity providers in a single Ethereum block"
+                    },
+                    "correct": "B",
+                    "explanation": "MEV (originally Miner Extractable Value, renamed Maximal Extractable Value post-Merge) is the profit available from controlling transaction ordering within a block. Validators/miners can front-run profitable transactions, back-run them, insert sandwich attacks, or reorder liquidations to capture value. 'Searchers' are bots that identify MEV opportunities and pay high priority fees (or use Flashbots bundles) to have their transactions included in optimal positions. Billions in MEV have been extracted on Ethereum since DeFi's growth."
+                },
+                {
+                    "id": 5,
+                    "question": "In a sandwich attack, what sequence of transactions does the attacker execute around a victim's large DEX swap?",
+                    "options": {
+                        "A": "The attacker front-runs with a buy, lets the victim's large buy push the price up, then back-runs with a sell at the inflated price — profiting at the victim's expense",
+                        "B": "The attacker copies the victim's transaction and submits it first, effectively stealing the trade",
+                        "C": "The attacker inserts a flash loan between the victim's approve and swap transactions to drain their allowance",
+                        "D": "The attacker monitors the mempool and cancels the victim's transaction by front-running with a higher nonce"
+                    },
+                    "correct": "A",
+                    "explanation": "A sandwich attack works as follows: (1) Attacker sees victim's pending large buy in the mempool; (2) Attacker front-runs with their own buy at the current lower price; (3) Victim's buy executes, pushing the price up; (4) Attacker immediately back-runs with a sell at the higher price. The victim receives a worse execution price (more slippage) than they would have without the attack. Setting tight slippage tolerance reduces sandwich attack profitability."
+                },
+                {
+                    "id": 6,
+                    "question": "Why are on-chain spot prices (e.g., a single DEX's current price) dangerous to use as oracles for DeFi lending protocols?",
+                    "options": {
+                        "A": "On-chain prices update too slowly — they only change once per block, which is insufficient for real-time applications",
+                        "B": "Spot prices on low-liquidity pools can be manipulated cheaply within a single transaction using flash loans, allowing attackers to distort collateral valuations",
+                        "C": "On-chain prices are denominated in ETH and cannot be converted to USD reliably",
+                        "D": "Smart contracts cannot read prices from other contracts due to Ethereum's isolation model"
+                    },
+                    "correct": "B",
+                    "explanation": "On-chain spot prices reflect only the current state of a specific liquidity pool. An attacker with enough capital (or a flash loan) can temporarily move the price in a low-liquidity pool within a single transaction, and if a lending protocol reads that manipulated price as collateral value, the attacker can borrow against artificially inflated collateral. Time-weighted average price (TWAP) oracles and multi-source aggregators like Chainlink resist this by averaging over time and sourcing from multiple data providers."
+                },
+                {
+                    "id": 7,
+                    "question": "Chainlink's decentralized oracle network uses multiple independent node operators to report prices. How does this architecture reduce oracle manipulation risk?",
+                    "options": {
+                        "A": "It eliminates the need for price data entirely by computing prices from first principles using on-chain data",
+                        "B": "It requires an attacker to compromise or collude with a majority of independent node operators simultaneously, which is economically infeasible for well-secured feeds",
+                        "C": "Each Chainlink node uses a different DEX as its price source, and the protocol selects the highest reported price",
+                        "D": "Chainlink nodes are operated by the protocols that use them, ensuring alignment of incentives"
+                    },
+                    "correct": "B",
+                    "explanation": "Chainlink aggregates price reports from a decentralized network of independent node operators using a median aggregation. To manipulate the reported price, an attacker would need to compromise the majority of nodes in a specific feed. Since nodes are operated by independent entities (professional node operators with staked LINK at risk), achieving this requires corrupting many disparate actors — far harder than manipulating a single on-chain pool. This is defense-in-depth through decentralization."
+                },
+                {
+                    "id": 8,
+                    "question": "What is a 'rug pull' in DeFi, and which smart contract mechanism is most commonly exploited to execute one?",
+                    "options": {
+                        "A": "A market crash caused by whale selling; executed through large market sell orders on major exchanges",
+                        "B": "A developer-initiated theft where the team removes liquidity or uses privileged contract functions to drain user funds; commonly enabled by a hidden mint function, an upgradeable proxy under developer control, or removable liquidity",
+                        "C": "A flash loan attack that drains an AMM pool within a single transaction",
+                        "D": "A governance attack where token holders vote to dissolve the protocol treasury"
+                    },
+                    "correct": "B",
+                    "explanation": "Rug pulls are intentional exit scams by developers. Common mechanisms: (1) Hidden mint function — developer mints infinite tokens and dumps them; (2) Backdoor withdrawal — admin function to drain the treasury; (3) Liquidity removal — developers add liquidity to attract investors then withdraw it all (common with DEX pairs); (4) Upgradeable contracts — proxy points to a new malicious implementation. Auditing for these patterns and checking whether liquidity is locked or time-locked are standard due diligence steps."
+                },
+                {
+                    "id": 9,
+                    "question": "What is a honeypot token in DeFi, and what technical mechanism typically makes it work?",
+                    "options": {
+                        "A": "A high-yield protocol that attracts deposits and then locks them permanently via smart contract logic",
+                        "B": "A token that allows anyone to buy but prevents selling through a custom transfer hook or blacklist function, trapping investors' funds",
+                        "C": "A governance token that grants voting power but transfers voting rights to the developer after purchase",
+                        "D": "A token with a deflationary burn mechanism so aggressive that holders cannot profitably sell"
+                    },
+                    "correct": "B",
+                    "explanation": "Honeypot tokens override the ERC-20 transfer() or hook into the DEX's swap callback to selectively block sells. The contract may check: if the recipient is the DEX pool (i.e., the user is selling), revert the transaction. Or it may use a whitelist that only includes the developer's address as an approved seller. Victims can buy and see their balance grow, but every sell attempt fails. Simulation tools like Token Sniffer and honeypot.is detect these patterns by simulating a buy and sell before you commit."
+                },
+                {
+                    "id": 10,
+                    "question": "In the Beanstalk governance attack (April 2022), the attacker used a flash loan to exploit the governance system. What was the key vulnerability?",
+                    "options": {
+                        "A": "The governance contract had a reentrancy bug that allowed votes to be counted twice",
+                        "B": "Governance voting power was based on token holdings at the time of vote, and a flash loan allowed the attacker to temporarily hold a majority of governance tokens within a single transaction to pass a malicious proposal",
+                        "C": "The attacker found an admin private key in a public GitHub repository and used it to directly transfer funds",
+                        "D": "A price oracle was manipulated to make the governance token appear worthless, triggering emergency withdrawal functions"
+                    },
+                    "correct": "B",
+                    "explanation": "Beanstalk used an 'emergency commit' governance mechanism that allowed instant execution of proposals with a supermajority of votes, with no timelock. The attacker flash-loaned ~$1B in stablecoins, acquired a supermajority of BEAN governance tokens within the same transaction, voted for a malicious proposal that transferred all protocol assets to the attacker, and repaid the flash loan — all atomically. The $182M exploit demonstrated that governance systems must not allow snapshot-based instant execution; timelocks are essential."
+                },
+                {
+                    "id": 11,
+                    "question": "In the context of DeFi smart contracts, what is a reentrancy attack, and which famous exploit first demonstrated it at scale?",
+                    "options": {
+                        "A": "An attack where a user repeatedly calls a function via different wallet addresses to bypass rate limits; first seen in the Compound Finance v1 exploit",
+                        "B": "An attack where a malicious contract's fallback function recursively calls back into the victim contract before its state is updated, draining funds; first demonstrated in The DAO hack of 2016",
+                        "C": "An attack that exploits integer overflow in balance tracking; first seen in the Parity Multisig hack",
+                        "D": "An attack that front-runs withdrawal transactions in the mempool; first demonstrated in the Uniswap V1 exploit"
+                    },
+                    "correct": "B",
+                    "explanation": "Reentrancy occurs when Contract A calls Contract B, and Contract B calls back into Contract A before A has updated its state. In The DAO hack ($60M, June 2016), the withdraw function sent ETH before updating the balance. An attacker deployed a contract whose fallback function recursively called withdraw, draining funds repeatedly before the balance was decremented. The Checks-Effects-Interactions pattern (update state BEFORE external calls) and reentrancy guards (nonReentrant modifier) are now standard defenses."
+                },
+                {
+                    "id": 12,
+                    "question": "Which of the following smart contract security tools performs STATIC analysis by analyzing contract bytecode or Solidity source without executing the code?",
+                    "options": {
+                        "A": "Echidna — a property-based fuzzer that generates random inputs to test invariants",
+                        "B": "Slither — a static analysis framework that detects vulnerabilities by parsing the Solidity AST and data flow without running the contract",
+                        "C": "Hardhat — a development framework that simulates transactions in a local blockchain environment",
+                        "D": "Tenderly — a real-time transaction monitoring and simulation platform"
+                    },
+                    "correct": "B",
+                    "explanation": "Slither (by Trail of Bits) is a static analysis tool: it parses Solidity source code into an Abstract Syntax Tree (AST), then runs detectors for known vulnerability patterns (reentrancy, unchecked return values, incorrect visibility, etc.) without executing any code. This makes it fast — analyzing a contract in seconds. Mythril uses symbolic execution (also static but with path exploration). Echidna is a fuzzer (dynamic). Hardhat and Tenderly are execution environments, not static analyzers."
+                },
+                {
+                    "id": 13,
+                    "question": "Certora Prover uses formal verification for smart contract security. How does formal verification differ from testing and fuzzing?",
+                    "options": {
+                        "A": "Formal verification runs more test cases faster than fuzzing",
+                        "B": "Formal verification mathematically proves that all possible execution paths satisfy specified properties, giving correctness guarantees across the entire input space rather than just sampled inputs",
+                        "C": "Formal verification requires the contract to be deployed on a testnet before analysis can begin",
+                        "D": "Formal verification is only applicable to ERC-20 tokens, not complex DeFi protocols"
+                    },
+                    "correct": "B",
+                    "explanation": "Testing and fuzzing sample from the input space — they can find bugs but cannot prove their absence. Formal verification using tools like Certora Prover or SMTChecker encodes the contract's logic and user-specified properties (invariants) into a mathematical system, then uses SMT solvers to prove or disprove that properties hold for ALL possible inputs. If the prover succeeds, no counterexample exists — a much stronger guarantee. However, formal verification requires writing precise specifications, which is itself error-prone and time-consuming."
+                },
+                {
+                    "id": 14,
+                    "question": "Nexus Mutual provides decentralized insurance for DeFi protocols. What does a 'smart contract cover' policy protect against?",
+                    "options": {
+                        "A": "All financial losses including impermanent loss and market price declines",
+                        "B": "Financial losses caused by bugs or exploits in specific covered smart contract code, such as funds drained by a hack of the insured protocol",
+                        "C": "Loss of private keys or hardware wallet failures",
+                        "D": "Regulatory actions that force a protocol to freeze user funds"
+                    },
+                    "correct": "B",
+                    "explanation": "Nexus Mutual's smart contract cover specifically insures against 'unintended code behavior' — bugs or exploits in the covered protocol's smart contracts that result in loss of funds. Coverage does NOT include: impermanent loss (considered market risk), price oracle failures classified as economic design flaws, key management failures, or protocol insolvency not caused by a hack. Claims are assessed by NXM token holders who vote on whether the loss qualifies under the policy terms."
+                },
+                {
+                    "id": 15,
+                    "question": "What is a timelock in the context of DeFi governance, and what security property does it enforce?",
+                    "options": {
+                        "A": "A timer that prevents users from withdrawing funds for a fixed period after depositing",
+                        "B": "A mandatory delay between when a governance proposal passes and when it is executed, giving users time to review changes and exit if they disagree",
+                        "C": "A block-number-based lock that prevents governance voting during periods of high network congestion",
+                        "D": "A smart contract that distributes vested governance tokens to team members over 4 years"
+                    },
+                    "correct": "B",
+                    "explanation": "A timelock (e.g., Compound's GovernorBravo with a 2-day timelock) enforces a delay — typically 24 hours to 2 weeks — between a proposal passing a vote and its execution on-chain. This gives users who disagree with the change time to review it and withdraw funds before the change takes effect. It also makes governance attacks (like the Beanstalk flash loan attack) much harder: an attacker cannot instantly execute a malicious proposal; the community has time to respond and cancel it."
+                },
+                {
+                    "id": 16,
+                    "question": "A multisig wallet requires M-of-N signatures to execute transactions. Why is a 3-of-5 multisig considered more secure than a single-signer admin key for DeFi protocol governance?",
+                    "options": {
+                        "A": "Multisig transactions cost less gas, making governance more economically efficient",
+                        "B": "A single compromised key cannot authorize malicious transactions; an attacker must compromise at least 3 of 5 independent signers simultaneously, drastically raising the attack cost",
+                        "C": "Multisig wallets are immune to smart contract bugs because they use hardware security modules",
+                        "D": "Multisig eliminates governance token holder voting and replaces it with faster admin decision-making"
+                    },
+                    "correct": "B",
+                    "explanation": "Single admin keys are a catastrophic single point of failure — if the private key is leaked, phished, or the admin is coerced, all protocol assets can be drained instantly. A 3-of-5 multisig requires an attacker to compromise at least 3 independent signers (ideally held by different people in different locations on different hardware). This distributes trust and eliminates single points of failure. Best practice: signers should use hardware wallets (Ledger/Trezor) and be geographically distributed team members or independent security firms."
+                },
+                {
+                    "id": 17,
+                    "question": "Cross-chain bridges are among the highest-value DeFi hack targets. What is the fundamental security challenge that makes bridges difficult to secure?",
+                    "options": {
+                        "A": "Bridges are difficult to code because each blockchain uses a different programming language",
+                        "B": "Bridges must verify events on one blockchain (e.g., a lock) to trigger actions on another, but blockchains cannot natively read each other's state — this cross-chain verification introduces trust assumptions that can be exploited",
+                        "C": "Bridges are slow because they must wait for both blockchains to finalize, creating a window for double-spend attacks",
+                        "D": "Bridges always hold too little liquidity, causing slippage that attackers exploit for arbitrage"
+                    },
+                    "correct": "B",
+                    "explanation": "Bridges hold assets on one chain and mint representations on another. The critical security question is: 'How does Chain B know that assets were genuinely locked on Chain A?' Different verification approaches — multisig validators, light clients, optimistic verification — all introduce trust assumptions. If the verification mechanism is compromised (e.g., validator keys stolen, light client manipulated, a bug in the verification logic), an attacker can forge proofs of deposits that never happened, minting unbacked tokens on the destination chain."
+                },
+                {
+                    "id": 18,
+                    "question": "The Ronin Network bridge hack (March 2022) resulted in $625M in losses. What was the root cause?",
+                    "options": {
+                        "A": "A reentrancy bug in the bridge's smart contract allowed recursive withdrawals",
+                        "B": "The attacker exploited a flash loan to manipulate the bridge's liquidity pool ratio",
+                        "C": "Sky Mavis (Axie Infinity) had reduced the validator count from 9 to 5 without public announcement, and the attacker compromised 5 of 9 validator keys (4 at Sky Mavis + 1 at Axie DAO) through social engineering and phishing",
+                        "D": "An integer overflow in the bridge contract allowed the attacker to request withdrawals larger than their deposited balance"
+                    },
+                    "correct": "C",
+                    "explanation": "The Ronin bridge required 5-of-9 validator signatures to approve withdrawals. Critically, Sky Mavis had temporarily reduced the threshold from 9 validators to 5 for gas efficiency during a period of high traffic and never reverted the change. The attacker (later attributed to North Korea's Lazarus Group) obtained 4 Sky Mavis validator keys via phishing/social engineering, then discovered the Axie DAO had granted Sky Mavis signing rights to its validator — giving the attacker the 5th signature needed to forge withdrawals. The attack went undetected for 6 days."
+                },
+                {
+                    "id": 19,
+                    "question": "The Euler Finance hack (March 2023) exploited a flaw in Euler's donation/liquidation mechanism for $197M. What general vulnerability class does this represent?",
+                    "options": {
+                        "A": "Reentrancy — the attacker recursively called Euler's withdraw function before balances were updated",
+                        "B": "Flash loan-enabled manipulation of a custom liquidation and donation function that bypassed the standard health-factor checks, creating artificially undercollateralized positions that the attacker could self-liquidate at a profit",
+                        "C": "Oracle manipulation — the attacker moved Euler's price oracle to show ETH at $0, triggering mass false liquidations",
+                        "D": "Integer overflow — the attacker exploited an unchecked arithmetic operation to set their debt balance to zero"
+                    },
+                    "correct": "B",
+                    "explanation": "The Euler exploit exploited a vulnerable donateToReserves() function combined with a logic flaw in the liquidation mechanism. The attacker could create positions where the donateToReserves() function moved collateral to the reserve without reducing the debt, creating undercollateralized positions. The attacker then used a second address to liquidate these positions at a profit. Flash loans provided the capital. This is an example of a business logic vulnerability — the individual functions were technically correct but their interaction created an exploitable state. The full $197M was eventually returned after negotiations."
+                },
+                {
+                    "id": 20,
+                    "question": "The DAO hack (2016) led to the Ethereum hard fork creating ETH and ETC. What principle does the existence of Ethereum Classic (ETC) represent in blockchain philosophy?",
+                    "options": {
+                        "A": "ETC represents the technically superior chain because it has faster block times",
+                        "B": "ETC represents the principle that 'code is law' — that blockchain transactions should be immutable even when they result from exploits, and that social consensus should not override on-chain outcomes",
+                        "C": "ETC represents a community that preferred proof-of-work after Ethereum's transition to proof-of-stake",
+                        "D": "ETC was created as a testnet for new Ethereum features before deploying to mainnet"
+                    },
+                    "correct": "B",
+                    "explanation": "After The DAO hack, the Ethereum community faced a dilemma: fork to return funds (pragmatism) or maintain immutability (code is law). The majority chose to hard fork, creating ETH with the stolen funds returned. A minority rejected this, believing that social consensus should never override on-chain outcomes regardless of the reason — the fork was, to them, an unprincipled intervention. They continued the original chain as ETC. This philosophical split — between 'blockchain immutability is sacred' vs 'social coordination can correct catastrophic errors' — remains unresolved in the broader crypto community."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

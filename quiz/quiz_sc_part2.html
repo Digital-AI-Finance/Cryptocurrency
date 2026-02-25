@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SC-2: Collateralized Stablecoins | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz SC-2: Collateralized Stablecoins</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz SC-2: Collateralized Stablecoins</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Tether (USDT) was launched in 2014 using the Omni Layer protocol on the Bitcoin blockchain before expanding to other chains. What does this original architecture reveal about the early design priorities of fiat-backed stablecoins?",
+                    "options": {
+                        "A": "It reveals that Tether's founders anticipated Ethereum's ERC-20 standard would fail, making Bitcoin's scripting language the safer long-term platform",
+                        "B": "It reveals that early designers prioritised leveraging Bitcoin's established security and network effect over smart contract programmability — liquidity and trust in the base chain mattered more than DeFi composability at a time when Ethereum did not yet exist",
+                        "C": "It reveals that Omni Layer's transaction throughput was 100x faster than Ethereum, making it the superior settlement layer for high-volume stablecoin transfers",
+                        "D": "It reveals that Tether was designed exclusively for Bitcoin miners to receive block rewards in a stable asset rather than in volatile BTC"
+                    },
+                    "correct": "B",
+                    "explanation": "Tether launched via Omni Layer (formerly Mastercoin) in October 2014 — roughly a year before Ethereum's mainnet launch in July 2015. Bitcoin's network was the only mature public blockchain available. The choice reflects a pragmatic early-mover decision: use the most trusted, widely-adopted blockchain infrastructure to convince exchanges and users that the tokens were legitimate. Ethereum's ERC-20 programmability was later far more important for DeFi, which is why USDT eventually migrated its volume primarily to Ethereum and later to Tron (TRX). Today Tron hosts the largest USDT supply by chain, reflecting where cheap high-throughput transfers are most demanded."
+                },
+                {
+                    "id": 2,
+                    "question": "Circle's USDC follows a fundamentally different trust model than Tether's USDT, despite both being 1:1 USD-backed stablecoins. What is the key structural difference that underpins this distinction?",
+                    "options": {
+                        "A": "USDC is backed by FDIC-insured bank deposits for every dollar; USDT uses a blockchain-native insurance fund",
+                        "B": "Circle is a regulated US money transmitter that publishes monthly reserve attestations by a major accounting firm (Grant Thornton, later Deloitte) with reserves held primarily in short-dated US Treasuries and cash equivalents; Tether's attestations have historically been less granular, and Tether settled with the CFTC and NYAG for misrepresenting its reserves",
+                        "C": "USDC smart contracts are controlled by a DAO; USDT is controlled by a single private company, making USDT more censorship-resistant",
+                        "D": "USDC offers native yield to holders by investing reserves in money market funds; USDT passes all reserve yield to the protocol treasury"
+                    },
+                    "correct": "B",
+                    "explanation": "Circle, co-founded with Coinbase, pursued a compliance-first strategy from the outset. USDC launched in 2018 under the Centre Consortium framework with monthly reserve attestations and a clear reserve composition policy. As of 2023, USDC reserves are held almost entirely in short-dated US government securities and overnight repos — essentially equivalent to money market fund quality. Tether's history includes a period where reserves included loans to affiliated entities, commercial paper of uncertain quality, and digital tokens. The 2021 CFTC settlement ($41M fine) and 2019 NYAG settlement ($18.5M) documented periods where USDT was not fully backed by fiat dollars. This regulatory and transparency gap is the core trust differential."
+                },
+                {
+                    "id": 3,
+                    "question": "When a new user mints 1,000,000 USDC through Circle's API, what is the precise sequence of operations that occurs, and what constraint does Circle impose on who can directly mint and burn USDC?",
+                    "options": {
+                        "A": "Any Ethereum wallet can call the USDC smart contract's mint() function directly by sending 1,000,000 USDC worth of ETH to the contract address",
+                        "B": "USDC minting is fully decentralised via a governance vote; 1,000,000 MKR governance tokens must be burned to authorise each million USDC minted",
+                        "C": "Only Circle-authorised 'minters' (institutional partners who have passed KYC/AML and signed legal agreements) can call mint(); a retail user sends USD via wire transfer to Circle, Circle verifies receipt and instructs the smart contract minter to issue 1,000,000 new USDC to the user's address — Circle holds the corresponding USD in reserves",
+                        "D": "Anyone can mint USDC by staking ETH as collateral; Circle's role is purely operational and does not involve any KYC process"
+                    },
+                    "correct": "C",
+                    "explanation": "USDC uses a permissioned minting model. The USDC smart contract has a 'minter' role with a specific issuance allowance granted by Circle. Only Circle (or authorised master minters) can create new USDC. The flow: (1) institutional customer wire-transfers USD to Circle's bank account; (2) Circle's treasury team confirms receipt; (3) Circle's backend calls the USDC contract's mint() function, crediting the customer's address; (4) the new USD is placed into Circle's reserve portfolio. The reverse (burning) follows: customer sends USDC to Circle's smart contract, Circle calls burn(), and wires USD back. Retail users access USDC via exchanges like Coinbase, which handle the Circle relationship. This design means USDC is not trustless — it requires trusting Circle."
+                },
+                {
+                    "id": 4,
+                    "question": "USDC incorporates a 'blacklist' function that allows Circle to freeze specific addresses. What are the legitimate regulatory reasons for this capability, and what does it reveal about the censorship-resistance trade-off in fiat-backed stablecoins?",
+                    "options": {
+                        "A": "The blacklist enables Circle to comply with US OFAC sanctions (e.g., freeze addresses linked to North Korean hackers, Tornado Cash), court orders, and AML obligations — but it reveals that USDC holders can have their funds frozen without due process by a single company, making USDC fundamentally non-censorship-resistant despite being on a public blockchain",
+                        "B": "The blacklist function is used exclusively to freeze addresses involved in NFT copyright disputes, protecting artists' intellectual property on-chain",
+                        "C": "The blacklist is only accessible to Ethereum validators during network upgrades and has never been used in practice",
+                        "D": "The blacklist function exists to prevent arbitrage bots from attacking the USDC peg; it freezes wallets that conduct more than 100 USDC swaps per hour"
+                    },
+                    "correct": "A",
+                    "explanation": "Circle has used the blacklist function in documented cases: after the Tornado Cash sanctions (August 2022), Circle froze USDC held in Tornado Cash smart contract addresses following OFAC's designation of these contracts as sanctioned entities. As of 2023, over 100 addresses had been blacklisted. The capability makes USDC a censorship-vulnerable asset: unlike ETH or BTC, Circle can unilaterally render USDC non-transferable for any address. This is the fundamental trade-off of fiat-backed stablecoins: they achieve regulatory acceptance (and hence exchange listings, banking relationships) precisely because they give regulators a compliance lever. Users who need censorship resistance must use decentralised alternatives like DAI (and even DAI has become partially dependent on USDC via the PSM, inheriting some USDC censorship risk)."
+                },
+                {
+                    "id": 5,
+                    "question": "Tether's USDT has been issued on over a dozen blockchain networks including Ethereum, Tron, Solana, and Algorand. What operational challenge does multi-chain issuance create, and how does Tether manage the risk of total outstanding supply across all chains?",
+                    "options": {
+                        "A": "Multi-chain issuance creates 'cross-chain yield arbitrage' where USDT on one chain earns higher interest than USDT on another chain, requiring Tether to constantly rebalance",
+                        "B": "Multi-chain issuance is handled automatically by the USDT smart contract, which queries Tether's bank balance in real-time via Chainlink oracles before approving any new token mint",
+                        "C": "Tether avoids this challenge by pegging each chain's USDT to a different fiat currency — ETH-based USDT is backed by USD, Tron-based USDT by CNY, etc.",
+                        "D": "Multi-chain issuance creates the challenge of ensuring total supply across all chains never exceeds the fiat reserves held — Tether manages this by maintaining master issuance records, using chain-specific Treasury wallets that issue only authorised amounts, and publishing aggregate supply figures that sum across all chains"
+                    },
+                    "correct": "D",
+                    "explanation": "Tether operates Treasury wallets on each chain that hold authorised-but-unminted USDT ('unissued supply'). For example, Tether might authorise 1 billion USDT on Tron but only issue 800 million — the remaining 200 million sits in the Treasury wallet as a reserve. The total supply of concern from a solvency standpoint is the circulating supply across all chains, not the authorised supply. Tether publishes this via its transparency page. The risk is operational: if Tether miscounts or intentionally over-issues across chains, no smart contract enforces the reserve constraint — the constraint is enforced only by Tether's internal accounting and periodic attestations. This centralised trust dependency is why reserve transparency remains the primary concern for USDT critics."
+                },
+                {
+                    "id": 6,
+                    "question": "Why is the composition of a fiat-backed stablecoin's reserve portfolio — not just its total size — critically important to evaluating solvency risk?",
+                    "options": {
+                        "A": "Reserve composition only matters for tax purposes; regulators require different tax treatment for commercial paper versus treasury bond holdings",
+                        "B": "A reserve composed of illiquid, volatile, or correlated assets can become insufficient to honour 1:1 redemptions during a bank-run scenario even if the headline 'total reserves' figure equals or exceeds total supply — liquid, high-quality assets (short-dated Treasuries, cash) can be sold quickly in a crisis, while commercial paper, corporate bonds, or crypto assets may trade at steep discounts precisely when redemption demand spikes",
+                        "C": "Reserve composition determines the stablecoin's yield; riskier reserves like commercial paper pay higher interest, benefiting holders through yield-sharing programs",
+                        "D": "Reserve composition only matters if the stablecoin issues more than $1 billion in supply; below that threshold, any asset class is equally safe for reserves"
+                    },
+                    "correct": "B",
+                    "explanation": "This is a core principle from money market fund regulation. During the 2008 financial crisis, the Reserve Primary Fund 'broke the buck' (NAV fell below $1.00) because it held $785M in Lehman Brothers commercial paper that became worthless. The same logic applies to stablecoin reserves. Tether's 2021 reserve breakdown showed significant commercial paper holdings (at peak, ~49% commercial paper, much of it unidentified issuers). Commercial paper has credit risk and can be illiquid. If a large USDT holder requested $5B in redemptions during a market stress event, Tether would need to sell these assets at market prices — potentially at discounts. By 2022-2023, Tether substantially shifted reserves toward US Treasuries, reducing this risk. The USDC/SVB event demonstrated that even 'safe' bank deposits carry bank failure risk."
+                },
+                {
+                    "id": 7,
+                    "question": "What is the difference between an 'attestation' and a 'full audit' in the context of stablecoin reserve verification, and why do critics argue attestations are insufficient?",
+                    "options": {
+                        "A": "An attestation is conducted by the stablecoin issuer's internal team; a full audit is conducted by an external accounting firm — both provide equal assurance of reserve adequacy",
+                        "B": "An attestation covers only the smart contract code; a full audit covers both the smart contract and the off-chain reserve holdings",
+                        "C": "An attestation is a point-in-time confirmation by an independent accountant that reserve assets on a specific date equalled or exceeded circulating supply, without testing the transactions that led to that position; a full audit involves testing internal controls, transaction histories, and the entire financial reporting process — critics argue attestations could miss window-dressing (temporarily inflating reserves for the snapshot date) and don't verify that reserves are unencumbered",
+                        "D": "Attestations are conducted monthly; full audits are conducted annually — the frequency difference is the primary distinction, not the methodology"
+                    },
+                    "correct": "C",
+                    "explanation": "Attestations (the type Tether publishes via BDO and previously Moore Cayman, and that Circle publishes via Deloitte) are 'agreed-upon procedures' engagements: the accountant confirms that, on date X, the reserves as reported by management equalled or exceeded circulating supply. This is weaker than an audit in three key ways: (1) no testing of whether the reserve position was artificially inflated on that specific date (e.g., by short-term borrowing that is repaid the next day); (2) no verification that the assets are unencumbered (not pledged as collateral elsewhere); (3) no assessment of internal controls or fraud risk. A full GAAP financial statement audit subjects all of this to scrutiny. Critics (including former CFTC chair Timothy Massad) have consistently called for full audits. To date, neither Tether nor Circle has produced a complete audited financial statement for the reserve entity."
+                },
+                {
+                    "id": 8,
+                    "question": "Under the EU's MiCA regulation (effective 2024), what specific reserve and redemption requirements apply to 'significant' stablecoins (those exceeding 10 million users or EUR 5 billion in transaction volume), and how does this create competitive dynamics?",
+                    "options": {
+                        "A": "Significant stablecoins must hold 100% reserves in ECB digital currency only and cannot be redeemed for physical cash under any circumstances",
+                        "B": "MiCA requires significant stablecoins to implement a 2% transaction tax on all transfers above EUR 1,000, which is used to fund a European Stablecoin Stability Fund",
+                        "C": "MiCA exempts stablecoins that have been operating for more than 5 years from the significant stablecoin requirements, grandfathering USDT and USDC permanently",
+                        "D": "MiCA requires significant stablecoin issuers to be authorised as 'credit institutions' or 'e-money institutions', maintain segregated reserves in highly liquid assets with 30% in central bank deposits, publish daily reserve disclosures, honour redemptions within 2 business days at par, and submit to ECB oversight — this creates barriers for non-European issuers (like Tether) and advantages for EU-chartered entities"
+                    },
+                    "correct": "D",
+                    "explanation": "MiCA (Markets in Crypto-Assets Regulation), which applies from June 2024 for stablecoins, creates a tiered framework. 'E-money tokens' (single-currency stablecoins) face strict requirements: authorisation as an e-money institution, 1:1 reserve backing in safe liquid assets, daily disclosure, and investor redemption rights at par on demand. 'Significant' EMTs (large user base or volume) face additional capital requirements, a 30% central bank deposit floor, and direct ECB supervision. This effectively means non-EU entities like Tether Limited (based in the British Virgin Islands) must restructure into EU-licensed entities to continue serving EU customers. Several exchanges began delisting USDT in the EU in late 2024 pending Tether's MiCA compliance. Circle, with its EU e-money licence via SAS France, is better positioned under MiCA."
+                },
+                {
+                    "id": 9,
+                    "question": "MakerDAO's crypto-backed stablecoin DAI uses 'Collateralised Debt Positions' (CDPs), now called 'Vaults'. What is the economic analogy that best describes how a Vault functions from the perspective of the vault owner?",
+                    "options": {
+                        "A": "A Vault functions like a collateralised loan: the vault owner deposits cryptocurrency (e.g., ETH) as collateral, borrows DAI against it (paying a Stability Fee as interest), and must repay the DAI debt plus accrued fee to retrieve the collateral — analogous to a mortgage where the property is collateral and the loan proceeds are DAI",
+                        "B": "A Vault functions like a savings account where the deposited ETH earns interest paid out in DAI",
+                        "C": "A Vault functions like an insurance policy where the vault owner pays a premium (Stability Fee) and receives DAI as a payout if the collateral price drops below a threshold",
+                        "D": "A Vault functions like a DEX liquidity position where the ETH and DAI are pooled and earn trading fees proportional to vault size"
+                    },
+                    "correct": "A",
+                    "explanation": "The Vault/CDP mechanism is a collateralised borrowing system. Analogy: imagine depositing your house as collateral with a bank and receiving a USD loan against it. In MakerDAO: (1) you deposit ETH into a smart contract vault; (2) you draw a DAI loan up to a maximum determined by the collateralisation ratio (e.g., at 150% minimum, $150 of ETH allows $100 of DAI); (3) you pay a Stability Fee (annualised interest rate set by MKR governance) on outstanding DAI; (4) to close the vault, you repay the DAI plus accrued fee; (5) your ETH collateral is released. The key difference from a bank loan: the smart contract enforces collateral rules automatically with no human intermediary, and if collateral value falls below the minimum, liquidation is triggered by keeper bots."
+                },
+                {
+                    "id": 10,
+                    "question": "Why does a crypto-backed stablecoin system require over-collateralisation rather than 1:1 collateralisation, and how is the 'minimum collateralisation ratio' (e.g., 150% for ETH vaults in MakerDAO) determined?",
+                    "options": {
+                        "A": "Over-collateralisation is a regulatory requirement by the SEC for any stablecoin that includes cryptocurrency in its reserves",
+                        "B": "Over-collateralisation provides a buffer against the collateral asset's price volatility: if ETH falls 30% in a single day, a vault that was 150% collateralised (now 105% after the drop) still has positive equity before liquidation triggers at 150% — the ratio is set based on the collateral asset's historical volatility, liquidity, and maximum observed drawdown, providing a safety margin that gives liquidators time to auction the collateral before the vault becomes under-collateralised",
+                        "C": "Over-collateralisation is required because Ethereum gas fees consume 50% of collateral value on average, so 200% collateral is needed to issue 100% of the target DAI value after fees",
+                        "D": "MakerDAO sets the collateralisation ratio by matching the Federal Reserve's margin requirements for equity securities, creating regulatory equivalence"
+                    },
+                    "correct": "B",
+                    "explanation": "The minimum collateralisation ratio (MCR) is a risk parameter encoding the collateral asset's volatility. ETH's 150% MCR implies that the system is designed to remain solvent even if ETH drops ~33% from the liquidation trigger point (since 100/150 = 66.7%). In practice, MakerDAO sets MCRs through governance based on: (1) historical maximum drawdown (how far can ETH fall in one oracle update period?); (2) liquidation penalty adequacy (can we incentivise keepers to liquidate quickly?); (3) oracle delay risk (Maker's medianiser uses a 1-hour delay for manipulation resistance, but this means a flash crash might not trigger liquidation immediately). Stablecoin collateral (USDC) has 101% MCR because it is already stable. Illiquid or volatile collateral types have higher MCRs (e.g., 175% for some LP tokens)."
+                },
+                {
+                    "id": 11,
+                    "question": "What is the 'Global Settlement' (Emergency Shutdown) mechanism in MakerDAO, and under what conditions is it designed to be triggered?",
+                    "options": {
+                        "A": "Global Settlement is a routine daily process where MakerDAO closes all vaults at market prices to distribute the day's Stability Fee revenue to MKR holders",
+                        "B": "Global Settlement is triggered automatically each time DAI deviates more than 5% from its $1.00 peg for more than 24 hours, forcing system reset",
+                        "C": "Global Settlement is triggered when MakerDAO's protocol surplus (Stability Fee income minus operational costs) reaches zero, indicating the system is no longer profitable to maintain",
+                        "D": "Global Settlement is an emergency mechanism — triggerable by MKR governance or a Security Module with a 72-hour delay (or immediately by Emergency Oracles) — that freezes all vault activity, assigns a fixed collateral price to all CDPs, and allows DAI holders to redeem DAI for a pro-rata share of the collateral pool; it is designed as the 'nuclear option' for existential threats like oracle failure, governance attack, or severe system insolvency"
+                    },
+                    "correct": "D",
+                    "explanation": "Global Settlement (Emergency Shutdown) is MakerDAO's ultimate backstop. The process: (1) shutdown is triggered; (2) all vault creation and DAI/DSR operations freeze immediately; (3) a final ETH/DAI price is fixed using the last oracle price; (4) vault owners can claim their excess collateral at the fixed price after repaying DAI; (5) DAI holders can redeem DAI for collateral at the fixed price, even if no vault owner redeems. This guarantees DAI holders at least some collateral recovery in the worst case. The governance security module imposes a 72-hour delay on most parameter changes (including shutdown initiation), preventing governance attacks. Emergency Shutdown has never been used on Ethereum mainnet but was used on a test deployment and is considered a credible safeguard that differentiates MakerDAO from algorithmic stablecoins with no backstop."
+                },
+                {
+                    "id": 12,
+                    "question": "In MakerDAO's liquidation system (Liquidations 2.0, using 'Dutch Auctions'), when a vault's collateralisation ratio falls below the minimum, what sequence of events occurs and how does the Dutch auction differ from the previous English auction system?",
+                    "options": {
+                        "A": "In a Dutch auction, bidders increase their bids over time; in an English auction, the starting price decreases over time — MakerDAO switched because decreasing-price auctions generate more DAI for the protocol",
+                        "B": "In Liquidations 2.0, a keeper calls the liquidation function; the collateral is immediately put up for a Dutch auction starting at a price above market (e.g., 130% of oracle price) that decreases linearly over time; any buyer can purchase the entire collateral lot at the current price plus the liquidation penalty; the auction settles atomically with flash loans — unlike the old English auction (Liquidations 1.0) which required upfront DAI capital to bid, making it less accessible and vulnerable to gas price spikes that delayed liquidations",
+                        "C": "Liquidations 2.0 replaced auctions entirely with an automated market maker (AMM) that sells ETH directly into Uniswap pools using the Stability Fee surplus as initial liquidity",
+                        "D": "In a Dutch auction, all MKR holders vote simultaneously on a fair price for the liquidated collateral; the highest-voted price wins — this is called 'Dutch' because it originated from Amsterdam-based governance consultants"
+                    },
+                    "correct": "B",
+                    "explanation": "Liquidations 1.0 used a collateral auction with an upfront DAI requirement to bid — during the March 2020 crash ('Black Thursday'), ETH gas prices spiked so high that legitimate bidders couldn't submit transactions, while some keeper bots won auctions with 0 DAI bids (acquiring collateral for free), leaving vaults deeply under-collateralised and creating ~$4.5M in bad debt. Liquidations 2.0 (deployed 2021) uses Dutch auctions with atomic settlement: the starting price is set above market and decreases over seconds; any buyer can use flash loans to participate without pre-existing DAI, dramatically increasing competition and reducing the probability of below-market liquidations. The penalty (e.g., 13% for ETH-A) goes to the Maker Surplus Buffer, which protects against future losses."
+                },
+                {
+                    "id": 13,
+                    "question": "A vault owner deposits 10 ETH (priced at $2,000 each = $20,000 total) into a MakerDAO ETH-A vault with a 150% minimum collateralisation ratio. What is the maximum DAI they can borrow, and at what ETH price will their vault be liquidated?",
+                    "options": {
+                        "A": "Maximum DAI: $13,333; Liquidation price: $2,000/ETH — if they borrow the full $13,333, liquidation occurs when ETH drops below $2,000 (collateral = $20,000, debt = $13,333, ratio = 150%)",
+                        "B": "Maximum DAI: $20,000; Liquidation price: $1,500/ETH",
+                        "C": "Maximum DAI: $10,000; Liquidation price: $1,500/ETH",
+                        "D": "Maximum DAI: $15,000; Liquidation price: $1,800/ETH"
+                    },
+                    "correct": "A",
+                    "explanation": "At 150% MCR: Maximum DAI = $20,000 / 1.5 = $13,333. Liquidation price: when does collateral value / debt = 150%? Debt = $13,333 DAI. If ETH price = P, collateral = 10P. Liquidation when 10P / 13,333 = 1.50 → P = $13,333 * 1.50 / 10 = $2,000/ETH. So if they borrow the maximum $13,333 DAI, they are liquidated the moment ETH drops below $2,000 — i.e., at exactly the current price. In practice, vault owners maintain a safety buffer by borrowing less than the maximum. For example, borrowing $10,000 DAI would only trigger liquidation if ETH falls below $1,500 ($10,000 * 1.5 / 10). The key risk: maintaining a vault near the maximum collateralisation ratio leaves essentially no buffer for price movement."
+                },
+                {
+                    "id": 14,
+                    "question": "What happens to MakerDAO's Surplus Buffer (also called the System Surplus) and to MKR token holders when the protocol accumulates bad debt exceeding the Surplus Buffer?",
+                    "options": {
+                        "A": "Bad debt is written off against the protocol's treasury and DAI holders receive a proportional haircut on their redemption value",
+                        "B": "Bad debt is automatically refinanced by activating additional USDC collateral from the Peg Stability Module, ensuring DAI remains fully backed at all times without MKR dilution",
+                        "C": "When bad debt exceeds the Surplus Buffer, MakerDAO initiates a 'Debt Auction': new MKR tokens are minted and auctioned off for DAI, diluting existing MKR holders but recapitalising the protocol — this is the mechanism by which MKR serves as the 'lender of last resort' and is sometimes called the 'risk token' for the Maker system",
+                        "D": "When bad debt exceeds the Surplus Buffer, the protocol freezes all new vault creation until the debt is repaid through Stability Fee accruals over subsequent months"
+                    },
+                    "correct": "C",
+                    "explanation": "MKR functions as equity in the Maker system. The surplus buffer (target ~$250M) acts as a first loss tranche: Stability Fees accumulate here, and small losses are absorbed. If losses exceed the buffer, the protocol mints and auctions new MKR tokens (Debt Auction / 'Flop Auction'): bidders offer decreasing amounts of MKR for a fixed DAI amount, with the winning bid minting the minimum MKR needed. This dilutes existing MKR holders — their equity stake shrinks. Conversely, when the Surplus Buffer exceeds its target ceiling, the protocol conducts a Surplus Auction ('Flap Auction'): it auctions DAI for MKR and burns the MKR, making MKR deflationary. Black Thursday created ~$4.5M in bad debt that was covered by a MKR dilution auction, demonstrating this mechanism in practice."
+                },
+                {
+                    "id": 15,
+                    "question": "Multi-Collateral DAI (MCD) expanded beyond single-collateral ETH-only CDP. What key risk does accepting multiple collateral types introduce for the system, and how does MakerDAO's risk framework attempt to manage it?",
+                    "options": {
+                        "A": "Different collateral types have different liquidity profiles, volatility correlations, and smart contract risks — a correlated crash (e.g., all DeFi tokens falling simultaneously) could trigger mass liquidations across all vault types at once, overwhelming keeper capacity; MakerDAO manages this by setting per-collateral debt ceilings (limiting exposure to any single asset), collateral-specific risk parameters (MCR, Stability Fee, liquidation penalty), and conducting periodic risk assessments via the Risk Core Unit",
+                        "B": "Multiple collateral types create gas fee competition between vault types; MakerDAO resolves this by assigning each collateral type a dedicated Ethereum shard",
+                        "C": "Multiple collateral types mean DAI is backed by a diversified basket of assets, making it fundamentally more stable than single-collateral DAI — the system has zero additional risk from multi-collateral acceptance",
+                        "D": "The primary risk of multiple collateral types is that DAI holders cannot determine which specific assets back their DAI, reducing trust; MakerDAO resolves this by issuing collateral-specific DAI tokens (e.g., ETH-DAI, WBTC-DAI)"
+                    },
+                    "correct": "A",
+                    "explanation": "Multi-Collateral DAI (launched November 2019) accepts ETH, WBTC, USDC, LINK, UNI, real-world assets, and dozens of other tokens. Diversification reduces idiosyncratic risk (one asset crashing doesn't kill the system) but introduces correlation risk and operational complexity. Each collateral type has its own: Debt Ceiling (maximum DAI issuable against that collateral — prevents over-concentration), Stability Fee (risk premium for riskier collateral), Liquidation Ratio (reflects volatility), and Liquidation Penalty. The risk framework (originally the Risk Domain Team, now Risk Core Unit) uses value-at-risk models to set these parameters. The correlated-crash concern is real: during the March 2020 crash, virtually all crypto assets fell simultaneously, validating the concern about correlation during tail events."
+                },
+                {
+                    "id": 16,
+                    "question": "MakerDAO has incorporated Real World Assets (RWAs) — tokenised loans, US Treasuries, and corporate bonds — as DAI collateral. What is the argument for this strategy, and what decentralisation trade-off does it represent?",
+                    "options": {
+                        "A": "RWAs eliminate all collateral volatility risk because real-world assets never decrease in value; the trade-off is that they require annual physical audits by in-person inspectors",
+                        "B": "RWAs allow MakerDAO to legally classify DAI as a security-backed token, obtaining SEC registration and enabling institutional investors to hold DAI in regulated portfolios",
+                        "C": "RWAs provide stable, yield-generating collateral that reduces DAI's dependency on volatile crypto assets and generates real revenue for the protocol (via Stability Fees on RWA vaults), improving capital efficiency; the trade-off is that RWA collateral requires off-chain legal structures, trusted custodians, and counterparty relationships — reintroducing the centralisation and legal risk that DAI was designed to avoid, and making the system vulnerable to regulatory action against the RWA entities",
+                        "D": "RWAs are included purely as a diversification strategy with no revenue impact; the Stability Fee on RWA vaults is always zero to attract traditional finance participants"
+                    },
+                    "correct": "C",
+                    "explanation": "By 2023, RWA collateral (primarily US Treasury bills held via Monetalis/Clydesdale and other structures) constituted over 50% of DAI's revenue-generating collateral and a significant fraction of total backing. The rationale: (1) US Treasuries earning ~5% APY generate Stability Fee income that can be distributed to DAI holders via the DAI Savings Rate (DSR), making DAI competitive with traditional savings; (2) stable collateral reduces liquidation risk. The trade-off is acute: MakerDAO now relies on traditional custodians (Coinbase Custody, regulated banks) and legal special purpose vehicles in the Cayman Islands. If the SEC were to rule on MakerDAO's governance or Circle were to blacklist the PSM's USDC, the DAI system could be severely impacted — contradicting its original censorship-resistance thesis. This tension drove the 'Endgame' debate about MakerDAO's future direction."
+                },
+                {
+                    "id": 17,
+                    "question": "The DAI Savings Rate (DSR) is a mechanism that allows DAI holders to earn interest by locking DAI in a smart contract. How does the DSR function economically within the Maker system, and what is its purpose beyond just rewarding holders?",
+                    "options": {
+                        "A": "The DSR lends locked DAI to external protocols like Aave and Compound, earning lending interest that is passed directly to DSR depositors",
+                        "B": "The DSR is funded by the Stability Fees collected from vault owners: when fees exceed system costs, a portion can be directed to DSR depositors; the DSR serves as a monetary policy tool — raising the DSR increases DAI demand (locking DAI in the contract), which supports the peg when DAI trades below $1.00, while lowering the DSR reduces this demand",
+                        "C": "The DSR is funded by Ethereum proof-of-stake validator rewards from ETH staked as MakerDAO collateral, creating a staking yield for DAI holders",
+                        "D": "The DSR is a fixed 2% yield guaranteed in perpetuity regardless of Stability Fee income, funded by periodic MKR token minting"
+                    },
+                    "correct": "B",
+                    "explanation": "The DSR is MakerDAO's interest rate on DAI deposits. Mechanically: vault owners pay Stability Fees → fees accrue to the Surplus Buffer → governance allocates a portion of the SF income to fund DSR payments. There is no magic money creation: the DSR yield must be funded by SF revenue. If total DSR payments exceed SF income, the protocol runs a deficit, eroding the Surplus Buffer. The monetary policy angle: when DAI trades at $0.99 (below peg), raising the DSR from 1% to 5% gives holders an incentive to lock DAI in the DSR contract rather than sell it, reducing circulating supply and supporting the peg. Conversely, a high DSR also attracts new vault creation (borrow DAI cheaply, deposit in DSR) if the DSR exceeds SF rates — but this arbitrage equilibrates naturally. The DSR reached 5% in 2023 when the protocol's RWA yield from US Treasuries created surplus revenue."
+                },
+                {
+                    "id": 18,
+                    "question": "Paxos Gold (PAXG) allows tokenised ownership of London Bullion Market Association (LBMA) gold bars. What specific operational right do PAXG holders have that distinguishes it from an ETF or a gold futures contract?",
+                    "options": {
+                        "A": "PAXG holders can vote in Paxos governance to determine which gold mining companies receive investment from the reserve fund",
+                        "B": "PAXG holders automatically receive dividends paid in PAXG when Paxos lends the gold reserves to bullion banks for gold leasing income",
+                        "C": "PAXG holders can exchange their tokens for gold futures contracts on the CME Group at a guaranteed 1:1 conversion rate with no basis risk",
+                        "D": "PAXG holders with sufficient tokens (equivalent to 430 oz fine troy ounces, one LBMA Good Delivery bar) can request physical delivery of an allocated, specifically identified gold bar stored in Brinks vaults in London — each token represents a fractional share of a specific identified bar, not just a generic gold entitlement"
+                    },
+                    "correct": "D",
+                    "explanation": "PAXG's key differentiator is allocated gold with specific bar identification. Each PAXG token corresponds to one fine troy ounce of a specific, serial-numbered LBMA-certified gold bar. Holders above the minimum bar threshold (~430 oz, approximately 430 PAXG) can request physical delivery from Brinks vaults in London. This contrasts with gold ETFs (like GLD) that hold unallocated or pooled gold where individual shareholders cannot claim a specific bar. It also contrasts with gold futures, which are paper contracts settled in cash. The traceability to specific serial-numbered bars is intended to prevent double-pledging and provides stronger proof of backing. Paxos publishes the list of bar serial numbers corresponding to outstanding PAXG, verifiable on-chain and in monthly attestations."
+                },
+                {
+                    "id": 19,
+                    "question": "MakerDAO's MKR token serves as both a governance token and a recapitalisation instrument. Why does this dual role create a potentially problematic incentive structure for governance decisions?",
+                    "options": {
+                        "A": "The dual role creates no incentive problem; MKR holders are always incentivised to maximise both governance quality and protocol safety because they bear all losses",
+                        "B": "MKR holders are incentivised to vote for extremely low Stability Fees to attract maximum vault creation, even if this makes the protocol insolvent, because MKR price increases with total DAI supply",
+                        "C": "The dual role means MKR holders must simultaneously act as regulators and shareholders — the SEC has ruled this creates unregistered securities liability for all MKR holders",
+                        "D": "MKR holders benefit from higher-risk protocol strategies (accepting riskier collateral types, raising debt ceilings aggressively) because fees accrue to the Surplus Buffer which eventually flows to MKR via buybacks — but in a tail-risk scenario, MKR holders bear losses only up to MKR's market cap; beyond that, DAI holders suffer. This creates a risk-shifting problem where governance has incentive to take on systemic risk that may exceed the 'equity cushion' MKR represents"
+                    },
+                    "correct": "D",
+                    "explanation": "This is a classic equity-versus-debt governance problem, analogous to bank shareholder incentives. MKR holders earn when the protocol generates surplus (buybacks and burns reduce MKR supply, increasing per-token value). Accepting more collateral types and larger debt ceilings → more Stability Fee income → more buybacks → higher MKR price. But the downside is asymmetric: if a catastrophic loss (oracle hack, mass liquidation failure) exceeds the Surplus Buffer, new MKR is minted at diluted prices to recapitalise — but this only works if MKR market cap is large enough to absorb the loss. If MKR market cap < system bad debt, the dilution spiral could collapse both MKR and DAI. This structural risk was explicit during discussion of the $500M+ RWA positions: if the custodians defaulted and MKR's $1B market cap couldn't cover losses, DAI would be under-backed. Governance bears the risk but may be tempted to extract value before catastrophe."
+                },
+                {
+                    "id": 20,
+                    "question": "Tether has been used as the primary settlement currency on many offshore crypto exchanges (Binance, OKX, Huobi) that cannot easily access US banking. What systemic risk does Tether's dominance as exchange settlement infrastructure create for the broader crypto market?",
+                    "options": {
+                        "A": "Tether's dominance creates no systemic risk because USDT tokens can always be redeemed for USD through Circle's redemption portal",
+                        "B": "Tether's exchange dominance creates systemic risk only for retail investors; institutional investors using USDC or direct USD settlement are fully insulated from any Tether failure",
+                        "C": "If Tether became insolvent or its redemptions were frozen (e.g., due to US government action against Tether Limited or a reserve shortfall), the majority of crypto exchange liquidity would be suddenly disrupted — exchanges relying on USDT for settlement would face a solvency crisis, and the mass conversion of USDT to other assets would cause a cross-market crash as the de facto 'dollar settlement layer' of crypto failed; Tether is effectively 'too big to fail' for crypto market structure",
+                        "D": "The systemic risk is regulatory, not financial: Tether's dominance means the CFTC must approve all crypto trades globally, creating compliance overhead for non-US exchanges"
+                    },
+                    "correct": "C",
+                    "explanation": "Tether's systemic importance to crypto market structure is well-documented by academics (Griffin & Shams 2020 published peer-reviewed evidence of USDT's market impact; subsequent work by Lyons & Viswanath-Natraj). With $80+ billion in outstanding USDT primarily on offshore exchanges, a Tether failure would simultaneously: (1) destroy the settlement layer for billions in daily trading volume on Binance, OKX, and Bybit; (2) force mass conversion to BTC, ETH, or other assets as exchanges scrambled to replace USDT-denominated pairs; (3) trigger margin calls across derivatives markets where USDT is accepted as collateral. The 2022 crypto crash (partly triggered by UST's collapse and partly by macro rate rises) demonstrated how stablecoin confidence crises cascade through the system. US regulatory actions against Tether (enforcement history with NYAG/CFTC) are therefore watched closely as potential systemic catalysts."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+\documentclass[8pt,aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usepackage{graphicx,booktabs,adjustbox,multicol,amsmath,amssymb,listings,xcolor}
+\definecolor{mlblue}{RGB}{0,102,204}
+\definecolor{mlpurple}{RGB}{51,51,178}
+\definecolor{mllavender}{RGB}{173,173,224}
+\definecolor{mllavender2}{RGB}{193,193,232}
+\definecolor{mllavender3}{RGB}{204,204,235}
+\definecolor{mllavender4}{RGB}{214,214,239}
+\definecolor{mlorange}{RGB}{255,127,14}
+\definecolor{mlgreen}{RGB}{44,160,44}
+\definecolor{mlred}{RGB}{214,39,40}
+\definecolor{mlgray}{RGB}{127,127,127}
+\definecolor{solkeyword}{RGB}{0,102,153}
+\setbeamercolor{palette primary}{bg=mllavender3,fg=mlpurple}
+\setbeamercolor{palette secondary}{bg=mllavender2,fg=mlpurple}
+\setbeamercolor{palette tertiary}{bg=mllavender,fg=white}
+\setbeamercolor{palette quaternary}{bg=mlpurple,fg=white}
+\setbeamercolor{structure}{fg=mlpurple}
+\setbeamercolor{title}{fg=mlpurple}
+\setbeamercolor{frametitle}{fg=mlpurple,bg=mllavender3}
+\setbeamercolor{block title}{bg=mllavender2,fg=mlpurple}
+\setbeamercolor{block body}{bg=mllavender4,fg=black}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamersize{text margin left=5mm,text margin right=5mm}
+\newcommand{\bottomnote}[1]{\vfill\vspace{-2mm}\textcolor{mllavender2}{\rule{\textwidth}{0.4pt}}\vspace{1mm}\footnotesize\textbf{#1}}
+\usepackage{tikz,pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
+\title{Stablecoins \& CBDCs: Course Preview}
+\subtitle{INTRO Preview}
+\author{Prof.~Dr.~Joerg Osterrieder}
+\institute{University Lecture Series}
+\date{\today}
+\begin{document}
+
+% Frame 1: Title
+\begin{frame}
+\titlepage
+\end{frame}
+
+% Frame 2: Why Stablecoins & CBDCs Matter
+\begin{frame}{Why Stablecoins \& CBDCs Matter}
+\begin{columns}[T]
+\begin{column}{0.62\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+  ybar,
+  bar width=28pt,
+  width=7.5cm,
+  height=5.2cm,
+  symbolic x coords={Market Cap, CBDC Pilots, Daily Volume},
+  xtick=data,
+  xticklabels={Market\\Cap, CBDC\\Pilots, Daily\\Volume},
+  xticklabel style={font=\tiny, text width=2.5cm, align=center},
+  ymin=0, ymax=160,
+  ytick={0,20,40,60,80,100,120,140,160},
+  yticklabel style={font=\tiny},
+  ylabel style={font=\tiny},
+  ylabel={Relative Scale (normalised)},
+  axis line style={draw=mlpurple},
+  tick style={draw=mlpurple},
+  nodes near coords,
+  nodes near coords style={font=\tiny, color=mlpurple},
+  point meta=y,
+  enlarge x limits=0.25,
+  grid=major,
+  grid style={dashed, mllavender3},
+]
+\addplot[fill=mlblue!70,   draw=mlpurple] coordinates {(Market Cap,  130)};
+\addplot[fill=mlgreen!70,  draw=mlpurple] coordinates {(CBDC Pilots, 130)};
+\addplot[fill=mlorange!70, draw=mlpurple] coordinates {(Daily Volume, 50)};
+\end{axis}
+\end{tikzpicture}
+\end{column}
+\begin{column}{0.36\textwidth}
+\vspace{4mm}
+\begin{block}{Key Metrics}
+\begin{itemize}\setlength\itemsep{4pt}
+  \item[\small$\checkmark$] \small \textbf{\$130B+} total market cap
+  \item[\small$\checkmark$] \small \textbf{130+} countries with CBDC pilots
+  \item[\small$\checkmark$] \small \textbf{\$50B+} daily on-chain volume
+  \item[\small$\checkmark$] \small \textbf{65\%} USDT market dominance
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\bottomnote{Stablecoins and CBDCs are transforming payments, DeFi, and monetary policy worldwide.}
+\end{frame}
+
+% Frame 3: Stablecoin & CBDC Ecosystem at a Glance
+\begin{frame}{Stablecoin \& CBDC Ecosystem at a Glance}
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[
+  cbox/.style={rectangle, rounded corners=4pt, draw=mlpurple, thick,
+               fill=mlpurple, minimum width=2.8cm, minimum height=1.0cm,
+               font=\small\bfseries, align=center, text=white},
+  sbox/.style={rectangle, rounded corners=3pt, thick,
+               minimum width=2.6cm, minimum height=0.85cm,
+               font=\scriptsize, align=center},
+  arr/.style={-{Stealth[length=6pt]}, thick}
+]
+% Center node
+\node[cbox] (center) at (0,0) {Stablecoin \&\\CBDC Ecosystem};
+
+% Spoke nodes
+\node[sbox, draw=mlblue,   fill=mlblue!15,   text=mlblue]              (fiat)  at (-5.2, 1.8)
+  {\textbf{Fiat-Backed}\\[2pt]USDT / USDC};
+
+\node[sbox, draw=mlgreen,  fill=mlgreen!12,  text=mlgreen!70!black]    (crypto) at ( 5.2, 1.8)
+  {\textbf{Crypto-Backed}\\[2pt]DAI / LUSD};
+
+\node[sbox, draw=mlorange, fill=mlorange!12, text=mlorange!80!black]   (algo) at (-5.2,-1.8)
+  {\textbf{Algorithmic}\\[2pt]FRAX};
+
+\node[sbox, draw=mlred,    fill=mlred!10,    text=mlred]               (cbdc) at ( 5.2,-1.8)
+  {\textbf{CBDCs}\\[2pt]e-CNY / Digital Euro};
+
+\node[sbox, draw=mlpurple, fill=mlpurple!10, text=mlpurple]            (defi) at (-5.2, 0.0)
+  {\textbf{DeFi Integration}\\[2pt]Lending / AMMs};
+
+\node[sbox, draw=mlgray,   fill=mlgray!10,   text=mlgray!80!black]     (reg)  at ( 5.2, 0.0)
+  {\textbf{Regulation}\\[2pt]MiCA / US Bills};
+
+% Arrows
+\draw[arr, draw=mlblue]   (center.west) -- ++(-1.4,0) |- (fiat.east);
+\draw[arr, draw=mlgreen]  (center.east) -- ++(1.4,0)  |- (crypto.west);
+\draw[arr, draw=mlorange] (center.west) -- ++(-1.4,0) |- (algo.east);
+\draw[arr, draw=mlred]    (center.east) -- ++(1.4,0)  |- (cbdc.west);
+\draw[arr, draw=mlpurple] (center.west) -- ++(-1.4,0) |- (defi.east);
+\draw[arr, draw=mlgray]   (center.east) -- ++(1.4,0)  |- (reg.west);
+\end{tikzpicture}
+\end{center}
+\bottomnote{The ecosystem spans four stablecoin types plus DeFi integrations and an evolving regulatory landscape.}
+\end{frame}
+
+% Frame 4: Market Trajectory
+\begin{frame}{Market Trajectory}
+\begin{columns}[T]
+\begin{column}{0.62\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+  width=8.0cm,
+  height=5.4cm,
+  xmin=2017.5, xmax=2024.5,
+  ymin=0, ymax=170,
+  xtick={2018,2019,2020,2021,2022,2023,2024},
+  ytick={0,25,50,75,100,125,150},
+  xticklabel style={font=\tiny},
+  yticklabel style={font=\tiny},
+  xlabel style={font=\tiny},
+  ylabel style={font=\tiny},
+  xlabel={Year},
+  ylabel={Total Stablecoin Market Cap (USD billions)},
+  axis line style={draw=mlpurple},
+  tick style={draw=mlpurple},
+  grid=major,
+  grid style={dashed, mllavender3},
+]
+\addplot[color=mlblue, solid, thick, mark=*, mark size=1.5pt,
+         fill=mlblue!10] coordinates {
+  (2018,3)(2019,5)(2020,20)(2021,130)(2022,150)(2023,125)(2024,135)
+} \closedcycle;
+\addplot[color=mlblue, solid, thick, mark=*, mark size=1.5pt] coordinates {
+  (2018,3)(2019,5)(2020,20)(2021,130)(2022,150)(2023,125)(2024,135)
+};
+\end{axis}
+\end{tikzpicture}
+\end{column}
+\begin{column}{0.36\textwidth}
+\vspace{4mm}
+\begin{block}{Growth Drivers}
+\begin{itemize}\setlength\itemsep{4pt}
+  \item[\small$\checkmark$] \small \textbf{DeFi adoption} driving on-chain demand
+  \item[\small$\checkmark$] \small \textbf{Institutional interest} in dollar proxies
+  \item[\small$\checkmark$] \small \textbf{Regulatory frameworks} (MiCA, US) maturing
+  \item[\small$\checkmark$] \small \textbf{Cross-border payments} replacing SWIFT
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\bottomnote{Stablecoin supply grew 50x from 2018 to 2022, survived the Terra collapse, and is recovering.}
+\end{frame}
+
+% Frame 5: Course Coverage
+\begin{frame}{Course Coverage}
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[
+  procstep/.style={
+    rectangle, rounded corners=4pt,
+    minimum width=2.1cm, minimum height=1.0cm,
+    draw=mlpurple, thick,
+    fill=mllavender3,
+    font=\scriptsize\bfseries,
+    align=center,
+    text=mlpurple
+  },
+  conn/.style={-{Stealth[length=6pt]}, thick, draw=mlpurple}
+]
+\node[procstep, fill=mlblue!25]    (s1) at (0,0)    {(1)\\Stablecoin\\Fundamentals};
+\node[procstep, fill=mlgreen!20]   (s2) at (2.8,0)  {(2)\\Collateralised\\Stablecoins};
+\node[procstep, fill=mlorange!20]  (s3) at (5.6,0)  {(3)\\Algorithmic\\Stablecoins};
+\node[procstep, fill=mlred!15]     (s4) at (8.4,0)  {(4)\\CBDCs};
+\node[procstep, fill=mlpurple!20]  (s5) at (11.2,0) {(5)\\Regulation\\\& Future};
+
+\draw[conn] (s1) -- (s2);
+\draw[conn] (s2) -- (s3);
+\draw[conn] (s3) -- (s4);
+\draw[conn] (s4) -- (s5);
+
+\node[font=\tiny, text=mlgray, align=center, text width=2.1cm] at (0,-1.05)
+  {Peg mechanisms,\\reserve models};
+\node[font=\tiny, text=mlgray, align=center, text width=2.1cm] at (2.8,-1.05)
+  {USDT, USDC,\\DAI, MakerDAO};
+\node[font=\tiny, text=mlgray, align=center, text width=2.1cm] at (5.6,-1.05)
+  {FRAX, Ampleforth,\\Terra/LUNA lessons};
+\node[font=\tiny, text=mlgray, align=center, text width=2.1cm] at (8.4,-1.05)
+  {e-CNY, Digital Euro,\\design trade-offs};
+\node[font=\tiny, text=mlgray, align=center, text width=2.1cm] at (11.2,-1.05)
+  {MiCA, US bills,\\interoperability};
+\end{tikzpicture}
+\end{center}
+\vspace{4mm}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{block}{Prerequisites}
+\begin{itemize}\setlength\itemsep{2pt}
+  \item[\small$\checkmark$] \small Basic blockchain and DeFi knowledge
+  \item[\small$\checkmark$] \small Familiarity with ERC-20 token standards
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Outcomes}
+\begin{itemize}\setlength\itemsep{2pt}
+  \item[\small$\checkmark$] \small Evaluate stablecoin peg stability and risk
+  \item[\small$\checkmark$] \small Compare CBDC designs and policy implications
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\bottomnote{From stablecoin mechanics to CBDC policy in five interconnected modules.}
+\end{frame}
+
+% Frame 6: What You Will Learn
+\begin{frame}{What You Will Learn}
+\begin{columns}[T]
+\begin{column}{0.44\textwidth}
+\vspace{2mm}
+\begin{block}{Learning Outcomes}
+\begin{itemize}\setlength\itemsep{5pt}
+  \item[\small$\checkmark$] \small \textbf{Peg mechanisms} --- reserve audits, over-collateralisation, seigniorage
+  \item[\small$\checkmark$] \small \textbf{Collateral models} --- fiat, crypto, and hybrid approaches
+  \item[\small$\checkmark$] \small \textbf{CBDC architectures} --- wholesale vs.\ retail, account vs.\ token-based
+  \item[\small$\checkmark$] \small \textbf{Regulatory frameworks} --- MiCA, US stablecoin bills, BIS guidelines
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.54\textwidth}
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[
+  cbox/.style={rectangle, rounded corners=4pt, draw=mlpurple, thick,
+               fill=mlpurple, minimum width=2.6cm, minimum height=0.85cm,
+               font=\scriptsize\bfseries, align=center, text=white},
+  fbox/.style={rectangle, rounded corners=3pt, thick,
+               minimum width=2.1cm, minimum height=0.75cm,
+               font=\scriptsize, align=center},
+  farr/.style={-{Stealth[length=5pt]}, thick}
+]
+% Central node
+\node[cbox] (nm) at (0,0) {Stablecoin \&\\CBDC Mastery};
+
+% Skill nodes
+\node[fbox, draw=mlblue,   fill=mlblue!15,   text=mlblue]              (peg)  at (-3.0, 1.3) {Peg Mechanisms};
+\node[fbox, draw=mlgreen,  fill=mlgreen!12,  text=mlgreen!70!black]    (col)  at ( 3.0, 1.3) {Collateral Models};
+\node[fbox, draw=mlorange, fill=mlorange!12, text=mlorange!80!black]   (cbd)  at (-3.0,-1.3) {CBDC Architectures};
+\node[fbox, draw=mlred,    fill=mlred!10,    text=mlred]               (reg)  at ( 3.0,-1.3) {Regulatory Frameworks};
+
+% Arrows
+\draw[farr, draw=mlblue]   (nm.west)  -- ++(-0.9,0) |- (peg.east);
+\draw[farr, draw=mlgreen]  (nm.east)  -- ++(0.9,0)  |- (col.west);
+\draw[farr, draw=mlorange] (nm.west)  -- ++(-0.9,0) |- (cbd.east);
+\draw[farr, draw=mlred]    (nm.east)  -- ++(0.9,0)  |- (reg.west);
+\end{tikzpicture}
+\end{center}
+\end{column}
+\end{columns}
+\vspace{1mm}
+\bottomnote{By the end you will be able to analyse any stablecoin or CBDC design with rigour.}
+\end{frame}
+
+\end{document}

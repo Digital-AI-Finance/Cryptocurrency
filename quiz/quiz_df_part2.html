@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz DF-2: DEXs and AMM Mechanics | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz DF-2: DEXs and AMM Mechanics</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz DF-2: DEXs and AMM Mechanics</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "A traditional centralised exchange uses an order book. Which statement correctly describes how a Uniswap V2 AMM differs from an order book when executing a trade?",
+                    "options": {
+                        "A": "An AMM matches a buyer with a specific seller who posted a limit order at an agreed price, whereas an order book uses a formula",
+                        "B": "An order book matches buyers and sellers at explicitly specified prices; an AMM has no counterparty orders — instead, a smart contract quotes a price deterministically from a constant-product formula and executes against pooled liquidity",
+                        "C": "An AMM requires off-chain market makers to provide quotes, whereas an order book executes entirely on-chain",
+                        "D": "Both use identical mechanisms but an AMM charges no fees because it is decentralised"
+                    },
+                    "correct": "B",
+                    "explanation": "In an order book (Nasdaq, Binance), traders post bids and asks; the exchange matches them. In a Uniswap V2 AMM, there are no individual orders. A liquidity pool holds two tokens; the smart contract quotes prices using $x \\cdot y = k$ and executes trades directly against the pool. Price is continuous — it adjusts automatically with each trade. There are no market maker obligations or order cancellations."
+                },
+                {
+                    "id": 2,
+                    "question": "A centralised order book DEX (like dYdX v3) and a Uniswap V2 AMM both allow on-chain token swaps. What is the principal advantage of an AMM over an order book for long-tail assets with low trading volume?",
+                    "options": {
+                        "A": "AMMs offer tighter spreads than order books for all asset pairs because the formula is always optimal",
+                        "B": "AMMs provide continuous liquidity for any deposit size as long as the pool is non-empty, whereas order books depend on active market makers who may not quote thin markets, leaving wide spreads or no liquidity at all",
+                        "C": "AMMs execute trades faster because they skip consensus and settle off-chain",
+                        "D": "AMMs avoid impermanent loss for long-tail assets because their prices are too volatile for arbitrageurs to track"
+                    },
+                    "correct": "B",
+                    "explanation": "Long-tail tokens (obscure ERC-20s) rarely attract professional market makers, so order books show wide spreads or empty books. A Uniswap V2 pool, once seeded with any amount of both tokens, will always quote a price and execute a trade using $x \\cdot y = k$. The price may be unfavourable for large trades (high slippage), but there is always some liquidity. This makes AMMs essential for the long tail of the DeFi ecosystem."
+                },
+                {
+                    "id": 3,
+                    "question": "The constant product formula governing Uniswap V2 is $x \\cdot y = k$. If a pool holds $x = 1000$ ETH and $y = 2{,}000{,}000$ USDC, what is the spot price of ETH in USDC implied by this pool state?",
+                    "options": {
+                        "A": "$\\$1{,}000$",
+                        "B": "$\\$2{,}000$",
+                        "C": "$\\$500$",
+                        "D": "$\\$2{,}000{,}000$"
+                    },
+                    "correct": "B",
+                    "explanation": "The marginal price (spot price) of token $x$ in terms of token $y$ is the ratio $y/x$. Here, $\\text{price} = 2{,}000{,}000 / 1{,}000 = 2{,}000$ USDC per ETH. This is the instantaneous derivative of the curve at the current pool state, also equal to $-\\Delta y / \\Delta x$ for an infinitesimally small trade. The product $k = 1{,}000 \\times 2{,}000{,}000 = 2 \\times 10^9$ remains constant after any trade."
+                },
+                {
+                    "id": 4,
+                    "question": "A trader wants to buy ETH from a Uniswap V2 pool with reserves $x = 100$ ETH and $y = 200{,}000$ USDC (ignoring fees). Using $x \\cdot y = k$, how much USDC must the trader input to receive exactly 10 ETH?",
+                    "options": {
+                        "A": "$20{,}000$ USDC (spot price times quantity)",
+                        "B": "$22{,}222.22$ USDC",
+                        "C": "$18{,}181.82$ USDC",
+                        "D": "$25{,}000$ USDC"
+                    },
+                    "correct": "B",
+                    "explanation": "After the trade: new ETH reserve $= 100 - 10 = 90$. Constant product: $90 \\times y_{\\text{new}} = 100 \\times 200{,}000 = 20{,}000{,}000$. So $y_{\\text{new}} = 20{,}000{,}000 / 90 \\approx 222{,}222.22$. USDC input $= 222{,}222.22 - 200{,}000 = 22{,}222.22$ USDC. The spot price was $200{,}000/100 = 2{,}000$ per ETH, so naive calculation gives $20{,}000$. The extra $2{,}222.22$ is price impact — the pool price rises as ETH is removed."
+                },
+                {
+                    "id": 5,
+                    "question": "Using the constant product formula $x \\cdot y = k$, a pool starts with 500 TOKEN and 50,000 USDC. A trader sells 100 TOKEN into the pool (fees ignored). What is the approximate output in USDC?",
+                    "options": {
+                        "A": "$10{,}000$ USDC (spot price $\\times$ 100)",
+                        "B": "$8{,}333.33$ USDC",
+                        "C": "$12{,}500$ USDC",
+                        "D": "$9{,}090.91$ USDC"
+                    },
+                    "correct": "B",
+                    "explanation": "After selling 100 TOKEN: new TOKEN reserve $= 500 + 100 = 600$. Constant product: $600 \\times y_{\\text{new}} = 500 \\times 50{,}000 = 25{,}000{,}000$. So $y_{\\text{new}} = 25{,}000{,}000 / 600 \\approx 41{,}666.67$ USDC. USDC output $= 50{,}000 - 41{,}666.67 \\approx 8{,}333.33$ USDC. The spot price was $50{,}000 / 500 = 100$ per TOKEN, so naively 100 TOKEN should fetch $10{,}000$. The shortfall ($1{,}666.67$) is price impact from moving along the bonding curve."
+                },
+                {
+                    "id": 6,
+                    "question": "When an LP deposits into a Uniswap V2 pool, they must deposit both tokens in the current ratio. A pool has 500 ETH and 1,000,000 USDC. An LP wants to deposit 10 ETH. How much USDC must they deposit simultaneously?",
+                    "options": {
+                        "A": "Any amount of USDC — the pool accepts asymmetric deposits",
+                        "B": "$20{,}000$ USDC",
+                        "C": "$10{,}000$ USDC",
+                        "D": "$1{,}000{,}000$ USDC (the full pool balance must be matched)"
+                    },
+                    "correct": "B",
+                    "explanation": "Uniswap V2 requires deposits in the current pool ratio to preserve the price. Current ratio: $1{,}000{,}000 / 500 = 2{,}000$ USDC per ETH. Depositing 10 ETH requires $10 \\times 2{,}000 = 20{,}000$ USDC. If you deposited a different ratio, the contract would either reject the transaction or refund the excess. Uniswap V3 introduced range orders that allow asymmetric single-token deposits within a price range."
+                },
+                {
+                    "id": 7,
+                    "question": "What does a Uniswap V2 liquidity pool token (LP token) represent, and what determines how much of the pool's assets an LP can redeem it for?",
+                    "options": {
+                        "A": "An LP token represents a fixed amount of both tokens locked at deposit time; it redeems for exactly those amounts regardless of subsequent trading",
+                        "B": "An LP token represents a proportional share of the pool's total liquidity; when redeemed, it returns the LP's fraction of both token reserves at the time of withdrawal, which may differ from deposit amounts due to trades",
+                        "C": "An LP token is a governance token that entitles the holder to vote on Uniswap protocol upgrades",
+                        "D": "An LP token tracks the USD value deposited and guarantees redemption at the original USD value plus earned fees"
+                    },
+                    "correct": "B",
+                    "explanation": "LP tokens represent fractional pool ownership, not fixed token amounts. If you own 1% of the pool's LP tokens, you are entitled to 1% of each reserve when you withdraw — whatever those reserves happen to be at that time. Because arbitrageurs continuously rebalance the pool as external prices move, the token ratio shifts. You receive more of the token that has relatively fallen in price and less of the one that has risen, which is the source of impermanent loss."
+                },
+                {
+                    "id": 8,
+                    "question": "An LP deposits into a Uniswap V2 pool and later redeems their LP tokens. They receive fewer tokens overall than if they had simply held. What term describes this phenomenon, and what causes it?",
+                    "options": {
+                        "A": "Slippage — caused by large trades moving the pool price during the deposit",
+                        "B": "Impermanent loss — caused by divergence between the pool's internal token ratio and the external market price, leading arbitrageurs to rebalance the pool so LPs hold more of the underperforming token",
+                        "C": "Rug pull — caused by the pool contract owner withdrawing reserves",
+                        "D": "Protocol fee — caused by Uniswap charging a 0.05% withdrawal fee on all LP redemptions"
+                    },
+                    "correct": "B",
+                    "explanation": "Impermanent loss (IL) occurs when the price of deposited tokens changes relative to when they were deposited. Arbitrageurs exploit price differences between the pool and external markets, rebalancing the pool. As a result, LPs end up holding more of the token that has depreciated and less of the one that has appreciated — a worse outcome than simply holding both tokens. IL is 'impermanent' because if prices return to the deposit ratio, the loss disappears. It becomes permanent upon withdrawal."
+                },
+                {
+                    "id": 9,
+                    "question": "The impermanent loss formula for a Uniswap V2 pool is approximately $\\text{IL} = \\dfrac{2\\sqrt{r}}{1+r} - 1$, where $r$ is the price ratio change. If ETH doubles in price ($r = 2$), what is the approximate impermanent loss?",
+                    "options": {
+                        "A": "$-50\\%$ (the LP loses half their value)",
+                        "B": "$-5.72\\%$ (relative to simply holding both assets)",
+                        "C": "$-25\\%$ (one token doubled so average loss is 25%)",
+                        "D": "$0\\%$ — impermanent loss only occurs when prices fall"
+                    },
+                    "correct": "B",
+                    "explanation": "Substituting $r = 2$: $\\text{IL} = \\dfrac{2\\sqrt{2}}{1+2} - 1 = \\dfrac{2 \\times 1.4142}{3} - 1 = \\dfrac{2.8284}{3} - 1 \\approx 0.9428 - 1 = -0.0572$, i.e., $-5.72\\%$. This means an LP who deposited 1 ETH + 2000 USDC (at price $2000) when ETH rises to $4000 ends up with $5.72\\%$ less value than if they had simply held both assets. The loss is symmetric: IL is the same whether ETH doubles ($r=2$) or halves ($r=0.5$)."
+                },
+                {
+                    "id": 10,
+                    "question": "Using the impermanent loss formula $\\text{IL} = \\frac{2\\sqrt{r}}{1+r} - 1$, what is the impermanent loss when the price of one asset falls to 25% of its original value (i.e., $r = 0.25$)?",
+                    "options": {
+                        "A": "$-75\\%$",
+                        "B": "$-20\\%$",
+                        "C": "$-5.72\\%$",
+                        "D": "$-2.02\\%$"
+                    },
+                    "correct": "B",
+                    "explanation": "Substituting $r = 0.25$: $\\text{IL} = \\dfrac{2\\sqrt{0.25}}{1 + 0.25} - 1 = \\dfrac{2 \\times 0.5}{1.25} - 1 = \\dfrac{1}{1.25} - 1 = 0.8 - 1 = -0.20$, i.e., $-20\\%$. Note: $r = 0.25$ represents a $4\\times$ price change (price fell to one quarter). The IL formula is symmetric: $r = 0.25$ and $r = 4$ give the same magnitude of IL. For $r = 4$: $\\dfrac{2 \\times 2}{1 + 4} - 1 = \\dfrac{4}{5} - 1 = -0.20$. The $-5.72\\%$ figure applies to $r = 2$ (price doubling), not a $4\\times$ move. A $4\\times$ price divergence causes significantly more impermanent loss ($-20\\%$) than a $2\\times$ divergence ($-5.72\\%$)."
+                },
+                {
+                    "id": 11,
+                    "question": "Uniswap V2 charges a 0.3% fee on every swap. Where do these fees go, and how do LPs earn from them?",
+                    "options": {
+                        "A": "Fees are sent to the Uniswap protocol treasury; LPs earn through UNI token distributions",
+                        "B": "Fees are added to the pool reserves rather than paid out separately; LPs earn by having a larger share of a larger pool when they redeem their LP tokens",
+                        "C": "Fees are distributed in USDC to LP token holders pro-rata every 24 hours via a claimable rewards contract",
+                        "D": "Fees are burned permanently, reducing the total token supply and benefiting all holders through scarcity"
+                    },
+                    "correct": "B",
+                    "explanation": "In Uniswap V2, the 0.3% fee is retained in the pool: after a swap, the product $x \\cdot y$ is slightly larger than $k$ because the fee is not returned to the trader. This increases the reserves, growing $k$ gradually. When an LP withdraws, they redeem their proportional share of the larger reserves — they receive more tokens than deposited. This design means fee accrual is automatic and gas-free; no separate claim transaction is needed."
+                },
+                {
+                    "id": 12,
+                    "question": "What is the key architectural difference between Uniswap V2 and Uniswap V3 that improves capital efficiency for liquidity providers?",
+                    "options": {
+                        "A": "V3 uses a bonding curve based on $x^2 + y^2 = k$ instead of $x \\cdot y = k$, reducing price impact",
+                        "B": "V3 introduces concentrated liquidity: LPs specify a price range $[p_a, p_b]$ within which their capital is active; capital is deployed only within that range rather than spread across all prices from 0 to infinity",
+                        "C": "V3 removes impermanent loss by using a dynamic rebalancing mechanism that adjusts the token ratio every block",
+                        "D": "V3 replaces LP tokens with NFTs purely for aesthetic reasons to attract NFT collectors as LPs"
+                    },
+                    "correct": "B",
+                    "explanation": "Uniswap V3 (May 2021) introduced concentrated liquidity. In V2, LP capital is spread across the entire price curve from 0 to infinity — most of it unused since prices trade in a narrow range. In V3, an LP who believes ETH/USDC will trade between $1,500 and $2,500 can concentrate all their capital in that range. This earns the same or more fees with far less capital, improving capital efficiency by up to 4,000x versus V2 for tight ranges. V3 LP positions are represented as NFTs because each position has unique range parameters."
+                },
+                {
+                    "id": 13,
+                    "question": "In Uniswap V3, a liquidity provider sets a price range of $1,800 to $2,200 for an ETH/USDC pool. The current ETH price is $2,000. What happens to their position if ETH price rises to $2,500?",
+                    "options": {
+                        "A": "The LP earns higher fees because volatility benefits LPs",
+                        "B": "The LP's position goes out of range: all USDC in the position has been sold for ETH as price rose through the range, and the position now holds only ETH and earns zero fees until price returns below $2,200",
+                        "C": "The LP's position is automatically rebalanced to a new range centred on $2,500",
+                        "D": "The LP suffers a liquidation penalty because the collateral ratio fell below the minimum"
+                    },
+                    "correct": "B",
+                    "explanation": "In Uniswap V3 concentrated liquidity, as ETH price rises from $2,000 toward the upper tick $2,200, the LP's USDC is continuously converted into ETH. At $2,200 (the upper tick), the position has been fully converted to ETH and is now entirely outside its active range. Above $2,200, the position is inactive — it earns no fees. The LP now holds pure ETH. If price falls back below $2,200, the position becomes active again and ETH is converted back to USDC. This one-sided exposure above/below the range creates a directional payoff profile."
+                },
+                {
+                    "id": 14,
+                    "question": "Slippage in an AMM context refers to which of the following?",
+                    "options": {
+                        "A": "The gas cost increase when network congestion is high",
+                        "B": "The difference between the expected price at trade submission and the actual execution price, caused by pool reserve changes (either from the trader's own size or concurrent trades)",
+                        "C": "The fee charged by the protocol that reduces the effective output of every swap",
+                        "D": "The delay between transaction broadcast and on-chain confirmation"
+                    },
+                    "correct": "B",
+                    "explanation": "Slippage is price impact: the execution price differs from the quoted spot price. It has two components: (1) price impact from your own trade — larger trades move the pool price more, as shown by the $x \\cdot y = k$ curve; (2) front-running or other transactions changing pool state between your submission and execution. AMM interfaces let users set a slippage tolerance (e.g., 0.5%) — if actual slippage exceeds this, the transaction reverts. Protocol fees are a separate deduction, not slippage."
+                },
+                {
+                    "id": 15,
+                    "question": "A trader wants to swap $10,000 USDC for ETH in a pool with $100,000 USDC and 50 ETH. A second trader simultaneously submits a swap of $50,000 USDC which is mined first. Approximately how does this affect the first trader's received ETH (beyond their own price impact)?",
+                    "options": {
+                        "A": "No effect — each trade is executed against the original pool state as recorded at transaction submission",
+                        "B": "The second trade, by executing first, moves the pool to a higher ETH price; the first trader receives less ETH than expected because the pool has fewer ETH reserves when their trade executes",
+                        "C": "The second trade increases ETH price, benefiting the first trader who receives more ETH",
+                        "D": "Both trades are batched and executed at the same average price to prevent front-running"
+                    },
+                    "correct": "B",
+                    "explanation": "Ethereum transactions execute sequentially in a block. If the $50,000 USDC swap executes first, the pool state changes: ETH reserves decrease and USDC reserves increase, raising the pool price of ETH. When the $10,000 trade executes, it faces a worse (higher) ETH price. This is price impact from concurrent trading — a form of slippage. This mechanism is also exploited by MEV sandwich bots, which front-run a trade to move the price, let the victim trade at the worse price, then back-run to profit from the spread."
+                },
+                {
+                    "id": 16,
+                    "question": "Curve Finance uses a 'stableswap' invariant rather than $x \\cdot y = k$. For which type of asset pairs is Curve's mechanism specifically optimised, and why?",
+                    "options": {
+                        "A": "Highly volatile pairs like ETH/SHIB — the stableswap formula dampens price swings",
+                        "B": "Pegged or correlated assets (stablecoin pairs like USDC/USDT, or LST pairs like stETH/ETH) — the stableswap invariant is flat near the peg, providing very low slippage for large trades at near-equal prices",
+                        "C": "Governance token pairs — Curve specialises in token launches to provide bootstrapped liquidity",
+                        "D": "Cross-chain pairs — the stableswap formula encodes bridge logic for multi-chain swaps"
+                    },
+                    "correct": "B",
+                    "explanation": "Curve's stableswap invariant combines a constant sum formula ($x + y = k$, zero slippage but breaks at extreme prices) with a constant product formula. The result is an amplified curve that is very flat near equal prices (like USDC = USDT = 1.00) but steepens sharply at de-peg. This makes Curve extremely efficient for stablecoin-to-stablecoin swaps — a $10M USDC/USDT swap on Curve incurs far less slippage than on Uniswap. The amplification parameter A controls how flat the curve is near the peg."
+                },
+                {
+                    "id": 17,
+                    "question": "Balancer is a generalised AMM that differs from Uniswap V2 by allowing pools with more than two tokens and custom weight ratios. Which formula does a Balancer weighted pool use?",
+                    "options": {
+                        "A": "The constant sum: $\\sum_i x_i = k$",
+                        "B": "The constant product with weights: $\\prod_i x_i^{w_i} = k$, where $w_i$ are the token weights and $\\sum_i w_i = 1$",
+                        "C": "The quadratic: $\\sum_i x_i^2 = k$",
+                        "D": "The harmonic mean: $\\sum_i (w_i / x_i) = k$"
+                    },
+                    "correct": "B",
+                    "explanation": "Balancer generalises Uniswap's $x \\cdot y = k$ (which is the special case of 2 tokens with equal 50/50 weights) to $\\prod_i x_i^{w_i} = k$. For example, an 80/20 ETH/USDC pool: $x_{\\text{ETH}}^{0.8} \\cdot x_{\\text{USDC}}^{0.2} = k$. This means 80% of the pool's value is always held in ETH and 20% in USDC at any price. An 80/20 pool behaves similarly to holding 80% ETH (high directional exposure) while still earning swap fees. It also reduces impermanent loss compared to a 50/50 pool when holding a strongly appreciating asset."
+                },
+                {
+                    "id": 18,
+                    "question": "What is a DEX aggregator, and what problem does it solve for DeFi traders?",
+                    "options": {
+                        "A": "A contract that combines multiple users' trades into a single batch to reduce gas costs",
+                        "B": "A router that queries multiple DEXs and liquidity sources simultaneously, then splits and routes a trade across them to achieve the best net output price for the user",
+                        "C": "A governance protocol that aggregates votes from multiple DeFi protocols into a single DAO",
+                        "D": "A bridge that aggregates liquidity from multiple blockchains to execute cross-chain swaps"
+                    },
+                    "correct": "B",
+                    "explanation": "DEX aggregators (1inch, Paraswap, CowSwap) solve price fragmentation: liquidity is split across dozens of pools on Uniswap, Curve, Balancer, etc. For a large trade, the best price might be achieved by routing 40% through Curve's USDC/USDT pool, 35% through Uniswap V3, and 25% through Balancer. The aggregator's algorithm calculates the optimal split in real time, giving the user more output tokens than any single DEX would. Gas efficiency is also optimised since one transaction handles the multi-hop routing."
+                },
+                {
+                    "id": 19,
+                    "question": "1inch is a leading DEX aggregator. When a user submits a $100,000 USDC → DAI swap via 1inch, the aggregator might route through three different pools. Which approach does 1inch use to find the optimal routing?",
+                    "options": {
+                        "A": "It queries a centralised price oracle and routes 100% to the pool whose spot price is closest to the oracle price",
+                        "B": "It uses a pathfinding algorithm (Pathfinder) that simulates splits across multiple pools and selects the combination that maximises the output amount after fees and gas costs",
+                        "C": "It auctions the order off-chain to market makers who compete for the best fill, then settles on-chain",
+                        "D": "It always routes through the pool with the highest TVL since deeper liquidity guarantees the best price"
+                    },
+                    "correct": "B",
+                    "explanation": "1inch's Pathfinder algorithm enumerates possible routes across integrated DEX protocols (Uniswap V2/V3, Curve, Balancer, DODO, etc.), simulates the output for each split configuration, accounts for gas costs of multi-hop routes, and selects the split that maximises net value to the user. For large trades, splitting reduces price impact significantly. Simply routing to the highest-TVL pool is suboptimal; pools with concentrated liquidity near the current price may offer better execution despite lower total TVL."
+                },
+                {
+                    "id": 20,
+                    "question": "A sophisticated trader uses a DEX aggregator for a large swap and notices the quoted output is higher than any single pool could provide. The aggregator splits the trade across three pools. What is the economic reason that splitting reduces total price impact compared to a single-pool trade?",
+                    "options": {
+                        "A": "Splitting allows the trader to avoid paying the 0.3% Uniswap fee on any individual pool",
+                        "B": "Each pool's price impact depends on the size of the trade relative to that pool's reserves; by splitting the trade, no single pool is moved as far along its bonding curve, reducing the total slippage across all pools combined",
+                        "C": "The aggregator front-runs other traders to ensure the split routes arrive before competing orders",
+                        "D": "Splitting resets the $k$ constant in each pool before the trade executes, temporarily increasing available liquidity"
+                    },
+                    "correct": "B",
+                    "explanation": "For a constant product AMM, price impact scales non-linearly with trade size relative to reserves. A $100,000 trade in a $500,000 pool moves the price significantly. The same $100,000 split as $50,000 in Pool A and $50,000 in Pool B moves each pool half as far — and because the price impact function is convex, the sum of impacts from two half-trades is less than the impact of one full trade. Mathematically, for $x \\cdot y = k$, the output for a split trade $\\Delta x_1 + \\Delta x_2$ exceeds the output for an unsplit $\\Delta x_1 + \\Delta x_2$ in a single pool. This is the core value proposition of aggregators."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

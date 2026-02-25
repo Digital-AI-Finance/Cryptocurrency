@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz NF-2: NFT Marketplaces &amp; Trading | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz NF-2: NFT Marketplaces &amp; Trading</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz NF-2: NFT Marketplaces &amp; Trading</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "OpenSea dominated the NFT marketplace landscape from 2021 through 2022. Which business model did OpenSea use, and what was its primary competitive vulnerability?",
+                    "options": {
+                        "A": "OpenSea charged a 10% fee on all transactions and owned the underlying NFT contracts, making it impossible for competitors to access the same liquidity",
+                        "B": "OpenSea operated as a centralised off-chain order book charging a 2.5% seller fee on each sale, with the vulnerability that NFT listings and bids were stored on OpenSea's servers — not on-chain — making it easy for competitors with lower fees or better token incentives to attract the same liquidity",
+                        "C": "OpenSea used a fully on-chain AMM model with no fees, subsidised by its VC investors, and was vulnerable to smart contract exploits",
+                        "D": "OpenSea charged buyers a 5% fee and offered sellers zero fees, but this made it unprofitable and forced it into bankruptcy in 2023"
+                    },
+                    "correct": "B",
+                    "explanation": "OpenSea's Seaport protocol stores orders as off-chain signed messages, not on-chain transactions. Sellers sign a listing message (a structured EIP-712 signature) that OpenSea stores in its database. This means NFTs are not locked in any OpenSea contract — they remain in the seller's wallet, secured only by the setApprovalForAll grant. When Blur launched in 2022 with 0% marketplace fees and BLUR token rewards, traders could cancel OpenSea approvals and migrate instantly. OpenSea's lack of token and inability to match Blur's incentives caused its market share to collapse from ~90% to under 30% by early 2023."
+                },
+                {
+                    "id": 2,
+                    "question": "Blur launched in October 2022 and rapidly captured market share from OpenSea. Which two features most differentiated Blur from OpenSea for professional NFT traders?",
+                    "options": {
+                        "A": "Blur offered a mobile app and fiat payment processing, which OpenSea lacked",
+                        "B": "Blur offered real-time floor price analytics and a portfolio management interface designed for professional traders, combined with BLUR token incentive farming that rewarded listing and bidding activity — whereas OpenSea's interface was built for casual collectors with no token rewards",
+                        "C": "Blur created its own blockchain for zero-gas NFT transfers and integrated with all major hardware wallets natively",
+                        "D": "Blur charged lower smart contract audit fees than OpenSea, enabling smaller projects to list at a fraction of the cost"
+                    },
+                    "correct": "B",
+                    "explanation": "Blur targeted pro traders with a data-rich interface showing real-time floor sweeps, trait rarity, bid depth, and portfolio P&L — tools absent from OpenSea. Crucially, Blur's token airdrop and ongoing BLUR rewards for listing NFTs below floor and placing bids created a liquidity-mining dynamic: traders earned BLUR by actively participating, making the effective fee negative during early phases. This 'points farming' mechanic drew high-volume traders away from OpenSea. Blur also aggregated OpenSea listings, letting users sweep across both platforms, which further eroded OpenSea's exclusive liquidity advantage."
+                },
+                {
+                    "id": 3,
+                    "question": "NFT marketplace aggregators like Gem (acquired by OpenSea) and Blur allow users to 'sweep the floor'. What does sweeping the floor mean?",
+                    "options": {
+                        "A": "Removing all inactive listings from a collection by reporting them to the marketplace's moderation team",
+                        "B": "Purchasing multiple NFTs at or near the lowest listed price (floor price) across several marketplaces in a single bundled transaction, enabling efficient bulk buying without navigating each marketplace separately",
+                        "C": "Setting a collection's floor price artificially low to trigger liquidations in NFT lending protocols",
+                        "D": "Depositing NFTs into a floor-price liquidity pool on Sudoswap to earn trading fees"
+                    },
+                    "correct": "B",
+                    "explanation": "Floor sweeping is the practice of bulk-buying the cheapest available NFTs in a collection. An aggregator aggregates listings from OpenSea, Blur, LooksRare, and X2Y2 simultaneously, allowing a buyer to purchase, for example, the 20 cheapest Azuki NFTs across all platforms in one transaction. Aggregators use smart contracts that batch the individual marketplace calls atomically, so either all purchases succeed or none do. Sweeping is used by whales accumulating positions, projects buying back their own NFTs, and arbitrageurs exploiting price discrepancies between platforms."
+                },
+                {
+                    "id": 4,
+                    "question": "LooksRare and X2Y2 both launched in 2022 with token rewards for trading. Both saw their on-chain volume metrics dramatically overstate genuine activity. What mechanism caused this inflation?",
+                    "options": {
+                        "A": "Both platforms used faulty price oracles that reported transactions at 10x their actual ETH value",
+                        "B": "Wash trading: users traded NFTs between their own wallets (self-trading) to earn LOOKS or X2Y2 token rewards that exceeded the trading fees paid, generating enormous reported volume with zero economic risk or price discovery",
+                        "C": "Both platforms counted failed transactions in their volume metrics due to a smart contract bug",
+                        "D": "Institutional traders used automated market makers to continuously rebalance NFT portfolios, generating high volume without speculative intent"
+                    },
+                    "correct": "B",
+                    "explanation": "LooksRare and X2Y2 distributed their native tokens proportionally to trading volume. This created a perverse incentive: if LOOKS rewards per ETH traded exceeded the 2% fee, users could generate fake volume at a profit. An address selling an NFT to itself (or a coordinated partner wallet) would pay 2% in fees but earn 3-4% in LOOKS, netting 1-2% risk-free. Blockchain analytics firms (Chainalysis, Dune dashboards) estimated that 70-95% of LooksRare's early volume was wash trading. This exposed a fundamental flaw in 'volume-incentivised' marketplace designs."
+                },
+                {
+                    "id": 5,
+                    "question": "In an English auction for an NFT, how does bidding progress, and what is the key difference from a Dutch auction?",
+                    "options": {
+                        "A": "English auction: price starts high and decreases at fixed intervals until a buyer accepts; Dutch auction: price starts low and bidders compete upward",
+                        "B": "English auction: bidders competitively raise the price upward; the highest bidder at auction close wins. Dutch auction: the price starts high and decreases over time; the first bidder who accepts the current price wins",
+                        "C": "Both auctions are identical except English auctions occur on OpenSea and Dutch auctions occur on Blur",
+                        "D": "English auction: a sealed-bid format where all bids are revealed simultaneously; Dutch auction: an open ascending-bid format with real-time bid visibility"
+                    },
+                    "correct": "B",
+                    "explanation": "English auction (ascending price): the seller sets a reserve, bidders outbid each other, and the auction closes at the highest bid after the time limit. This maximises seller revenue when demand is uncertain and many buyers compete. Dutch auction (descending price): the seller sets a starting price above expected value, and the price decreases on a schedule (e.g., 0.1 ETH per hour) until a buyer accepts. The first buyer to accept wins. Dutch auctions are used for NFT mints to discover the market-clearing price and reduce gas wars — the Nouns DAO runs a daily Dutch auction to mint one Noun per day."
+                },
+                {
+                    "id": 6,
+                    "question": "A seller lists an NFT via a fixed-price listing on OpenSea's Seaport protocol. What cryptographic mechanism allows the NFT to remain in the seller's wallet while the listing is 'live' on the marketplace?",
+                    "options": {
+                        "A": "The NFT is locked in an OpenSea escrow contract using a timelock; the seller's private key is temporarily transferred to OpenSea",
+                        "B": "The seller signs an EIP-712 structured data message (off-chain signature) authorising Seaport to transfer the NFT at the listed price. The NFT remains in the seller's wallet; the signature is stored by OpenSea and submitted on-chain only when a buyer accepts, atomically transferring the NFT and payment in one transaction",
+                        "C": "The NFT's tokenURI is updated to point to an OpenSea-controlled URL, signalling its listed status to the Seaport smart contract",
+                        "D": "OpenSea holds the buyer's ETH in escrow immediately upon listing, releasing it to the seller when the listing expires or is purchased"
+                    },
+                    "correct": "B",
+                    "explanation": "Seaport (OpenSea's v1.5+ protocol) uses off-chain order signing. The seller signs an Order struct using EIP-712 (typed structured data hashing), which produces a signature without any on-chain transaction. The seller must have previously granted setApprovalForAll to Seaport. When a buyer calls fulfillOrder, Seaport verifies the seller's signature on-chain and atomically executes: transferring the NFT from seller to buyer and ETH/ERC-20 from buyer to seller (minus fees) in a single transaction. This is gas-efficient because listings cost nothing until sold; only the fulfillment transaction requires gas (typically paid by the buyer)."
+                },
+                {
+                    "id": 7,
+                    "question": "A collector wants to place a collection-wide bid on all Bored Apes priced below 20 ETH. How do NFT marketplaces technically implement collection offers (as opposed to item-specific offers)?",
+                    "options": {
+                        "A": "The buyer must individually sign 10,000 separate offer messages — one per token ID — which the marketplace aggregates into a single on-chain transaction",
+                        "B": "Collection offers use a single signed order that specifies the collection contract address and bid price without a specific token ID; when a seller accepts, the fulfillment contract verifies that the transferred token belongs to the specified collection and sends the bidder's WETH payment",
+                        "C": "Collection offers are implemented via a Dutch auction where the bid price automatically adjusts to equal the current floor price",
+                        "D": "The buyer deposits ETH into a lending protocol as collateral, and any seller can borrow against it at the collection floor price"
+                    },
+                    "correct": "B",
+                    "explanation": "Collection offers (also called 'trait offers' in more specific form) are implemented via flexible order criteria. In Seaport's model, the Order struct's offer side specifies a criterion (e.g., ERC-721 contract = Bored Ape contract, any tokenId) and the consideration side specifies WETH amount. The bidder signs this order and pre-approves WETH. When any seller fulfills the order by providing a Bored Ape, Seaport verifies the token is from the correct contract and executes the swap. Blur's bidding pool goes further, using a single pooled WETH deposit that multiple sellers can draw against simultaneously."
+                },
+                {
+                    "id": 8,
+                    "question": "A seller lists a CryptoPunk for 100 ETH. The marketplace charges a 2.5% fee and there is a 5% creator royalty. How much ETH does the seller receive, and how is it distributed?",
+                    "options": {
+                        "A": "Seller: 90 ETH, Marketplace: 5 ETH, Creator: 5 ETH (total: 100 ETH)",
+                        "B": "Seller: 92.5 ETH, Marketplace: 2.5 ETH, Creator: 5 ETH (total: 100 ETH)",
+                        "C": "Seller: 95 ETH, Marketplace: 2.5 ETH, Creator: 2.5 ETH (total: 100 ETH)",
+                        "D": "Seller: 97.5 ETH, Marketplace: 2.5 ETH, Creator: 0 ETH (CryptoPunks predate royalty standards)"
+                    },
+                    "correct": "B",
+                    "explanation": "The standard fee stack: Buyer pays 100 ETH total. Marketplace takes 2.5 ETH (2.5%). Creator royalty takes 5 ETH (5% of 100 ETH). Seller receives 100 - 2.5 - 5 = 92.5 ETH. Note: CryptoPunks actually have no on-chain royalty mechanism as they predate ERC-721, but the question uses a 5% royalty for illustration. In practice, royalty calculation base is typically the sale price (100 ETH), not the seller proceeds, so both fees are calculated on the gross amount. Some marketplaces calculate royalties on the net-of-platform-fee amount, which would give the creator 4.875 ETH (5% of 97.5), but the standard is gross price."
+                },
+                {
+                    "id": 9,
+                    "question": "EIP-2981 is the NFT Royalty Standard. What problem does it solve, and what does it NOT solve?",
+                    "options": {
+                        "A": "EIP-2981 enforces royalty payments by automatically withholding funds at the blockchain level; it solves both royalty discoverability and enforcement",
+                        "B": "EIP-2981 provides a standardised on-chain method for NFT contracts to signal their desired royalty recipient and percentage (royaltyInfo function), solving discoverability. It does NOT enforce payment — marketplaces can still choose to ignore the royalty information and route zero to the creator",
+                        "C": "EIP-2981 creates a decentralised royalty escrow contract that holds marketplace fees until the creator claims them, solving payment delays but not the royalty percentage",
+                        "D": "EIP-2981 enforces royalties only for secondary sales above a floor price threshold; sales below the floor are exempt to protect traders"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-2981 adds a single function: royaltyInfo(uint256 tokenId, uint256 salePrice) returns (address receiver, uint256 royaltyAmount). Any marketplace can query this to discover the creator's intended royalty. However, EIP-2981 is purely informational — it provides no on-chain enforcement. A marketplace can query royaltyInfo, learn the creator wants 10%, and then pay 0%. This is exactly what Blur and X2Y2 exploited in 2022-2023: they made creator royalties optional (or zero by default), diverting millions from creators to traders. True enforcement requires either: (1) marketplaces honouring the standard voluntarily, or (2) transfer hook mechanisms that block sales to non-compliant marketplaces."
+                },
+                {
+                    "id": 10,
+                    "question": "In 2022-2023, some NFT projects attempted to enforce royalties by using 'operator filtering' — a mechanism popularised by OpenSea's Operator Filter Registry. How did this work, and why did it ultimately fail?",
+                    "options": {
+                        "A": "The NFT contract's transfer function required a valid OpenSea API key; Blur acquired an OpenSea API key and bypassed the filter",
+                        "B": "NFT contracts checked a registry of approved marketplaces during safeTransferFrom; unapproved marketplaces (like Blur) would cause transfers to revert. It failed because: (1) existing NFTs with no filter could be traded freely on Blur, weakening the ecosystem incentive; (2) Blur eventually registered as an approved operator; (3) collectors preferred Blur's liquidity and sold through it anyway, abandoning projects that enforced royalties",
+                        "C": "OpenSea used legal injunctions to prevent Blur from processing filtered collections; Blur challenged these in court and won",
+                        "D": "The filter worked only for ERC-1155 tokens; ERC-721 tokens lacked the necessary interface for operator filtering"
+                    },
+                    "correct": "B",
+                    "explanation": "The OpenSea Operator Filter Registry allowed NFT contracts to block transfers via non-registered operators. New collections adopting the filter could theoretically enforce royalties on OpenSea (which honoured them) while blocking Blur. The strategy failed for several reasons: (1) Collections without filters (all older NFTs) remained freely tradeable on Blur, so Blur's liquidity advantage persisted; (2) Collectors rationally moved to platforms with lower costs; (3) Blur registered in the filter but later made royalties optional anyway; (4) Projects that enforced royalties saw lower trading volume, harming secondary market liquidity and hurting holders' ability to exit. By 2023, most projects abandoned operator filtering."
+                },
+                {
+                    "id": 11,
+                    "question": "What does 'floor price' represent in an NFT collection, and why is it considered an important but imperfect metric for collection health?",
+                    "options": {
+                        "A": "Floor price is the average sale price of all NFTs in the collection over the past 30 days; it is imperfect because outlier sales by rare traits inflate the average",
+                        "B": "Floor price is the lowest current ask price for any NFT in a collection across active listings; it represents the minimum cost to enter the collection but is imperfect because it reflects only the supply side (willing sellers at that price), can be manipulated by listing a single token cheaply, and does not indicate how many buyers exist at that level",
+                        "C": "Floor price is the intrinsic value calculated from on-chain rarity scores; it is imperfect because rarity algorithms differ across platforms",
+                        "D": "Floor price is the reserve price set by the project team at launch, adjusted monthly for inflation; it is imperfect because teams can set arbitrary reserves"
+                    },
+                    "correct": "B",
+                    "explanation": "Floor price is the cheapest listed NFT in a collection — the entry price for a new buyer. Traders monitor floor price as a proxy for collection sentiment (rising floor = bullish, falling floor = bearish). Its limitations: (1) A single motivated seller can drop the floor by listing one token cheap — this may not reflect the views of 9,999 other holders; (2) It ignores bid depth — the floor might be 1 ETH but the highest bid might be 0.3 ETH, signalling weak demand; (3) Rare-trait NFTs trade at significant premiums to floor; (4) Listed supply can be thin (few sellers), making the floor price unstable. Bid depth (the deepest collection offer) is often considered a better measure of true liquidity."
+                },
+                {
+                    "id": 12,
+                    "question": "Blockchain analytics firms use several heuristics to detect wash trading in NFT markets. Which of the following is a reliable indicator of wash trading?",
+                    "options": {
+                        "A": "An NFT that sells for a price significantly above the collection floor price, suggesting the buyer overpaid due to emotional attachment to specific traits",
+                        "B": "An NFT that is traded multiple times between addresses funded from the same source wallet, at steadily increasing prices, with no other trading activity in those wallets and with transfer timing suggesting coordination",
+                        "C": "An NFT that sells within 24 hours of minting, suggesting the buyer was a flipper rather than a genuine collector",
+                        "D": "An NFT collection with a Gini coefficient above 0.8, indicating concentrated ownership among a small number of wallets"
+                    },
+                    "correct": "B",
+                    "explanation": "Wash trading detection relies on identifying self-trading or coordinated fake trading. Key signals: (1) Common funding source — both buyer and seller wallets were funded from the same address (often via a mixer or directly); (2) Circular trade patterns — token returns to the original address after N trades; (3) No other activity — wallets exist solely to trade this token; (4) Price escalation — each trade is higher than the last, creating an artificial price history; (5) Timing — trades occur in rapid succession suggesting automation. Chainalysis estimated $8.9 billion in NFT wash trading in 2021-2022. Flipping quickly or holding a rare piece above floor are normal market behaviours, not wash trading indicators."
+                },
+                {
+                    "id": 13,
+                    "question": "What is 'organic volume' in NFT markets, and how do data providers like CryptoSlam attempt to isolate it?",
+                    "options": {
+                        "A": "Organic volume refers to NFT sales involving real-world physical items; CryptoSlam verifies physical delivery before recording the sale",
+                        "B": "Organic volume is trading activity representing genuine economic exchange between unaffiliated parties; CryptoSlam filters out transactions where buyer and seller wallets share funding sources, the same token trades repeatedly between the same set of addresses, or trades have characteristics consistent with self-dealing — reporting 'non-fungible volume' after excluding suspected wash trades",
+                        "C": "Organic volume is calculated by multiplying on-chain sale count by the 30-day average sale price, excluding outlier transactions above 10x the floor",
+                        "D": "Organic volume is the total ETH equivalent of royalties paid to creators, treating creator revenue as proof of legitimate economic activity"
+                    },
+                    "correct": "B",
+                    "explanation": "CryptoSlam pioneered 'Suspected Wash Trade' filtering by analysing wallet funding patterns and trade loops. Their methodology flags trades where: wallets were funded from the same source address, tokens cycle between a closed set of wallets, or there are other algorithmic signals. Reported volume is then split into 'organic' and 'wash trade' categories. This revealed that platforms like LooksRare had over 95% suspected wash trade volume at peak. True organic volume (genuine buyers and sellers with no affiliation) is the relevant metric for assessing real market demand. No methodology is perfect — sophisticated wash traders use multiple hops to obscure common funding."
+                },
+                {
+                    "id": 14,
+                    "question": "A collection has a floor price of 2 ETH and a 24-hour trading volume of 50 ETH from 20 transactions. The estimated total collection supply is 10,000 NFTs. What is the approximate market cap of the collection, and what does the turnover rate suggest?",
+                    "options": {
+                        "A": "Market cap: 100 ETH; turnover rate: 50%, indicating the entire collection changed hands daily",
+                        "B": "Market cap: 20,000 ETH (10,000 NFTs × 2 ETH floor); turnover rate: 0.25% (20 sales / 10,000 supply), suggesting the collection is relatively illiquid with only a small fraction trading daily",
+                        "C": "Market cap: 50 ETH (equal to 24-hour volume, as volume defines current market value); turnover rate: not calculable from floor price alone",
+                        "D": "Market cap: 2,000 ETH (1,000 NFTs assumed listed × 2 ETH); turnover rate: 2%, based on listed supply rather than total supply"
+                    },
+                    "correct": "B",
+                    "explanation": "NFT collection market cap is commonly estimated as: floor price × total supply = 2 ETH × 10,000 = 20,000 ETH. This is an approximation because most NFTs never trade at floor (rarer pieces command premiums), but it provides a baseline. Turnover rate = daily sales count / total supply = 20 / 10,000 = 0.2% (not 0.25% — 20 trades out of 10,000 = 0.2%). This is low, indicating illiquidity: fewer than 1 in 500 NFTs trade daily. Liquid blue-chip collections during bull markets might see 1-3% daily turnover. High turnover during a speculative frenzy can signal flipping activity rather than long-term holding."
+                },
+                {
+                    "id": 15,
+                    "question": "NFT-collateralised lending protocols (such as NFTfi and BendDAO) allow holders to borrow against their NFTs without selling. What is the primary liquidation risk specific to NFT lending compared to DeFi token lending?",
+                    "options": {
+                        "A": "NFT lending protocols charge 10x higher interest rates than token lending because NFTs are considered riskier assets",
+                        "B": "NFT markets are illiquid and floor prices can drop suddenly: if an NFT's floor drops below the loan value, the protocol must liquidate the NFT — but finding a buyer quickly at the expected price may be impossible (thin order books), potentially leaving the protocol insolvent with bad debt if the liquidation sale price is below the outstanding loan",
+                        "C": "NFT lending is only available to KYC-verified borrowers, limiting the market and creating regulatory risk",
+                        "D": "NFT lending protocols are vulnerable to reentrancy attacks because NFTs use the safeTransferFrom callback, enabling a malicious borrower to re-enter the protocol during collateral posting"
+                    },
+                    "correct": "B",
+                    "explanation": "The NFT liquidity problem is the key risk distinguishing NFT from token lending. In DeFi token lending (Aave), collateral (ETH, WBTC) has deep, 24/7 spot markets — liquidation sells ETH instantly at near-market prices. NFTs, by contrast, may have only 5-20 listings at any given time. During the June 2022 NFT bear market, BendDAO faced a crisis: 272 Bored Apes were at or near liquidation thresholds, but the 48-hour auction mechanism could not move quickly enough and the protocol temporarily had insufficient ETH liquidity to repay depositors. NFT lending requires conservative LTV ratios (30-50% vs. 75-80% for tokens) to buffer against sudden floor crashes."
+                },
+                {
+                    "id": 16,
+                    "question": "Sudoswap introduced an Automated Market Maker (AMM) model for NFTs. How does Sudoswap's bonding curve mechanism differ from traditional NFT marketplace listings?",
+                    "options": {
+                        "A": "Sudoswap uses a Uniswap-style constant product formula (x × y = k) where x is ETH and y is the number of NFTs in the pool, enabling instant price discovery without listings",
+                        "B": "Sudoswap allows liquidity providers to deposit NFTs and ETH into pools with a configurable bonding curve (linear or exponential); the pool automatically quotes buy and sell prices that adjust as NFTs are bought or sold — eliminating the need for sellers to individually list at specific prices and enabling instant liquidity for buyers at a known price",
+                        "C": "Sudoswap is a peer-to-peer lending protocol where NFT holders can borrow ETH at rates determined by a bonding curve based on the NFT's age",
+                        "D": "Sudoswap's AMM model requires all NFTs in a collection to be identical (fungible) and therefore only supports ERC-1155 tokens with supply greater than 1"
+                    },
+                    "correct": "B",
+                    "explanation": "Sudoswap (LSSVM) introduced NFT AMMs with configurable bonding curves. A pool owner deposits, for example, 5 Milady NFTs and 10 ETH, and sets a linear curve: buy price starts at 1.2 ETH and increases by 0.1 ETH per purchase; sell price starts at 0.8 ETH. Buyers can instantly purchase any available NFT at the quoted price; sellers can instantly dump an NFT for the quoted sell price. The spread between buy and sell generates fees for the LP. This contrasts with traditional listings where each seller manually prices each token and buyers must wait for sellers. The tradeoff: pools treat all NFTs as interchangeable (no trait premium capture), which suits floor NFTs but not rare trait trading."
+                },
+                {
+                    "id": 17,
+                    "question": "Gas costs significantly affect NFT trading economics on Ethereum mainnet. A user wants to mint 5 NFTs during a gas war with 100 gwei base fee and 10 gwei priority tip. Each mint operation costs approximately 80,000 gas units. What is the total gas cost in ETH if ETH is priced at $2,000?",
+                    "options": {
+                        "A": "0.04 ETH ($80) — calculated as 5 × 80,000 × 100 gwei",
+                        "B": "0.044 ETH ($88) — calculated as 5 × 80,000 × (100 + 10) gwei = 5 × 80,000 × 110 gwei = 44,000,000 gwei = 0.044 ETH",
+                        "C": "0.4 ETH ($800) — calculated as 5 × 80,000 × 1,000 gwei (the gas war peak price)",
+                        "D": "0.022 ETH ($44) — calculated as 5 × 80,000 × 55 gwei (average of base and tip)"
+                    },
+                    "correct": "B",
+                    "explanation": "Post-EIP-1559 gas calculation: total fee per gas unit = base fee + priority tip = 100 + 10 = 110 gwei. Total gas units = 5 mints × 80,000 gas = 400,000 gas units. Total fee = 400,000 × 110 gwei = 44,000,000 gwei = 0.044 ETH. At $2,000/ETH: 0.044 × $2,000 = $88. Note: the base fee (100 gwei) is burned (not paid to miners); only the priority tip (10 gwei × 400,000 = 4,000,000 gwei = 0.004 ETH = $8) goes to the validator. During true gas wars (Goblintown mint, BAYC Otherside land sale), base fees spiked to 5,000-8,000 gwei, making mints cost hundreds to thousands of dollars in gas alone."
+                },
+                {
+                    "id": 18,
+                    "question": "Layer 2 solutions (Polygon, Immutable X, Base) have emerged as NFT platforms. What trade-off do L2 NFTs offer compared to Ethereum mainnet NFTs?",
+                    "options": {
+                        "A": "L2 NFTs offer higher security than mainnet NFTs because L2 chains have more validators, but they sacrifice ERC-721 compatibility",
+                        "B": "L2 NFTs offer dramatically lower transaction fees and higher throughput (enabling mass-market gaming NFTs and micropayment royalties) but historically had lower perceived cultural prestige and liquidity than mainnet blue-chip collections; bridging assets between L1 and L2 introduces additional smart contract risk and wait times for withdrawals on optimistic rollups",
+                        "C": "L2 NFTs are fully fungible because L2 chains cannot support the ERC-721 standard; NFTs must be wrapped as ERC-20 tokens before bridging",
+                        "D": "L2 NFTs eliminate gas costs entirely through a subsidy model funded by L2 chain validators, with no trade-offs compared to mainnet"
+                    },
+                    "correct": "B",
+                    "explanation": "L2 NFT trade-offs: Benefits — gas fees on Polygon, Immutable X, or Base are 10-1,000x cheaper than Ethereum mainnet, enabling use cases impossible on L1 (game item drops, sub-$1 trades, royalty microtransactions). Immutable X specifically targets gaming with zero gas for NFT minting and trading. Challenges — (1) Cultural liquidity: the most coveted NFT collections (BAYC, CryptoPunks, Art Blocks) live on mainnet and command premiums due to L1 provenance; (2) Bridging risk: moving NFTs from L1 to L2 involves lock-and-mint mechanisms with bridge contract risk; (3) Optimistic rollup withdrawals (Optimism, Arbitrum, Base) have 7-day challenge periods, slowing capital exit. As L2 ecosystems mature, these gaps are narrowing."
+                },
+                {
+                    "id": 19,
+                    "question": "Immutable X uses StarkEx (a ZK-rollup technology) for NFT transactions. What property of ZK-rollups specifically benefits NFT marketplaces compared to optimistic rollups?",
+                    "options": {
+                        "A": "ZK-rollups support larger NFT file sizes in metadata, whereas optimistic rollups are limited to 1 KB per token",
+                        "B": "ZK-rollups generate cryptographic validity proofs (ZK-SNARKs or STARKs) for each batch of transactions, enabling near-instant finality and withdrawal to Ethereum mainnet without a 7-day challenge period — this is critical for NFT marketplaces where users want to quickly move funds between L2 and L1",
+                        "C": "ZK-rollups eliminate all gas costs by running computations off-chain, whereas optimistic rollups still require on-chain gas for every trade",
+                        "D": "ZK-rollups are fully decentralised, while optimistic rollups require a trusted sequencer — this makes ZK-rollups more suitable for high-value NFT custody"
+                    },
+                    "correct": "B",
+                    "explanation": "The key ZK-rollup advantage for NFT markets is fast finality. Optimistic rollups (Optimism, Arbitrum, Base) assume transactions are valid by default and allow a 7-day fraud proof window before L1 withdrawal — users must wait a week to move funds from L2 back to mainnet (or use a liquidity bridge at a cost). ZK-rollups post cryptographic proofs that transactions are valid, enabling near-instant L1 finality once the proof is verified on-chain (typically 30 minutes to a few hours). For NFT traders who may want to quickly flip between L1 and L2 marketplaces, this withdrawal speed difference is material. Immutable X specifically uses StarkEx to offer gasless minting and instant transfers for game NFTs."
+                },
+                {
+                    "id": 20,
+                    "question": "A new NFT project claims it will generate 'passive income' for holders through a 10% royalty on all secondary sales, paid directly to token holders proportional to their holdings. What are the two most significant risks with this tokenomics model?",
+                    "options": {
+                        "A": "The 10% royalty will make the collection uncompetitive on marketplaces since buyers will overpay; and the smart contract cannot send ETH to multiple addresses in a single transaction",
+                        "B": "Royalty enforcement is not guaranteed — marketplaces can bypass or reduce royalties, making the 'passive income' promise unreliable; and distributing royalties to thousands of NFT holders requires a claim mechanism (not automatic push payments) since sending ETH to 10,000 addresses per sale would cost more in gas than the royalty itself, and may classify the NFT as a security under the Howey Test if marketed as a profit-generating investment",
+                        "C": "The 10% royalty must be split equally regardless of NFT rarity, creating unfair distribution; and on-chain royalty distribution requires all holders to be KYC-verified",
+                        "D": "Secondary sales on Ethereum are legally classified as securities transactions in all jurisdictions, making any royalty scheme automatically non-compliant"
+                    },
+                    "correct": "B",
+                    "explanation": "Two critical risks: (1) Royalty enforcement — as discussed with EIP-2981, marketplaces are not obligated to pay royalties. Blur's success showed that optional-royalty platforms capture volume. If the project's royalty income stream disappears, the passive income narrative collapses. (2) Distribution mechanics + securities risk — automatic push payments to 10,000 wallets per sale would cost far more in gas than the payment itself; projects use merkle-drop or claim contracts instead. More critically, the SEC's Howey Test classifies an asset as a security if buyers expect profits primarily from others' efforts. An NFT explicitly marketed as generating passive income from a team's ongoing work (driving secondary sales) resembles a security. Projects like Stoner Cats and Impact Theory faced SEC enforcement actions partly for similar passive income marketing. Legal counsel is essential."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{DeFi Fundamentals} \textcolor{mlgray}{|} Lesson 05 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{DeFi Fundamentals}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 05 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% ── Activity 1 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 1: Explore DeFi Dashboards}{10 min}{%
+Visit \url{https://defillama.com} and explore the dashboard. Answer:
+\begin{enumerate}
+\item What is the current Total Value Locked (TVL) across all DeFi protocols?
+\item Name the top 3 protocols by TVL. What type is each (DEX, lending, liquid staking)?
+\item Click on Uniswap --- what chains does it operate on? What is its TVL?
+\item Find the ``Stablecoins'' section. What percentage of DeFi TVL is in stablecoins?
+\end{enumerate}
+\textbf{Bonus:} Compare TVL on Ethereum vs Arbitrum vs Polygon. Which L2 has the most DeFi activity?
+}
+
+\vspace{2pt}
+
+% ── Activity 2 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 2: AMM Price Calculation}{5 min}{%
+A Uniswap pool has 100 ETH and 200{,}000 USDC. Using the constant product formula $x \times y = k$:
+\begin{enumerate}
+\item Calculate $k$ (the constant product).
+\item If a trader buys 5 ETH, how much USDC must they pay?
+      \textit{Hint: new\_x = 95; solve for new\_y from $95 \times \text{new\_y} = k$.}
+\item What is the effective price per ETH for this trade?
+\item What is the price impact compared to the initial price of 2{,}000 USDC/ETH?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{4pt}%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+\textbf{Init.\ ETH} & \textbf{Init.\ USDC} & \textbf{$k$} & \textbf{New ETH} & \textbf{New USDC} & \textbf{Cost} & \textbf{Impact} \\
+\midrule
+\rule{1.5cm}{0.3pt} & \rule{1.6cm}{0.3pt} & \rule{2.0cm}{0.3pt} & \rule{1.5cm}{0.3pt} & \rule{1.6cm}{0.3pt} & \rule{1.5cm}{0.3pt} & \rule{1.5cm}{0.3pt} \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% ── Activity 3 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 3: Lending Protocol Comparison}{10 min}{%
+Research each protocol using their official websites and complete the table.\\[2pt]
+\textit{Hint: Collateral Factor = maximum you can borrow against your deposit
+(e.g., 75\% means borrow \$75 per \$100 deposited).}
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Protocol} & \textbf{Type} & \textbf{Collateral Factor} & \textbf{Borrow APR} & \textbf{Supply APR} & \textbf{Gov.\ Token} \\
+\midrule
+Aave     & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+Compound & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+MakerDAO & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+Spark    & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}
+\end{center}
+}
+
+\vspace{2pt}
+
+% ── Activity 4 ────────────────────────────────────────────────────────────────
+\activitybox{Activity 4: Design Your DeFi Strategy}{5 min}{%
+Fill in the form below. Bring your strategy to class for discussion.
+\begin{enumerate}
+\item \textbf{Starting Capital:}~\rule{3.5cm}{0.3pt}
+\item \textbf{Strategy Type:}\quad
+      $\square$~Liquidity Provision\quad
+      $\square$~Lending\quad
+      $\square$~Yield Farming\quad
+      $\square$~Staking\quad
+      $\square$~Combination
+\item \textbf{Protocol(s):}~\rule{4cm}{0.3pt}
+\item \textbf{Expected APY:}~\rule{2cm}{0.3pt}\%
+\item \textbf{Risk Assessment:}\quad
+      $\square$~Smart Contract\quad
+      $\square$~Impermanent Loss\quad
+      $\square$~Liquidation\quad
+      $\square$~Oracle
+\item \textbf{Risk Mitigation:}~\rule{6cm}{0.3pt}
+\end{enumerate}
+}
+
+\vspace{4pt}
+
+% ── Glossary ───────────────────────────────────────────────────────────────────
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.2cm}p{11.4cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{DeFi}               & Decentralized Finance. Financial services (lending, trading, saving) built on blockchains without traditional intermediaries. \\
+\textbf{TVL}                & Total Value Locked. The aggregate value of assets deposited in DeFi smart contracts, used as a key metric of protocol adoption. \\
+\textbf{AMM}                & Automated Market Maker. A smart contract that enables token swaps using a mathematical pricing formula (e.g., $x \times y = k$) instead of an order book. \\
+\textbf{Liquidity Pool}     & A smart contract holding reserves of two or more tokens that users can trade against. Liquidity providers deposit assets and earn fees. \\
+\textbf{Impermanent Loss}   & The temporary loss liquidity providers experience when the price ratio of pooled assets changes relative to simply holding them. \\
+\textbf{Collateralization}  & Locking up assets as security for a loan. Over-collateralization (e.g., 150\%) is common in DeFi to account for price volatility. \\
+\textbf{Liquidation}        & The forced sale of a borrower's collateral when its value falls below the required threshold, protecting lenders from default. \\
+\textbf{Flash Loan}         & An uncollateralized loan that must be borrowed and repaid within a single blockchain transaction; used for arbitrage and liquidations. \\
+\textbf{Yield Farming}      & Strategically moving assets across DeFi protocols to maximize returns from interest, fees, and governance token rewards. \\
+\textbf{Composability}      & The ability of DeFi protocols to interoperate like building blocks, enabling complex financial products built on top of each other. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, DeFi Fundamentals --- Lesson 05 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

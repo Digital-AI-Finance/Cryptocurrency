@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SC-3: Algorithmic Stablecoins | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz SC-3: Algorithmic Stablecoins</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz SC-3: Algorithmic Stablecoins</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "An algorithmic stablecoin maintains its peg without requiring full collateral reserves. Which mechanism most accurately describes how a pure algorithmic stablecoin targets a $1 price?",
+                    "options": {
+                        "A": "It locks an equivalent dollar value of fiat currency in a regulated bank account and mints tokens against that reserve",
+                        "B": "It maintains a basket of crypto assets worth at least 150% of the circulating supply as collateral",
+                        "C": "It uses smart contract rules and market incentives to automatically expand or contract token supply in response to price deviations, without holding backing assets",
+                        "D": "It delegates peg maintenance to a central issuer who can buy and sell tokens on open markets using treasury funds"
+                    },
+                    "correct": "C",
+                    "explanation": "Pure algorithmic stablecoins rely entirely on protocol-driven supply adjustments and arbitrage incentives rather than collateral. When the price exceeds $1, the protocol mints new tokens to increase supply and reduce price. When below $1, it contracts supply by incentivising token burns. No external assets back the system — stability depends solely on market participants responding rationally to incentives and on maintained confidence in the protocol."
+                },
+                {
+                    "id": 2,
+                    "question": "What distinguishes a 'seigniorage shares' model from a 'rebasing' model as approaches to algorithmic peg maintenance?",
+                    "options": {
+                        "A": "Rebasing adjusts each holder's token balance proportionally to restore the peg; seigniorage models issue new governance or bond tokens to incentivise market actors to burn or mint the stablecoin",
+                        "B": "Seigniorage models require full fiat collateral held in escrow; rebasing models are uncollateralised",
+                        "C": "Rebasing is used only on Ethereum Layer 2 networks; seigniorage models operate exclusively on Layer 1",
+                        "D": "Both models are functionally identical; the terms are interchangeable in academic literature"
+                    },
+                    "correct": "A",
+                    "explanation": "In rebasing protocols (e.g., Ampleforth), all token holders simultaneously receive or lose tokens in their wallets so that the unit price reverts toward the target — your balance changes but your proportional share of supply stays constant. In seigniorage models (e.g., Basis Cash, Terra/LUNA), a secondary token (shares or governance token) absorbs volatility: when the stablecoin trades above peg, new stablecoins are minted and distributed to share holders; when below peg, bond tokens are auctioned at a discount to remove stablecoins from circulation."
+                },
+                {
+                    "id": 3,
+                    "question": "Ampleforth (AMPL) uses elastic supply (rebasing) to target $1. If AMPL trades at $1.20 and the rebase oracle confirms this, what happens to a holder who owns 1,000 AMPL?",
+                    "options": {
+                        "A": "The holder's 1,000 AMPL are burned and replaced with 1,200 AMPL worth $1 each, increasing their dollar value",
+                        "B": "The protocol mints new AMPL and distributes it to all holders proportionally; the holder now owns approximately 1,200 AMPL but each is worth closer to $1, leaving total dollar value roughly unchanged",
+                        "C": "The holder must manually claim additional AMPL by staking in the protocol's liquidity pools",
+                        "D": "Nothing happens to the holder's balance; only new buyers receive tokens at the $1.20 price until supply equalises"
+                    },
+                    "correct": "B",
+                    "explanation": "Ampleforth's daily rebase adjusts every holder's balance simultaneously and proportionally. At $1.20 (20% above target), a positive rebase of approximately 20% occurs: 1,000 AMPL becomes ~1,200 AMPL. However, because total supply also increased ~20% globally, the market price should theoretically revert toward $1. The holder's dollar-denominated wealth is largely unchanged — the rebase is supply expansion, not value creation. This is the key insight: AMPL is volatile in supply but targets price stability, not purchasing power stability."
+                },
+                {
+                    "id": 4,
+                    "question": "A critical weakness of rebasing stablecoins is that they create 'unit of account' problems. Which scenario best illustrates this weakness?",
+                    "options": {
+                        "A": "DeFi protocols cannot accept AMPL as collateral because Ethereum does not support ERC-20 tokens with variable balances",
+                        "B": "Rebasing tokens cannot be transferred between wallets because the balance update requires a global state change that locks all transfers for 24 hours",
+                        "C": "The oracle feeding price data to the rebase mechanism is always manipulable, making the peg impossible to maintain",
+                        "D": "A liquidity provider deposits 100 AMPL into a pool; after a negative rebase their balance becomes 80 AMPL, but the pool's smart contract still records 100 units, creating an accounting mismatch that can drain the pool"
+                    },
+                    "correct": "D",
+                    "explanation": "Rebasing creates severe integration problems with DeFi protocols that assume token balances are static between transactions. Automated Market Makers (AMMs), lending protocols, and yield aggregators track balances in storage at deposit time. A negative rebase reduces the holder's wallet balance but the protocol's internal accounting still reflects the pre-rebase amount, creating a discrepancy that can be exploited or causes incorrect interest accrual. This is why AMPL developed a 'wrapper' (WAMPL) that converts rebasing shares into fixed-balance representations for DeFi compatibility."
+                },
+                {
+                    "id": 5,
+                    "question": "Terra's UST was a seigniorage stablecoin backed by LUNA. Describe the arbitrage mechanism that was supposed to maintain UST's $1 peg.",
+                    "options": {
+                        "A": "UST's peg was maintained by an over-collateralised vault of ETH and BTC held in a Terraform Labs multisig",
+                        "B": "Terraform Labs held $1 in fiat reserves for each UST and could intervene directly in markets to buy back UST when it fell below $1",
+                        "C": "The Terra protocol allowed anyone to swap 1 UST for $1 worth of LUNA (at oracle price) at any time, and vice versa — creating a bidirectional arbitrage: if UST &lt; $1, arb traders burn UST to mint LUNA; if UST &gt; $1, they burn LUNA to mint UST",
+                        "D": "A stability fee was charged on all UST transactions, and collected fees were used to buy and burn UST when it traded below $1"
+                    },
+                    "correct": "C",
+                    "explanation": "Terra's mint-burn arbitrage was purely algorithmic: the protocol guaranteed that 1 UST could always be redeemed for $1 worth of LUNA at the oracle price, and 1 USD of LUNA could be burned to mint 1 UST. If UST traded at $0.98, arbitrageurs could buy UST cheaply, burn it for $1 of LUNA, sell LUNA for profit — this demand removes UST from supply and should push price back to $1. The fatal flaw: this mechanism required confident, liquid LUNA markets. If LUNA's price collapsed simultaneously, the arbitrage became unprofitable and the death spiral began."
+                },
+                {
+                    "id": 6,
+                    "question": "The Terra/LUNA collapse in May 2022 is the canonical example of an algorithmic stablecoin death spiral. What triggered and then accelerated the collapse?",
+                    "options": {
+                        "A": "A smart contract bug in the Terra bridge allowed an attacker to mint unlimited UST without burning LUNA, inflating supply to worthlessness",
+                        "B": "The US SEC sued Terraform Labs, causing exchanges to delist LUNA and UST simultaneously, removing all liquidity",
+                        "C": "A Solana bridge hack drained the Bitcoin reserves backing UST, exposing the system as undercollateralised",
+                        "D": "Large coordinated withdrawals from Anchor Protocol (which offered 20% APY on UST deposits) combined with a large UST sale de-pegged UST; attempts to restore the peg by minting LUNA hyperinflated LUNA's supply, destroying its price, which made the arbitrage mechanism worthless, further de-pegging UST in a self-reinforcing cycle"
+                    },
+                    "correct": "D",
+                    "explanation": "The collapse unfolded over approximately 72 hours in May 2022. Large UST withdrawals from Anchor Protocol (which had $14 billion in deposits earning unsustainable 20% APY) began draining the Curve pool. A large UST sale (reportedly $350M+) broke the Curve peg. To restore peg, the protocol minted massive quantities of LUNA. As LUNA's supply ballooned (from ~350M to trillions), its price collapsed. With worthless LUNA, burning UST for $1 of LUNA meant receiving nearly nothing — the arbitrage broke. UST fell to under $0.01 and LUNA became essentially worthless. This is the textbook death spiral: falling stablecoin price → LUNA minting → LUNA price collapse → broken arbitrage → further stablecoin collapse."
+                },
+                {
+                    "id": 7,
+                    "question": "Anchor Protocol played a central role in Terra's collapse. What was Anchor's business model and why was its 20% APY on UST deposits unsustainable?",
+                    "options": {
+                        "A": "Anchor paid ~20% APY to UST depositors funded primarily by borrowing yields from staked Proof-of-Stake assets (bLUNA, bETH), but actual borrowing demand generated only 6-8% yield, requiring Terraform Labs to subsidise the gap from reserves — creating an unsustainable Ponzi-like dynamic dependent on continued capital inflows",
+                        "B": "Anchor lent UST to institutions at 25% interest rates, and the 5% spread covered all operational costs and depositor yields",
+                        "C": "Anchor invested UST deposits in US Treasury bonds, and the 20% yield reflected high-inflation bond rates during 2021-2022",
+                        "D": "Anchor's 20% APY was funded by transaction fees from the entire Terra blockchain, which processed millions of transactions per day"
+                    },
+                    "correct": "A",
+                    "explanation": "Anchor's yield was structurally unsustainable. Depositors earned ~20% APY. Borrowers deposited liquid staking derivatives (bLUNA, bETH) as collateral and paid borrowing fees. Staking rewards from the collateral (approximately 6-10% APY on bETH, less on bLUNA) generated the protocol's income. With a significant gap between promised yields and actual income, Terraform Labs used reserve funds (partly denominated in LUNA) to subsidise depositor returns. This created a reflexive system: high yields attracted more UST into Anchor, increasing apparent demand for UST and LUNA, which sustained LUNA's price, which sustained the reserve value. When outflows began, the whole structure inverted."
+                },
+                {
+                    "id": 8,
+                    "question": "After the initial de-pegging of UST, Terraform Labs' Luna Foundation Guard (LFG) deployed approximately $3.5 billion in Bitcoin reserves to defend the peg. Why did this intervention fail?",
+                    "options": {
+                        "A": "The Bitcoin was stored in a hardware wallet that required physical key signers in multiple countries, causing a 48-hour delay before funds could be deployed",
+                        "B": "LFG's Bitcoin purchases were blocked by exchange KYC requirements because the transactions exceeded daily limits on major centralised exchanges",
+                        "C": "The Bitcoin reserve mechanism required a community governance vote that took 7 days, by which time the peg had already collapsed beyond recovery",
+                        "D": "The Bitcoin reserves were insufficient relative to the scale of selling pressure and could not restore confidence once the death spiral dynamic took hold — selling UST to buy Bitcoin slowed but did not reverse the peg loss, and as panic spread the reserves were exhausted without breaking the spiral"
+                    },
+                    "correct": "D",
+                    "explanation": "The LFG deployed its Bitcoin reserves by lending them to market makers to buy UST on open markets. This intervention faced two fundamental problems: (1) Scale — $3.5 billion in reserves was insufficient to absorb selling pressure from $18 billion in UST outstanding, especially amid a broader crypto market downturn where BTC itself was falling. (2) Confidence spiral — once markets perceived that reserves were being depleted without restoring the peg, selling pressure accelerated. The intervention actually revealed the vulnerability: algorithmic stability mechanisms require sustained confidence, and once lost, no reserve defence of moderate size can restore it against a coordinated or panic-driven de-peg."
+                },
+                {
+                    "id": 9,
+                    "question": "The Terra collapse unfolded in distinct phases from May 7-13, 2022. In what order did these events occur?",
+                    "options": {
+                        "A": "Large UST sales drain Curve pool → UST de-pegs to ~$0.98 → Anchor mass withdrawals → LFG deploys BTC reserves → protocol mints massive LUNA → LUNA hyperinflation destroys arbitrage → UST falls below $0.10 → Do Kwon proposes fork",
+                        "B": "LUNA hyperinflation → UST de-pegs → Anchor withdrawals → LFG deploys BTC → exchanges delist",
+                        "C": "SEC lawsuit filed → exchanges halt trading → UST de-pegs → protocol shuts down automatically → LUNA burns to zero",
+                        "D": "Anchor Protocol is hacked → UST stolen → protocol mints LUNA to compensate → LUNA price falls → UST de-pegs"
+                    },
+                    "correct": "A",
+                    "explanation": "The chronological sequence: May 7 — Large UST withdrawals from Anchor and a ~$350M UST sale on Curve began draining the pool; UST dipped to ~$0.985. May 8-9 — Anchor withdrawals accelerated as confidence eroded; LFG began deploying Bitcoin reserves. May 10 — UST fell sharply to ~$0.60 despite BTC reserve deployment; protocol began minting LUNA aggressively. May 11-12 — LUNA supply expanded from ~350M to hundreds of billions; LUNA price collapsed from ~$60 to fractions of a cent; UST fell to ~$0.10. May 13 — Trading halted on Terra blockchain; UST traded near zero. May 16 — Do Kwon proposed 'Terra 2.0' fork without UST."
+                },
+                {
+                    "id": 10,
+                    "question": "What does 'hyperinflation of the governance token' mean in the context of the Terra death spiral, and why is it fatal to the algorithmic peg?",
+                    "options": {
+                        "A": "The CPI-equivalent inflation rate on Terra's blockchain exceeded 1000%, making all on-chain transactions unaffordable",
+                        "B": "LUNA holders voted to inflate UST supply beyond its backing, creating hyperinflation in the stablecoin itself",
+                        "C": "To restore UST's peg, the protocol minted enormous quantities of LUNA, expanding its supply by orders of magnitude; this hyperinflation destroyed LUNA's per-unit value, making the '$1 of LUNA for 1 UST' arbitrage worthless since $1 of LUNA now represented trillions of near-worthless tokens",
+                        "D": "Hyperinflation refers to Terraform Labs printing new LUNA tokens outside the protocol's smart contract rules using admin keys"
+                    },
+                    "correct": "C",
+                    "explanation": "The death spiral's core dynamic: when UST de-pegs, the protocol burns UST and mints LUNA (to reduce UST supply and restore the peg). But each new LUNA minted dilutes the existing supply. At the height of the collapse, LUNA's circulating supply exceeded 6.5 trillion (from ~350 million), a ~18,000x increase in days. With market cap unable to absorb this inflation, LUNA's price fell toward zero. Since 1 UST was redeemable for $1 worth of LUNA at oracle price, but LUNA itself was collapsing, arbitrageurs received effectively nothing — the peg mechanism became inoperative. This reflexive relationship between the governance token and stablecoin is the core vulnerability of seigniorage designs."
+                },
+                {
+                    "id": 11,
+                    "question": "Do Kwon's pre-collapse proposal to accumulate $10 billion in Bitcoin reserves for UST was intended to address what fundamental concern about Terra's design?",
+                    "options": {
+                        "A": "Bitcoin's volatility was seen as a hedge against LUNA's volatility, creating a counter-cyclical reserve",
+                        "B": "Bitcoin was acquired as an investment to grow the Luna Foundation Guard's treasury, with proceeds used to fund developer grants",
+                        "C": "The Bitcoin reserve was required by South Korean financial regulators as a condition for Terraform Labs' operating licence",
+                        "D": "The Bitcoin reserves were intended to provide a non-LUNA backstop for UST redemptions during stress periods, reducing dependence on the circular LUNA-UST arbitrage — essentially adding partial collateralisation to supplement the algorithmic mechanism during confidence crises"
+                    },
+                    "correct": "D",
+                    "explanation": "The Bitcoin reserve strategy (LFG accumulated ~$3.5B of BTC before the collapse) was a partial acknowledgment that the pure algorithmic model was fragile. If UST de-pegged, Bitcoin could be sold to buy UST directly on open markets, breaking the circular dependency on LUNA. Critics noted this created a hybrid model rather than a pure algorithmic stablecoin, and that $3.5B was insufficient for $18B+ of UST outstanding. The strategy was directionally correct in diagnosing the vulnerability but insufficient in scale, and the reserves were exhausted within days of the crisis beginning without restoring confidence."
+                },
+                {
+                    "id": 12,
+                    "question": "What is the 'stablecoin trilemma', and how did Terra's design choose to optimise for two properties at the expense of the third?",
+                    "options": {
+                        "A": "The trilemma posits that a stablecoin cannot simultaneously achieve price stability, capital efficiency (no excess collateral), and decentralisation; Terra optimised for capital efficiency (no collateral) and decentralisation (no centralised issuer) but ultimately failed at price stability during stress",
+                        "B": "The trilemma states a stablecoin cannot simultaneously be fast, cheap, and scalable; Terra optimised for speed and cost at the expense of scalability",
+                        "C": "The trilemma requires choosing between fiat backing, crypto backing, or algorithmic backing; Terra chose a hybrid that satisfied none",
+                        "D": "The trilemma describes the three parties needed to maintain a stablecoin: the issuer, the regulator, and the market — Terra lacked regulatory approval"
+                    },
+                    "correct": "A",
+                    "explanation": "The stablecoin trilemma (analogous to the blockchain scalability trilemma) states: a stablecoin can achieve at most two of three properties: (1) Price stability — reliably maintaining the peg under stress; (2) Capital efficiency — not requiring excess collateral locked in the system; (3) Decentralisation — no centralised issuer or reserve custodian. Fiat stablecoins (USDC) achieve stability and efficiency but are centralised. Over-collateralised crypto stablecoins (DAI) achieve stability and decentralisation but are capital-inefficient (requires $150+ locked for $100 issued). Terra chose efficiency (no collateral) and decentralisation (algorithmic protocol) but achieved stability only during favourable market conditions."
+                },
+                {
+                    "id": 13,
+                    "question": "Frax Finance introduced a 'fractional-algorithmic' stablecoin model. How does Frax differ from pure algorithmic stablecoins like UST?",
+                    "options": {
+                        "A": "Frax is 100% collateralised by USDC at all times; the 'algorithmic' label refers only to its governance mechanism",
+                        "B": "Frax uses a seigniorage bond auction identical to Basis Cash but adds a USDC reserve equal to 10% of supply as insurance",
+                        "C": "Frax maintains a dynamic collateral ratio (CR): part of each FRAX is backed by USDC (or other collateral) and part by algorithmically minted FXS (Frax Shares) governance tokens — the CR adjusts based on market conditions, typically 80-92% collateralised rather than 0%",
+                        "D": "Frax is backed by a basket of algorithmic stablecoins including UST, DAI, and AMPL, diversifying away single-protocol risk"
+                    },
+                    "correct": "C",
+                    "explanation": "Frax's innovation is the fractional approach: the Collateral Ratio (CR) starts at 100% and algorithmically adjusts based on whether FRAX is trading above or below $1. If FRAX is consistently at or above peg, the CR decreases (less collateral required, more algorithmic). If below peg, CR increases (more collateral required). At a CR of 85%, minting 1 FRAX requires $0.85 of USDC plus $0.15 worth of FXS burned. Redemption works inversely. This hybrid approach survived the May 2022 collapse (unlike pure algorithmic UST) because the USDC backing provided a real floor. Frax has since moved toward higher collateralisation ratios after the Terra collapse."
+                },
+                {
+                    "id": 14,
+                    "question": "In Frax's minting mechanism, a user wants to mint 1,000 FRAX when the Collateral Ratio (CR) is 85%. What assets must they provide?",
+                    "options": {
+                        "A": "$850 of USDC and $150 worth of FXS (Frax Shares, which are burned upon deposit), with the combined value equaling $1,000",
+                        "B": "$1,000 of USDC only — the algorithmic portion is minted automatically at no cost to the user",
+                        "C": "$850 of USDC and $150 of FRAX already in circulation, which are locked as internal collateral",
+                        "D": "$1,500 of USDC to meet the 150% over-collateralisation requirement, with $500 returned as a FRAX subsidy"
+                    },
+                    "correct": "A",
+                    "explanation": "At CR = 85%, each FRAX is 85% collateralised by USDC and 15% by the algorithmic FXS component. To mint 1,000 FRAX: provide 850 USDC (deposited into the protocol's vault) and 150 USD worth of FXS (burned, permanently removing them from supply). The FXS burn reduces supply, theoretically supporting FXS price. To redeem 1,000 FRAX: receive 850 USDC from collateral plus newly minted FXS worth $150. This two-token system means FXS absorbs the volatility — during stress, high redemptions mint more FXS, potentially diluting FXS price in a dynamic similar (though less severe) to the LUNA death spiral."
+                },
+                {
+                    "id": 15,
+                    "question": "What does the Frax Protocol Controlled Value (PCV) mechanism add compared to earlier seigniorage models, and why is it considered more robust?",
+                    "options": {
+                        "A": "PCV stores excess collateral in a Proof-of-Work mining operation that generates yield to replenish reserves during downturns",
+                        "B": "PCV means the protocol itself owns and controls collateral assets rather than relying entirely on market arbitrageurs — the protocol can actively deploy collateral to defend the peg using owned liquidity, whereas pure algorithmic models are entirely dependent on voluntary market participants",
+                        "C": "PCV is a regulatory compliance mechanism that reports collateral ratios to financial regulators in real-time",
+                        "D": "PCV replaces the FXS token with a protocol-owned index fund, eliminating governance token risk"
+                    },
+                    "correct": "B",
+                    "explanation": "Protocol Controlled Value (PCV) — a concept pioneered by Fei Protocol and adopted by Frax v3 — means the protocol accumulates and owns collateral assets directly rather than relying entirely on user-deposited collateral and market arbitrage. Owned liquidity (AMM LP positions) means the protocol earns trading fees and can withdraw liquidity during stress without waiting for arbitrageurs to respond. This addresses a key weakness of older algorithmic models: during crises, rational arbitrageurs may not step in if they believe the peg will continue falling. PCV provides a 'reserve buyer of last resort' that doesn't depend on external confidence."
+                },
+                {
+                    "id": 16,
+                    "question": "Basis Cash was an earlier algorithmic stablecoin (2020) using a three-token seigniorage model: BAC (stablecoin), BAS (shares), and BAB (bonds). When BAC traded below $1, what was the protocol's intended mechanism for restoring the peg?",
+                    "options": {
+                        "A": "BAC holders received automatic rebases that reduced their balances, decreasing circulating supply until price recovered",
+                        "B": "BAS holders were required to stake BAS as collateral for BAC, and their staked BAS was liquidated to buy BAC on the open market",
+                        "C": "A protocol-controlled reserve of ETH was sold to buy BAC directly, reducing circulating supply",
+                        "D": "The protocol auctioned BAB bonds at a discount (e.g., 1 BAB purchasable for 0.90 BAC, redeemable for 1 BAC when peg is restored) to incentivise users to burn BAC — reducing supply — with the promise of future profit"
+                    },
+                    "correct": "D",
+                    "explanation": "Basis Cash's contraction mechanism: when BAC < $1, the protocol sells BAB (Basis Cash Bonds) at a discount — users burn BAC to receive BAB, reducing BAC supply. BAB holders can redeem for BAC at face value only when BAC > $1, giving them a profit. However, this mechanism depends on users believing BAC will return to $1 and being willing to accept redemption risk. Basis Cash ultimately failed because once confidence eroded, no one would buy bonds (they'd never be redeemable), so the contraction mechanism became inoperative — a fundamental problem with coupon/bond-based algorithmic models that Basis (the inspiration) had also identified theoretically."
+                },
+                {
+                    "id": 17,
+                    "question": "Why is the 'bank run' dynamic particularly devastating for algorithmic stablecoins compared to over-collateralised stablecoins?",
+                    "options": {
+                        "A": "Bank runs are only possible in centralised stablecoins; decentralised algorithmic stablecoins are immune because no single party controls redemptions",
+                        "B": "Algorithmic stablecoins are more susceptible only because they are typically younger protocols with less established user bases and smaller market caps",
+                        "C": "Over-collateralised stablecoins have physical assets that can satisfy redemptions even if some users panic; algorithmic stablecoins rely on circular token economics where mass redemption directly creates the conditions (governance token hyperinflation) that destroy the mechanism's ability to satisfy remaining redemptions",
+                        "D": "Algorithmic stablecoins are not regulated, so there is no deposit insurance equivalent to protect holders during a bank run"
+                    },
+                    "correct": "C",
+                    "explanation": "The structural difference is critical. An over-collateralised stablecoin (DAI at 150% CR) can satisfy every redemption because $150 in crypto backs each $100 of DAI — even if crypto prices fall 30%, the collateral still covers outstanding DAI. An algorithmic stablecoin's 'collateral' is the governance token whose value is derived from confidence in the system. A bank run destroys the very asset backing the stablecoin: redemptions mint governance tokens → governance token price falls → future redemptions worth less → rational actors redeem faster → death spiral. This reflexive collapse mechanism has no natural stopping point, unlike collateralised systems where falling prices eventually create over-collateralisation again."
+                },
+                {
+                    "id": 18,
+                    "question": "What role did concentrated liquidity positions on Curve Finance play in the Terra/UST collapse, and what vulnerability does this reveal?",
+                    "options": {
+                        "A": "Curve Finance's smart contract was exploited, with the attacker draining UST directly from the protocol's reserve vault",
+                        "B": "The 3pool/UST pool on Curve was a primary venue for UST's on-chain peg — when large sellers drained USDC/USDT from the pool, UST's price broke mechanically because the pool's stableswap formula could not accommodate one-sided selling at scale, making the on-chain peg critically dependent on finite pool liquidity that a sufficiently large seller could overwhelm",
+                        "C": "Curve Finance voted to delist UST two days before the collapse, removing all liquidity in an orderly managed withdrawal",
+                        "D": "Terraform Labs had deposited UST into Curve as collateral for a loan; when UST de-pegged, an automatic liquidation triggered the initial bank run"
+                    },
+                    "correct": "B",
+                    "explanation": "The Curve pool (4pool was being established; UST was primarily in the 3pool/Wormhole UST pool) served as critical on-chain liquidity for UST. Curve's stableswap algorithm maintains near-peg pricing efficiently within a range, but large directional sells (UST for USDC) can quickly exhaust the pool's USDC side. Reports indicate that the initial de-peg began when ~$350M of UST was sold into the Curve pool around May 7-8, draining USDC liquidity and forcing UST's on-chain price below $1. This triggered broader market selling. The vulnerability: the on-chain peg mechanism was critically dependent on finite Curve pool liquidity that a sufficiently large seller could overwhelm."
+                },
+                {
+                    "id": 19,
+                    "question": "After the Terra collapse, regulators globally pointed to algorithmic stablecoins as requiring prohibition or strict regulation. What specific property of algorithmic stablecoins makes them difficult to regulate under existing frameworks?",
+                    "options": {
+                        "A": "They are fully decentralised protocols with no identifiable issuer, custodian, or reserve assets — existing frameworks for e-money and stablecoin regulation assume a licensed issuer holding segregated reserves that regulators can examine and require to be maintained",
+                        "B": "Algorithmic stablecoins are coded in Rust, which regulators do not understand, making technical audits impossible",
+                        "C": "Algorithmic stablecoins operate exclusively on Layer 2 networks that are outside the jurisdiction of any national regulator",
+                        "D": "The tokens are classified as commodities in all jurisdictions, making securities laws inapplicable and leaving no regulatory agency with clear authority"
+                    },
+                    "correct": "A",
+                    "explanation": "Regulatory frameworks for e-money, payment tokens, and stablecoins (MiCA in Europe, proposed US legislation) are built around the concept of a licensed issuer who must hold 1:1 liquid reserves, provide redemption rights, and submit to supervision. Algorithmic stablecoins have no identifiable issuer, no segregated reserves to examine, and no entity with legal obligation to maintain the peg or honor redemptions. The MiCA regulation (effective 2024) explicitly requires 1:1 backing for 'asset-referenced tokens' and 'e-money tokens', which would effectively prohibit pure algorithmic stablecoins. The EU specifically stated post-Terra that unbacked algorithmic stablecoins should not qualify as regulated stablecoins."
+                },
+                {
+                    "id": 20,
+                    "question": "Given the history of algorithmic stablecoin failures (Basis, Empty Set Dollar, Iron Finance, Terra/LUNA), is it theoretically possible to design a robust algorithmic stablecoin? What conditions would be necessary?",
+                    "options": {
+                        "A": "No — game theory proves that all algorithmic stablecoins will eventually collapse because rational actors will always defect in a crisis, and no incentive structure can prevent this",
+                        "B": "Yes — any algorithmic stablecoin will be robust as long as the governance token has a market cap exceeding 10x the stablecoin supply",
+                        "C": "The question is moot because after MiCA regulation, all algorithmic stablecoins are banned globally and no new ones can be created",
+                        "D": "Possibly — but it would require: (1) sustained organic demand for the stablecoin beyond yield farming, (2) a non-circular backing asset that doesn't collapse when the stablecoin de-pegs, (3) sufficient protocol-controlled reserves to survive black swan events, and (4) a gradual path to algorithmic from partial collateralisation — conditions that no failed project fully satisfied"
+                    },
+                    "correct": "D",
+                    "explanation": "The academic consensus is that algorithmic stablecoins are possible in theory but face deep structural challenges. Key requirements: organic demand (Terra's 20% Anchor yield was artificial and unsustainable); non-reflexive backing (the governance token cannot be the primary collateral, as its value collapses precisely when needed most); adequate reserves (as Frax demonstrates, partial collateralisation significantly improves resilience); and gradual decollateralisation (starting fully collateralised and algorithmically reducing over years as protocol trust is established). Projects that launched immediately as uncollateralised or with circular backing have all failed. Frax's hybrid model, while not purely algorithmic, represents the most successful approach to date."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

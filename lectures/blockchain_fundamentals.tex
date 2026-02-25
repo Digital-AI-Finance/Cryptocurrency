@@ -76,7 +76,7 @@
 \begin{itemize}\small
   \item \textbf{2015}: Ethereum -- Turing-complete contracts
   \item \textbf{2017}: SegWit fixes transaction malleability
-  \item \textbf{2020}: DeFi summer, TVL exceeds $10B
+  \item \textbf{2020}: DeFi summer, TVL exceeds \$10B
   \item \textbf{2022}: Ethereum transitions to Proof of Stake
 \end{itemize}
 \end{block}
@@ -123,7 +123,7 @@ Each output may be consumed \textbf{at most once}.
 \begin{frame}{Trust Models: Centralized vs.\ Decentralized}
 \begin{columns}
 \column{0.46\textwidth}
-\centering\small\textbf{Centralized (Bank)}\[4pt]
+\centering\small\textbf{Centralized (Bank)}\\[4pt]
 \begin{tikzpicture}
   \node[draw,circle,fill=mlorange!40,font=\small,minimum size=1cm] (bank) at (2.0,2.0) {Bank};
   \node[draw,fill=mllavender4,rounded corners,font=\tiny] (u1) at (0,0) {Alice};
@@ -134,7 +134,7 @@ Each output may be consumed \textbf{at most once}.
   \node[font=\tiny,mlred] at (2.0,-0.5) {Single point of failure};
 \end{tikzpicture}
 \column{0.46\textwidth}
-\centering\small\textbf{Decentralized (P2P)}\[4pt]
+\centering\small\textbf{Decentralized (P2P)}\\[4pt]
 \begin{tikzpicture}
   \node[draw,circle,fill=mllavender3,font=\tiny] (n1) at (0.8,2.0) {N1};
   \node[draw,circle,fill=mllavender3,font=\tiny] (n2) at (3.2,2.0) {N2};
@@ -633,7 +633,7 @@ With current difficulty $D\approx 10^{13}$, rewriting 6 blocks requires $\approx
   title style={font=\tiny},
   legend style={font=\tiny,at={(0.98,0.5)},anchor=east},
 ]
-\addplot[mlblue,thick,domain=0:40,samples=80] {1-exp(-10^(x-24)/2)};
+\addplot[mlblue,thick,domain=0:28,samples=80] {1-exp(-10^(x-24)/2)};
 \addlegendentry{$n=80$}
 \addplot[mlpurple,thick,domain=0:40,samples=80] {1-exp(-10^(x-38)/2)};
 \addlegendentry{$n=128$}
@@ -709,7 +709,7 @@ Merchants wait 6 blocks for high-value payments.
   level 1/.style={sibling distance=5.5cm},
   level 2/.style={sibling distance=2.6cm},
   level 3/.style={sibling distance=1.3cm}]
-\node[draw,fill=mllavender2,rounded corners,font=\small\bfseries] {Root\\$H_{1234}$}
+\node[draw,fill=mllavender2,rounded corners,font=\small\bfseries,align=center] {Root\\$H_{1234}$}
   child { node[draw,fill=mllavender3,rounded corners] {$H_{12}$}
     child { node[draw,fill=mllavender4,rounded corners] {$H_1$}
       child { node[draw,fill=mlorange!30,rounded corners] {Tx1} }
@@ -900,11 +900,11 @@ Duplicate-leaf vulnerability: duplicate internal nodes can cause false inclusion
 \begin{columns}
 \column{0.5\textwidth}
 \begin{tikzpicture}[font=\tiny,node distance=0.5cm]
-  \node[draw,fill=mllavender2,rounded corners,minimum width=2.5cm] (root) at (3,5.2) {Root Node\\(Extension)};
-  \node[draw,fill=mllavender3,rounded corners,minimum width=2.0cm] (branch) at (3,4.0) {Branch Node\\[16 slots]};
-  \node[draw,fill=mllavender4,rounded corners,minimum width=1.8cm] (leaf1) at (1.0,2.8) {Leaf: addr A\\bal: 5 ETH};
-  \node[draw,fill=mllavender4,rounded corners,minimum width=1.8cm] (leaf2) at (3.0,2.8) {Leaf: addr B\\bal: 2 ETH};
-  \node[draw,fill=mllavender4,rounded corners,minimum width=1.8cm] (leaf3) at (5.0,2.8) {Leaf: addr C\\bal: 0 ETH};
+  \node[draw,fill=mllavender2,rounded corners,minimum width=2.5cm,align=center] (root) at (3,5.2) {Root Node\\(Extension)};
+  \node[draw,fill=mllavender3,rounded corners,minimum width=2.0cm,align=center] (branch) at (3,4.0) {Branch Node\\{[16 slots]}};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=1.8cm,align=center] (leaf1) at (1.0,2.8) {Leaf: addr A\\bal: 5 ETH};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=1.8cm,align=center] (leaf2) at (3.0,2.8) {Leaf: addr B\\bal: 2 ETH};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=1.8cm,align=center] (leaf3) at (5.0,2.8) {Leaf: addr C\\bal: 0 ETH};
   \draw[->,mlpurple] (root)--(branch);
   \draw[->,mlpurple] (branch)--(leaf1);
   \draw[->,mlpurple] (branch)--(leaf2);
@@ -1274,11 +1274,11 @@ Additionally: slashing destroys attacker's stake, making attack economically sel
   \node[state,right of=act] (exit) {Exiting};
   \node[state,right of=exit] (with) {Withdrawn};
   \node[state,below=1.5cm of act,fill=mlred!30] (slash) {Slashed};
-  \draw[->,mlpurple,thick] (dep)--(pend) node[midway,above,font=\tiny]{deposit\\processed};
-  \draw[->,mlpurple,thick] (pend)--(act) node[midway,above,font=\tiny]{queue\\cleared};
-  \draw[->,mlpurple,thick] (act)--(exit) node[midway,above,font=\tiny]{voluntary\\exit};
-  \draw[->,mlpurple,thick] (exit)--(with) node[midway,above,font=\tiny]{withdrawal\\delay};
-  \draw[->,mlred,thick] (act)--(slash) node[midway,right,font=\tiny]{slashing\\condition};
+  \draw[->,mlpurple,thick] (dep)--(pend) node[midway,above,font=\tiny,align=center]{deposit\\processed};
+  \draw[->,mlpurple,thick] (pend)--(act) node[midway,above,font=\tiny,align=center]{queue\\cleared};
+  \draw[->,mlpurple,thick] (act)--(exit) node[midway,above,font=\tiny,align=center]{voluntary\\exit};
+  \draw[->,mlpurple,thick] (exit)--(with) node[midway,above,font=\tiny,align=center]{withdrawal\\delay};
+  \draw[->,mlred,thick] (act)--(slash) node[midway,right,font=\tiny,align=center]{slashing\\condition};
   \draw[->,mlred,thick] (slash)--(with) node[midway,below,font=\tiny,sloped]{forced exit};
 \end{tikzpicture}
 \end{center}
@@ -1302,11 +1302,11 @@ After exit request: $\sim$256 epochs ($\approx$27 hours) before ETH unlocks. Pre
 \column{0.5\textwidth}
 \begin{tikzpicture}[font=\tiny]
   \node[draw,fill=mllavender3,rounded corners,minimum width=3.5cm] (val) at (3,4.5) {Validator V};
-  \node[draw,fill=mlred!20,rounded corners,minimum width=2.5cm] (b1) at (1.5,2.8) {Vote for Block A\\slot 100};
-  \node[draw,fill=mlred!20,rounded corners,minimum width=2.5cm] (b2) at (4.5,2.8) {Vote for Block B\\slot 100};
+  \node[draw,fill=mlred!20,rounded corners,minimum width=2.5cm,align=center] (b1) at (1.5,2.8) {Vote for Block A\\slot 100};
+  \node[draw,fill=mlred!20,rounded corners,minimum width=2.5cm,align=center] (b2) at (4.5,2.8) {Vote for Block B\\slot 100};
   \draw[->,mlred,thick] (val)--(b1) node[midway,left,font=\tiny]{attestation 1};
   \draw[->,mlred,thick] (val)--(b2) node[midway,right,font=\tiny]{attestation 2};
-  \node[draw,fill=mlred!40,rounded corners,minimum width=3cm] (slash) at (3,1.2) {SLASHABLE OFFENSE:\\Double Vote Detected};
+  \node[draw,fill=mlred!40,rounded corners,minimum width=3cm,align=center] (slash) at (3,1.2) {SLASHABLE OFFENSE:\\Double Vote Detected};
   \draw[->,mlred,thick] (b1)--(slash);
   \draw[->,mlred,thick] (b2)--(slash);
   \node[font=\tiny,mlred] at (3,0.3) {Penalty: 1/32 of balance + correlation penalty};
@@ -1334,9 +1334,9 @@ Vote with attestation that surrounds or is surrounded by a prior vote.
 \column{0.5\textwidth}
 \begin{tikzpicture}[font=\tiny]
   \node[draw,fill=mllavender3,rounded corners] (parent) at (3,4.5) {Block $N$ (common ancestor)};
-  \node[draw,fill=mllavender4,rounded corners,minimum width=2cm] (f1) at (1.2,3.0) {Fork A\\(chain 1)};
-  \node[draw,fill=mllavender4,rounded corners,minimum width=2cm] (f2) at (4.8,3.0) {Fork B\\(chain 2)};
-  \node[draw,fill=mlorange!30,rounded corners,minimum width=1.5cm] (val) at (3,1.5) {Validator\\votes BOTH};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=2cm,align=center] (f1) at (1.2,3.0) {Fork A\\(chain 1)};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=2cm,align=center] (f2) at (4.8,3.0) {Fork B\\(chain 2)};
+  \node[draw,fill=mlorange!30,rounded corners,minimum width=1.5cm,align=center] (val) at (3,1.5) {Validator\\votes BOTH};
   \draw[->,mlpurple] (parent)--(f1);
   \draw[->,mlpurple] (parent)--(f2);
   \draw[->,mlred,thick] (val)--(f1) node[midway,left,font=\tiny]{vote};
@@ -1813,7 +1813,7 @@ Altcoin defense: merge mining, finality checkpoints.
 \begin{tikzpicture}[font=\small]
   \node[draw,circle,fill=mllavender3,minimum size=1cm] (g1) at (3,5) {G1};
   \node[draw,circle,fill=mllavender3,minimum size=1cm] (g2) at (5.5,3.5) {G2};
-  \node[draw,circle,fill=mlred!30,minimum size=1cm] (g3) at (4.5,1.5) {G3\\\tiny(traitor)};
+  \node[draw,circle,fill=mlred!30,minimum size=1cm,align=center] (g3) at (4.5,1.5) {G3\\\tiny(traitor)};
   \node[draw,circle,fill=mllavender3,minimum size=1cm] (g4) at (1.5,1.5) {G4};
   \node[draw,circle,fill=mllavender3,minimum size=1cm] (g5) at (0.5,3.5) {G5};
   \draw[mlpurple] (g1)--(g2)--(g3)--(g4)--(g5)--(g1);
