@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Check all local links in index.html for existence and git tracking."""
+"""Check all local and external links in index.html."""
 import os
 import sys
 import subprocess
 from html.parser import HTMLParser
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -35,7 +37,9 @@ def main():
     parser = LinkExtractor()
     parser.feed(html)
 
-    anchors, externals, ok, untracked, broken = [], [], [], [], []
+    anchors, ok, untracked, broken = [], [], [], []
+    ext_ok, ext_broken = [], []
+    check_external = "--check-external" in sys.argv
 
     seen = set()
     for href in parser.links:
@@ -46,7 +50,29 @@ def main():
         if href.startswith("#"):
             anchors.append(href)
         elif href.startswith("http://") or href.startswith("https://"):
-            externals.append(href)
+            if check_external:
+                try:
+                    req = Request(href, method="HEAD", headers={"User-Agent": "LinkChecker/1.0"})
+                    resp = urlopen(req, timeout=15)
+                    ext_ok.append((href, resp.status))
+                except HTTPError as e:
+                    if e.code in (405, 403):
+                        # HEAD not allowed or forbidden, try GET
+                        try:
+                            req = Request(href, headers={"User-Agent": "LinkChecker/1.0"})
+                            resp = urlopen(req, timeout=15)
+                            ext_ok.append((href, resp.status))
+                        except (HTTPError, URLError) as e2:
+                            code = getattr(e2, "code", "ERR")
+                            ext_broken.append((href, code))
+                    else:
+                        ext_broken.append((href, e.code))
+                except URLError as e:
+                    ext_broken.append((href, str(e.reason)[:40]))
+                except Exception as e:
+                    ext_broken.append((href, str(e)[:40]))
+            else:
+                ext_ok.append((href, "skipped"))
         else:
             clean = href.split("#")[0].split("?")[0]
             full = os.path.join(SCRIPT_DIR, clean.replace("/", os.sep))
@@ -62,7 +88,16 @@ def main():
     print("=" * 60)
 
     print(f"\n[ANCHOR] ({len(anchors)} links -- not checked)")
-    print(f"\n[EXTERNAL] ({len(externals)} links -- not checked)")
+
+    if check_external:
+        print(f"\n[EXTERNAL OK] ({len(ext_ok)} links)")
+        for url, status in sorted(ext_ok):
+            print(f"  {status} {url}")
+        print(f"\n[EXTERNAL BROKEN] ({len(ext_broken)} links)")
+        for url, status in sorted(ext_broken):
+            print(f"  {status} {url}")
+    else:
+        print(f"\n[EXTERNAL] ({len(ext_ok)} links -- use --check-external to verify)")
 
     print(f"\n[LOCAL OK] ({len(ok)} links)")
     for f in sorted(ok):
@@ -79,11 +114,13 @@ def main():
     print(f"\n{'=' * 60}")
     print("SUMMARY")
     print(f"{'=' * 60}")
-    print(f"  Anchors  : {len(anchors)}")
-    print(f"  External : {len(externals)}")
-    print(f"  Local OK : {len(ok)}")
-    print(f"  Untracked: {len(untracked)}")
-    print(f"  BROKEN   : {len(broken)}")
+    print(f"  Anchors    : {len(anchors)}")
+    print(f"  External OK: {len(ext_ok)}")
+    if check_external:
+        print(f"  Ext BROKEN : {len(ext_broken)}")
+    print(f"  Local OK   : {len(ok)}")
+    print(f"  Untracked  : {len(untracked)}")
+    print(f"  BROKEN     : {len(broken)}")
 
     strict = "--strict" in sys.argv
     if broken:
