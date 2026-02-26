@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz TM-3: Incentive Design &amp; Game Theory | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">L12 Tokenomics &amp; Mechanism Design - Quiz Part 3</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz TM-3: Incentive Design &amp; Game Theory</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    id: "tm3_q1",
+                    question: "What is a Nash equilibrium in the context of a token-based system?",
+                    options: {
+                        A: "The state where the token price equals its fundamental value",
+                        B: "A state where no participant can improve their outcome by unilaterally changing their strategy, given what others are doing",
+                        C: "The point where total supply equals total demand on exchanges",
+                        D: "A governance outcome where all participants vote unanimously"
+                    },
+                    correct: "B",
+                    explanation: "A Nash equilibrium occurs when every participant's strategy is the best response to the strategies of all other participants. No single actor can benefit by changing their behavior alone. In tokenomics, well-designed protocols create Nash equilibria where honest, productive behavior is the optimal individual strategy."
+                },
+                {
+                    id: "tm3_q2",
+                    question: "What is mechanism design, and how does it relate to tokenomics?",
+                    options: {
+                        A: "The engineering process of designing smart contract code for token deployment",
+                        B: "The field of designing rules and incentives so that self-interested participants produce desired system-level outcomes",
+                        C: "The process of designing user interfaces for cryptocurrency wallets",
+                        D: "A regulatory framework for approving new token launches"
+                    },
+                    correct: "B",
+                    explanation: "Mechanism design is sometimes called reverse game theory: instead of analyzing existing games, you design the game rules to achieve a desired outcome. In tokenomics, this means structuring token incentives, penalties, and governance rules so that rational, self-interested participants are naturally guided toward behaviors that benefit the overall protocol."
+                },
+                {
+                    id: "tm3_q3",
+                    question: "In a proof-of-stake system, what is the purpose of slashing?",
+                    options: {
+                        A: "To reduce the token supply through periodic burning events",
+                        B: "To penalize validators who behave dishonestly or negligently by destroying a portion of their staked tokens",
+                        C: "To distribute staking rewards proportionally among all token holders",
+                        D: "To slash transaction fees during periods of low network usage"
+                    },
+                    correct: "B",
+                    explanation: "Slashing destroys part or all of a validator's staked collateral when they commit provable offenses like double-signing, extended downtime, or validating invalid blocks. This creates a strong economic disincentive against misbehavior because validators have skin in the game. The penalty must be severe enough that the expected cost of cheating exceeds the potential gain."
+                },
+                {
+                    id: "tm3_q4",
+                    question: "How does the tragedy of the commons apply to token-based public goods?",
+                    options: {
+                        A: "It means all tokens will eventually become worthless due to inflation",
+                        B: "Individual users are incentivized to free-ride on shared resources without contributing, leading to underinvestment in the public good",
+                        C: "It refers to the common practice of forking open-source protocols",
+                        D: "It describes the tendency for all tokens to converge to the same price"
+                    },
+                    correct: "B",
+                    explanation: "The tragedy of the commons occurs when individuals rationally exploit shared resources without bearing the full cost, leading to resource depletion or underfunding. In token systems, this manifests when users benefit from protocol infrastructure (security, liquidity, development) without contributing. Tokenomics addresses this by aligning individual incentives with collective welfare through staking rewards, fee sharing, and governance participation rewards."
+                },
+                {
+                    id: "tm3_q5",
+                    question: "What is a token sink, and why is it important for token economics?",
+                    options: {
+                        A: "A wallet that accumulates all transaction fees for the development team",
+                        B: "A mechanism that removes tokens from circulation through required spending, burning, or locking, creating sustained demand",
+                        C: "A technical term for a token that has lost all market value",
+                        D: "An exchange feature that automatically converts tokens to stablecoins"
+                    },
+                    correct: "B",
+                    explanation: "Token sinks are mechanisms that permanently or temporarily remove tokens from circulation. Examples include fee burning, staking locks, in-protocol spending requirements, and governance deposit locks. Sinks create ongoing demand for the token beyond speculation, counteracting inflation and supporting value. Without adequate sinks, newly emitted tokens create persistent selling pressure."
+                },
+                {
+                    id: "tm3_q6",
+                    question: "What is a token faucet, and how does it differ from a token sink?",
+                    options: {
+                        A: "A website that gives away free test tokens on testnets",
+                        B: "A mechanism that introduces new tokens into circulation through mining rewards, staking yields, or liquidity incentives",
+                        C: "A smart contract that allows anyone to create new token standards",
+                        D: "A regulatory-compliant token distribution mechanism"
+                    },
+                    correct: "B",
+                    explanation: "Token faucets are the opposite of sinks: they are mechanisms that release new or locked tokens into active circulation. Common faucets include block rewards, staking yields, liquidity mining programs, vesting unlocks, and airdrops. A healthy token economy maintains balance between faucets (supply) and sinks (demand). If faucets outpace sinks, inflation erodes token value."
+                },
+                {
+                    id: "tm3_q7",
+                    question: "What is the vote-escrowed token model (e.g., veCRV), and what problem does it solve?",
+                    options: {
+                        A: "A system where votes are encrypted and revealed simultaneously to prevent manipulation",
+                        B: "A model where users lock tokens for extended periods to receive boosted governance power and protocol rewards, aligning long-term incentives",
+                        C: "A mechanism that allows token holders to delegate their votes to professional governance firms",
+                        D: "A regulatory escrow account that holds tokens during a compliance review"
+                    },
+                    correct: "B",
+                    explanation: "Vote-escrowed tokens require users to lock tokens for a chosen period (e.g., 1-4 years for veCRV) in exchange for governance voting power and boosted rewards proportional to the lock duration. This solves the problem of short-term token holders influencing governance decisions they will not live with, and reduces sell pressure by incentivizing long-term commitment."
+                },
+                {
+                    id: "tm3_q8",
+                    question: "What is a governance attack in the context of token-based DAOs?",
+                    options: {
+                        A: "A denial-of-service attack on the governance forum website",
+                        B: "An attacker acquiring enough governance tokens (through purchase or flash loans) to pass malicious proposals that drain the treasury or change critical parameters",
+                        C: "Submitting so many governance proposals that voters cannot keep up",
+                        D: "Using social media to spread misinformation about governance decisions"
+                    },
+                    correct: "B",
+                    explanation: "A governance attack occurs when an adversary accumulates sufficient voting power to pass self-serving proposals, such as transferring treasury funds, changing fee parameters, or granting themselves minting rights. Flash loan governance attacks are particularly dangerous because an attacker can temporarily borrow massive voting power without economic commitment. Time-locks, quorum requirements, and vote-escrowed models help mitigate these attacks."
+                },
+                {
+                    id: "tm3_q9",
+                    question: "What is bribery in DeFi governance (sometimes called vote buying)?",
+                    options: {
+                        A: "Paying validators to include transactions in the next block",
+                        B: "Offering token rewards to governance participants in exchange for voting a specific way on proposals",
+                        C: "Bribing exchange operators to list a token",
+                        D: "Paying auditors to approve a smart contract without proper review"
+                    },
+                    correct: "B",
+                    explanation: "DeFi governance bribery involves offering economic incentives (direct token payments, boosted yields, or other benefits) to governance token holders in exchange for their votes on specific proposals. Platforms like Votium for Convex/Curve formalize this process. While some view it as efficient preference expression, it can concentrate power and undermine governance integrity when large protocols bribe for favorable gauge allocations."
+                },
+                {
+                    id: "tm3_q10",
+                    question: "What is a Schelling point (focal point) in token mechanism design?",
+                    options: {
+                        A: "The price at which most analysts agree a token is fairly valued",
+                        B: "A natural coordination outcome that participants gravitate toward without explicit communication, used in oracle and dispute resolution designs",
+                        C: "The point at which a token's market cap exceeds its FDV",
+                        D: "The block number at which a protocol upgrade is scheduled"
+                    },
+                    correct: "B",
+                    explanation: "A Schelling point is a solution people tend to choose by default in the absence of communication. In tokenomics, this concept is used to design truthful reporting mechanisms: if honest reporters are rewarded based on agreement with the majority, and most participants report truthfully, then truth becomes the Schelling point. This underpins oracle designs like UMA's optimistic oracle and prediction market resolution."
+                },
+                {
+                    id: "tm3_q11",
+                    question: "Why might a protocol implement a time-lock on governance proposals?",
+                    options: {
+                        A: "To ensure the smart contract has enough gas to execute the proposal",
+                        B: "To give the community time to review, object to, or exit before potentially harmful changes take effect",
+                        C: "To prevent proposals from being submitted during weekends",
+                        D: "To ensure validators have processed all pending transactions first"
+                    },
+                    correct: "B",
+                    explanation: "Time-locks create a mandatory delay (typically 24-48 hours or more) between a proposal passing and its on-chain execution. This gives the community time to review the change, raise objections, or exit the protocol (withdraw funds) if they disagree. Time-locks are a critical defense against governance attacks because they prevent immediate execution of malicious proposals."
+                },
+                {
+                    id: "tm3_q12",
+                    question: "In game theory, what is the Prisoner's Dilemma, and how does it relate to staking?",
+                    options: {
+                        A: "A scenario where validators are literally imprisoned if they misbehave",
+                        B: "A game where two parties have individual incentives to defect even though mutual cooperation produces a better outcome; staking aligns incentives toward cooperation via economic penalties",
+                        C: "A puzzle that validators must solve to prove their computational power",
+                        D: "A governance mechanism where opposing proposals are put to a head-to-head vote"
+                    },
+                    correct: "B",
+                    explanation: "The Prisoner's Dilemma shows that rational self-interest can lead to suboptimal outcomes when cooperation would be better for all. In staking systems, validators face a choice between honest behavior (cooperation) and dishonesty (defection). Slashing transforms this from a Prisoner's Dilemma into a game where cooperation is the dominant strategy because the cost of defection (losing staked tokens) exceeds any potential gains."
+                },
+                {
+                    id: "tm3_q13",
+                    question: "What is the purpose of staking rewards in a proof-of-stake system?",
+                    options: {
+                        A: "To compensate validators for electricity costs similar to proof-of-work mining",
+                        B: "To incentivize token holders to lock capital as security for the network, compensating them for illiquidity risk and the opportunity cost of capital",
+                        C: "To increase the token supply as quickly as possible",
+                        D: "To reward users for making the most transactions on the network"
+                    },
+                    correct: "B",
+                    explanation: "Staking rewards compensate validators for locking their tokens as collateral to secure the network. Stakers face opportunity cost (they cannot use those tokens elsewhere), illiquidity risk (tokens are locked during unstaking periods), and slashing risk (they may lose tokens for validator faults). Rewards must be sufficient to attract enough stake to secure the network while not being so high that inflation erodes token value."
+                },
+                {
+                    id: "tm3_q14",
+                    question: "What is incentive compatibility in mechanism design?",
+                    options: {
+                        A: "When all participants use the same software client",
+                        B: "When the mechanism is designed so that the optimal strategy for each participant is to behave truthfully and follow the protocol rules",
+                        C: "When incentive tokens are compatible with all major wallets",
+                        D: "When all participants receive the same amount of rewards"
+                    },
+                    correct: "B",
+                    explanation: "A mechanism is incentive compatible when honest behavior is the optimal strategy for every rational participant. This means participants maximize their payoff by truthfully reporting information and following protocol rules, rather than by lying, manipulating, or gaming the system. Achieving incentive compatibility is the central goal of tokenomic mechanism design."
+                },
+                {
+                    id: "tm3_q15",
+                    question: "What is the nothing-at-stake problem specific to naive proof-of-stake designs?",
+                    options: {
+                        A: "Validators have no tokens to stake because the initial distribution was unfair",
+                        B: "Validators can costlessly vote on multiple competing chain forks simultaneously, undermining consensus finality",
+                        C: "Staking rewards are too small to attract any participants",
+                        D: "The staking contract has no mechanism to distribute rewards"
+                    },
+                    correct: "B",
+                    explanation: "In naive PoS, validators face no cost to sign blocks on multiple competing forks simultaneously (unlike PoW where mining on one fork has opportunity cost). This means validators rationally validate all forks to maximize potential rewards, preventing the network from reaching consensus on a single chain. Slashing conditions specifically target this behavior by penalizing validators caught signing conflicting blocks."
+                },
+                {
+                    id: "tm3_q16",
+                    question: "How do protocol fee switches align incentives between token holders and protocol usage?",
+                    options: {
+                        A: "By allowing anyone to toggle the protocol on and off",
+                        B: "By directing a portion of protocol-generated fees to token holders or the treasury, creating a direct economic link between protocol revenue and token value",
+                        C: "By switching between different consensus mechanisms based on network load",
+                        D: "By automatically adjusting gas fees based on token price"
+                    },
+                    correct: "B",
+                    explanation: "A fee switch directs part of the fees generated by protocol usage (trading, lending, etc.) to token holders or a governance-controlled treasury. This creates a direct cash flow from protocol adoption to token value, aligning token holder incentives with protocol growth. Uniswap has a dormant fee switch that governance can activate to share trading fees with UNI holders."
+                },
+                {
+                    id: "tm3_q17",
+                    question: "What is the concept of skin in the game as it applies to token-based governance?",
+                    options: {
+                        A: "Requiring governance participants to pass identity verification",
+                        B: "Requiring participants to have meaningful economic exposure to the consequences of their governance decisions, typically by staking or locking tokens",
+                        C: "Mandating that all protocol developers own a minimum amount of tokens",
+                        D: "Using biometric authentication for governance voting"
+                    },
+                    correct: "B",
+                    explanation: "Skin in the game means governance participants must bear the economic consequences of their decisions. Vote-escrowed models enforce this by requiring long-term token locks: if a voter supports a harmful proposal, they cannot sell their tokens to avoid the negative outcome. This ensures voters are incentivized to make decisions that benefit the protocol's long-term health."
+                },
+                {
+                    id: "tm3_q18",
+                    question: "What is a griefing attack in token mechanism design?",
+                    options: {
+                        A: "A coordinated effort to spread negative sentiment about a token on social media",
+                        B: "An attack where the attacker incurs a cost to impose a disproportionately larger cost on others, even without direct profit",
+                        C: "Repeatedly submitting failed transactions to clog the network",
+                        D: "Buying tokens solely to vote against all proposals in governance"
+                    },
+                    correct: "B",
+                    explanation: "A griefing attack is one where the attacker willingly takes a loss to inflict greater harm on others. Unlike profit-seeking attacks, griefers are motivated by sabotage. Mechanism designers must consider the griefing factor (ratio of victim's loss to attacker's cost). Good mechanism design ensures that causing $X of harm costs at least $X, making griefing economically irrational."
+                },
+                {
+                    id: "tm3_q19",
+                    question: "How do quadratic voting mechanisms improve upon one-token-one-vote governance?",
+                    options: {
+                        A: "They allow each person to vote exactly twice on each proposal",
+                        B: "The cost of additional votes increases quadratically, making it expensive for whales to dominate while allowing broad preference expression",
+                        C: "They require four separate voting rounds to finalize each proposal",
+                        D: "They eliminate the need for quorum requirements in governance"
+                    },
+                    correct: "B",
+                    explanation: "In quadratic voting, the cost of N votes is N-squared tokens. This means expressing strong preference (many votes on one issue) is increasingly expensive, while distributing votes across issues is cheap. A whale spending 10,000 tokens gets only 100 votes (sqrt of 10,000), while 100 small holders spending 1 token each collectively get 100 votes. This gives minorities proportionally more influence and resists plutocratic capture."
+                },
+                {
+                    id: "tm3_q20",
+                    question: "What is the role of a conviction voting mechanism in DAO governance?",
+                    options: {
+                        A: "It automatically convicts and slashes malicious validators",
+                        B: "It weights votes by how long tokens have been continuously staked toward a proposal, allowing preferences to build momentum over time",
+                        C: "It requires unanimous conviction (agreement) from all token holders to pass proposals",
+                        D: "It uses criminal conviction records to determine voting eligibility"
+                    },
+                    correct: "B",
+                    explanation: "Conviction voting accumulates voting power the longer tokens are allocated to a proposal, following a decay function. This means sustained community support gradually builds enough weight to pass proposals without requiring discrete voting periods or quorum. It prevents flash-loan governance attacks (no single-block voting power), reduces voter fatigue, and naturally prioritizes proposals with deep, persistent community support."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>
