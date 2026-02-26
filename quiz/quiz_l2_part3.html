@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz L2-3: Zero-Knowledge Rollups | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz L2-3: Zero-Knowledge Rollups</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz L2-3: Zero-Knowledge Rollups</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What are the three defining properties of a zero-knowledge proof? Define each property precisely.",
+                    "options": {
+                        "A": "Completeness (a true statement always has a valid proof), Soundness (a false statement cannot have a valid proof except with negligible probability), and Zero-Knowledge (the proof reveals no information about the witness beyond the truth of the statement)",
+                        "B": "Correctness (all computations are free of arithmetic errors), Privacy (no participant's identity is revealed), and Efficiency (proofs verify faster than re-executing the computation)",
+                        "C": "Decentralization (no single party controls proof generation), Transparency (all proof parameters are publicly auditable), and Succinctness (proofs are shorter than the original computation)",
+                        "D": "Validity (the prover holds a valid cryptographic key), Non-repudiation (the prover cannot later deny producing the proof), and Confidentiality (only the verifier can check the proof)"
+                    },
+                    "correct": "A",
+                    "explanation": "The three canonical properties of a zero-knowledge proof system, formalized by Goldwasser, Micali, and Rackoff in 1985: (1) Completeness — if the statement is true and both prover and verifier follow the protocol, the verifier will accept the proof. A correct prover can always convince a correct verifier of a true statement. (2) Soundness — if the statement is false, no cheating prover can convince an honest verifier to accept except with negligible probability (the 'soundness error'). This is the security property — it prevents false proofs from being accepted. (3) Zero-Knowledge — the verifier learns nothing from the interaction beyond the single bit 'the statement is true.' Formally, for every verifier strategy, there exists a simulator that can produce transcripts indistinguishable from real proofs without knowing the witness. The classic example: Alice proves she knows the solution to a graph coloring problem without revealing the coloring itself."
+                },
+                {
+                    "id": 2,
+                    "question": "What is the 'witness' in a zero-knowledge proof, and how does it relate to the NP-completeness of ZK-provable statements?",
+                    "options": {
+                        "A": "The witness is the identity of the prover — ZK proofs are restricted to proving statements about who produced a given digital signature, which is an NP-complete problem",
+                        "B": "The witness is the private input (secret) that the prover knows and uses to generate the proof — for example, the solution to a Sudoku, a private key, or a transaction preimage. ZK proofs can prove any NP statement: given a public statement x and witness w, the prover shows w satisfies R(x, w) without revealing w",
+                        "C": "The witness is a third-party auditor who validates both the prover's and verifier's computations — NP-completeness means witness selection is computationally hard, ensuring security",
+                        "D": "The witness is the mathematical commitment scheme binding the prover's input — only P-class problems (solvable in polynomial time) can be proven with ZK proofs, which is why they are efficient"
+                    },
+                    "correct": "B",
+                    "explanation": "In ZK proof terminology, the witness (often denoted w) is the secret information the prover holds. The proof system works over a relation R(x, w): x is the public statement, w is the private witness. The prover demonstrates that there exists a w such that R(x, w) = 1, without revealing w. Examples: (1) ZK login: x = public key hash, w = private key; proof shows knowledge of the private key. (2) ZK transaction: x = new state root, w = all individual transactions; proof shows the state transition was computed correctly without revealing transaction details. The NP connection is fundamental: NP is exactly the class of problems where solutions (witnesses) can be verified in polynomial time. Since ZK proofs prove membership in NP languages, any NP statement can in principle be proven with ZK. For ZK rollups, the 'witness' is the entire batch of transactions, and the proof shows the state transition was computed correctly."
+                },
+                {
+                    "id": 3,
+                    "question": "In ZK rollup terminology, what is an 'arithmetic circuit,' and why must computations be expressed as circuits before ZK proofs can be generated?",
+                    "options": {
+                        "A": "An arithmetic circuit is the hardware accelerator (FPGA or ASIC) used to generate ZK proofs — computations must be mapped to hardware circuits to achieve the proof generation speeds required for production rollups",
+                        "B": "An arithmetic circuit is a directed acyclic graph (DAG) of addition and multiplication gates over a finite field; computations must be expressed as circuits because ZK proof systems (SNARKs, STARKs) operate on polynomial constraints over finite fields, and a circuit defines the set of polynomial equations the prover must satisfy",
+                        "C": "Arithmetic circuits are the smart contracts deployed on Layer 1 that verify ZK proofs — all computation verification happens in Solidity circuits rather than in a separate proof system",
+                        "D": "An arithmetic circuit is a cryptographic hash function used to commit to intermediate computation states; circuits are needed to ensure each computation step is independently verifiable without revealing the full computation"
+                    },
+                    "correct": "B",
+                    "explanation": "ZK proof systems (SNARKs and STARKs) operate on polynomial arithmetic over finite fields, not on traditional computer instructions. To generate a ZK proof for a computation, that computation must first be expressed as an arithmetic circuit — a DAG where wires carry field elements and gates perform addition or multiplication. For example, proving knowledge of x such that x^3 + x + 5 = 35 requires a circuit with mul gates (x*x = x2, x2*x = x3), add gates, and a constant gate. The circuit defines a system of polynomial constraints (R1CS — Rank-1 Constraint System). For a ZK rollup, the entire state transition function (signature verification, balance updates, Merkle proofs) must be expressed as a circuit. This is why zkEVMs are hard: the EVM has operations like SHA-256, KECCAK, and elliptic curve ops that are expensive to express in arithmetic circuits, requiring thousands of constraints per operation."
+                },
+                {
+                    "id": 4,
+                    "question": "What does SNARK stand for, and what are the three core properties that make ZK-SNARKs suitable for blockchain applications?",
+                    "options": {
+                        "A": "Succinct Non-interactive ARgument of Knowledge — the three properties are: (1) Succinct: proofs are small (a few hundred bytes) and verify in milliseconds regardless of computation size; (2) Non-interactive: no back-and-forth between prover and verifier; (3) Argument of Knowledge: computationally sound — the prover must know the witness to generate a valid proof",
+                        "B": "Secure Nullifier-based Arithmetic Range Knowledge — the three properties are anonymity (no link between prover and proof), unlinkability (multiple proofs cannot be correlated), and confidentiality (computation inputs remain encrypted)",
+                        "C": "Standardized Nonce-Anchored Recursive Knowledge — the three properties are determinism (same input always produces same proof), immutability (proofs cannot be modified after generation), and universality (one proof system works for all computation types)",
+                        "D": "Symmetric Non-interactive Audit Record of Knowledge — properties are auditability (proofs create permanent records), reversibility (proofs can be undone by the prover), and consensus (multiple provers must agree before a proof is valid)"
+                    },
+                    "correct": "A",
+                    "explanation": "SNARK stands for Succinct Non-interactive ARgument of Knowledge. The three properties are critical for blockchain use: (1) Succinct — proof size is O(1) or polylogarithmic in computation size. Groth16 proofs are ~200 bytes regardless of whether the computation has 1,000 or 1,000,000 constraints. Ethereum L1 verification costs are fixed (~300,000 gas). Without succinctness, verifying proofs on-chain would be prohibitively expensive. (2) Non-interactive — the single proof replaces an interactive challenge-response protocol. This is enabled by the Fiat-Shamir transform or, in SNARKs, by a Common Reference String (CRS) setup. Non-interactivity is essential for on-chain verification where there is no live verifier. (3) Argument of Knowledge — 'Argument' (not 'Proof') indicates computational soundness: security holds against polynomial-time adversaries, not information-theoretically. 'Knowledge' means the prover must actually know the witness — it cannot generate a proof through side channels without possessing the secret."
+                },
+                {
+                    "id": 5,
+                    "question": "ZK-SNARKs require a 'trusted setup' ceremony. What is this ceremony, why is it necessary, and what is the 'toxic waste' problem?",
+                    "options": {
+                        "A": "The trusted setup is a multi-party computation ceremony that generates the Common Reference String (CRS) — structured public parameters required by SNARK proof systems. The ceremony is necessary because SNARKs need a common reference with specific algebraic structure. 'Toxic waste' refers to secret randomness used during generation that, if ever revealed or reconstructed, would allow anyone to create fake proofs for any statement",
+                        "B": "The trusted setup is a regulatory approval process where blockchain validators certify the SNARK circuit before it can be deployed — toxic waste refers to outdated circuit versions that remain on-chain after upgrades",
+                        "C": "The trusted setup is a hardware initialization ritual where SNARK provers calibrate their GPU clusters — toxic waste refers to heat and electricity waste from proof generation hardware that lacks efficiency certifications",
+                        "D": "The trusted setup is a cryptographic key ceremony where the circuit developer creates a single master key — if this key is stolen (toxic waste), the entire rollup can be drained; the ceremony ensures the key is split across multiple custodians"
+                    },
+                    "correct": "A",
+                    "explanation": "Trusted setup (or 'powers of tau' ceremony) is one of the most significant limitations of pairing-based SNARKs (Groth16, PLONK). The CRS contains structured elliptic curve points encoding powers of a secret value tau: {G, tau*G, tau^2*G, ...}. These are needed for efficient polynomial commitments. The problem: if anyone learns tau, they can create a 'fake' proof — a proof for a false statement that passes verification. This is the toxic waste. The multi-party computation (MPC) ceremony solves this: each participant contributes randomness and then destroys their share. Security requires only ONE honest participant who destroys their randomness — if any single participant is honest, tau is unknown. Famous ceremonies: Zcash's 'Powers of Tau' (2017-2018) with 87 participants, Ethereum's KZG ceremony (2023) with 141,416 participants. PLONK's 'universal' setup is reusable across circuits. STARKs entirely avoid trusted setup, which is a major advantage."
+                },
+                {
+                    "id": 6,
+                    "question": "What is ZK-STARK, how does it differ from ZK-SNARK in proof size, verification time, and trust assumptions?",
+                    "options": {
+                        "A": "STARK (Scalable Transparent ARgument of Knowledge): no trusted setup (uses only hash functions — transparent); proofs are larger than SNARKs (tens to hundreds of KB vs. ~200 bytes); verification is slightly slower on-chain; but provers are faster due to simpler arithmetic and are post-quantum secure because hash functions remain secure against quantum computers",
+                        "B": "STARK is identical to SNARK in all cryptographic properties but uses a different programming language (Cairo vs. Circom) for circuit definition; proof sizes are identical, and verification costs are the same",
+                        "C": "STARK proofs are smaller than SNARKs (10 bytes vs. 200 bytes) because they use recursive compression; they still require a trusted setup but use distributed key generation rather than a ceremony",
+                        "D": "STARKs are a hardware-specific optimization of SNARKs designed for ASICs — the 'Scalable' property means they scale linearly with the number of ASIC units deployed, while SNARKs require a fixed number of validators"
+                    },
+                    "correct": "A",
+                    "explanation": "STARK (Scalable Transparent ARgument of Knowledge, developed by StarkWare) differs from SNARKs fundamentally: Transparent setup — no trusted setup needed. STARKs use collision-resistant hash functions (SHA-256, Keccak, BLAKE2) and Random Oracles, which are information-theoretically secure against quantum computers. No toxic waste risk. Scalability — STARKs are asymptotically faster for provers: O(n log n) vs. O(n log n) for SNARKs, but with better constants for large computations. Prover time scales better with computation size. Proof size — significantly larger: Groth16 SNARK ~200 bytes; PLONK ~400 bytes; STARK ~45-400 KB depending on computation. This increases L1 verification calldata costs. Verification — STARK verification on Ethereum costs more gas (~1-5M gas) compared to Groth16 (~250K gas), though recursive proofs and EIP-4844 are reducing this gap. Post-quantum — STARKs survive quantum computers; SNARKs using elliptic curve pairings do not. StarkNet uses STARKs; Polygon zkEVM and zkSync use SNARKs (PLONK/Groth16)."
+                },
+                {
+                    "id": 7,
+                    "question": "What is recursive proof composition, and how does it enable ZK rollups to achieve practical throughput at scale?",
+                    "options": {
+                        "A": "Recursive composition means a ZK proof can prove the correctness of another ZK proof — a single 'aggregation' proof on L1 can attest to the validity of thousands of individual transaction proofs, reducing per-transaction L1 verification cost to nearly zero and enabling unbounded theoretical throughput",
+                        "B": "Recursive composition refers to ZK rollups operating inside other ZK rollups (L3 chains) — each layer recursively reduces fee overhead, so a transaction at L3 costs 1/1000th of a transaction at L2, which costs 1/1000th of an L1 transaction",
+                        "C": "Recursive proofs are used to compress Merkle tree state roots — instead of storing all account balances individually, a recursive proof aggregates all account states into a single 32-byte hash, reducing storage costs",
+                        "D": "Recursive composition is the technique of reusing the same proof for multiple identical transactions — if 1,000 users make identical USDC transfers, a single proof covers all of them without any additional proving work"
+                    },
+                    "correct": "A",
+                    "explanation": "Recursive proof composition is perhaps the most powerful technique in modern ZK systems. A ZK proof P2 can verify a ZK proof P1 as part of its own computation — proving 'I know a valid proof P1 for statement S1.' This enables proof aggregation: instead of submitting one L1 transaction per batch proof, a rollup can: (1) Generate one proof per sub-batch (e.g., 100 transactions each). (2) Combine 100 sub-batch proofs into one aggregation proof. (3) Submit ONE on-chain proof that attests to 10,000 transactions. The aggregation proof is the same size as a single transaction proof (~200 bytes for Groth16), so per-transaction L1 cost approaches zero as batch size grows. StarkNet's SHARP (Shared Prover) uses this extensively — it aggregates proofs from multiple applications into a single STARK, amortizing L1 verification cost across all users. Polygon's Plonky2 enables very fast recursion (2 seconds per proof step). zkSync's Boojum system uses similar approaches."
+                },
+                {
+                    "id": 8,
+                    "question": "How does a ZK rollup's state transition work at the architectural level? Trace a batch of 1,000 transactions from submission to finality on L1.",
+                    "options": {
+                        "A": "Users submit transactions to L1 directly, ZK rollup smart contracts batch them, generate a proof on L1 using EVM opcodes, and store results in L1 state — the proof generation happens entirely on-chain in the EVM",
+                        "B": "Users submit transactions to a sequencer, which orders and executes them off-chain, updating a local state tree. A prover generates a validity proof (SNARK/STARK) that the state transition from root S_old to S_new followed the correct rules. The operator submits (compressed tx data + proof + S_new) to L1. The L1 verifier contract checks the proof in O(1) time. Once verified, S_new becomes the canonical L2 state — achieving instant cryptographic finality",
+                        "C": "Transactions are submitted to L1, relayed to L2, processed by a committee of validators who reach BFT consensus, and then a random validator is selected to generate a ZK proof of the committee's consensus — proof verification on L1 confirms that consensus was reached correctly",
+                        "D": "Users transact with a ZK rollup's sequencer, which batches transactions and posts them to a data availability committee (DAC). The DAC generates a validity proof and posts attestations to L1. After a 7-day challenge window, the state becomes final if no fraud proof is submitted"
+                    },
+                    "correct": "B",
+                    "explanation": "ZK rollup state transition architecture: (1) Transaction collection: users send txs to the sequencer (a single entity or decentralized set). The sequencer orders transactions and creates a batch. (2) Off-chain execution: the sequencer executes all 1,000 transactions against the current state tree, computing new balances, nonces, and storage. The new state root S_new is computed. (3) Proof generation: a prover (often a specialized prover cluster with GPUs/FPGAs) takes the circuit for the state transition function, the batch of transactions as witness, and generates a validity proof. This is computationally intensive (seconds to minutes). (4) L1 submission: the operator submits a transaction to the L1 rollup contract containing: compressed transaction data (for data availability), S_new (new state root), and the validity proof. (5) Verification: the L1 verifier contract runs the SNARK/STARK verifier (a few hundred thousand gas), checks that the proof verifies for (S_old, S_new, batch_hash). If valid, S_new is accepted. (6) Finality: unlike optimistic rollups (7-day challenge), ZK rollups achieve cryptographic finality immediately upon L1 verification — no waiting period required."
+                },
+                {
+                    "id": 9,
+                    "question": "What is a validity proof versus a fraud proof, and why does the validity proof model give ZK rollups a fundamental advantage over optimistic rollups for withdrawal time?",
+                    "options": {
+                        "A": "Validity proofs are generated before transactions are submitted, preventing invalid transactions from entering the rollup. Fraud proofs are generated after the fact by the rollup operator if a user complains. Validity proofs are better because they enable instant customer service",
+                        "B": "A validity proof (ZK rollup) cryptographically proves correctness of every state transition before it is accepted on L1 — no invalid state can ever be posted. A fraud proof (optimistic rollup) assumes correctness unless challenged within a dispute window (7 days). The consequence: ZK rollup withdrawals to L1 are immediate after L1 finalization; optimistic rollup withdrawals require waiting the full challenge window",
+                        "C": "Validity proofs and fraud proofs are economically equivalent; the only difference is who bears the gas cost of verification. In validity proof systems, users pay for proof generation; in fraud proof systems, challengers pay and are refunded if they win",
+                        "D": "Validity proofs require all L1 validators to re-execute the entire L2 computation to verify correctness. Fraud proofs are more efficient because only one validator needs to check each batch. This makes optimistic rollups always cheaper for L1 verification"
+                    },
+                    "correct": "B",
+                    "explanation": "The validity proof vs. fraud proof distinction has profound implications: Validity proofs (ZK rollups): The rollup smart contract on L1 maintains a verifier that checks cryptographic proofs. An invalid state transition is mathematically impossible to prove — the verifier will reject it. L1 immediately knows the state is correct upon accepting the proof. Consequence: fast withdrawals. A user can initiate a withdrawal, the next batch proof is verified on L1, and the withdrawal is processed — typically within minutes to hours depending on batch frequency. Fraud proofs (Optimistic rollups like Arbitrum, Optimism): L1 accepts state transitions optimistically and starts a 7-day challenge window. During this window, any watcher can submit a fraud proof if they detect invalid state. Consequence: slow withdrawals. All withdrawals to L1 are locked for 7 days. Users can bypass this with liquidity bridges (e.g., Hop Protocol, Across) that front the funds for a fee — but the fundamental 7-day delay is a UX constraint. For exchanges and institutions, ZK rollup's immediate finality is a significant operational advantage."
+                },
+                {
+                    "id": 10,
+                    "question": "What is a zkEVM, and what are the four types of zkEVM compatibility as defined by Vitalik Buterin's taxonomy?",
+                    "options": {
+                        "A": "A zkEVM is a virtual machine that uses ZK proofs to verify computation. The four types are: Type 1 (fully Ethereum-equivalent, proving real Ethereum blocks), Type 2 (EVM-equivalent, same behavior but different data structures), Type 3 (almost EVM-equivalent, minor incompatibilities for proving efficiency), and Type 4 (high-level language equivalent, compiles Solidity/Vyper but not EVM bytecode)",
+                        "B": "The four types of zkEVM are defined by proof system: Type 1 uses SNARKs, Type 2 uses STARKs, Type 3 uses PLONKs, and Type 4 uses hybrid SNARK-STARK systems — the type determines proof generation time and verification cost",
+                        "C": "zkEVM types are defined by decentralization level: Type 1 (single centralized prover), Type 2 (permissioned prover set), Type 3 (permissionless proving with stake requirement), and Type 4 (fully decentralized proof marketplace)",
+                        "D": "The four types describe data availability strategies: Type 1 (full calldata on L1), Type 2 (compressed calldata), Type 3 (data availability committee), and Type 4 (validium — no L1 data)"
+                    },
+                    "correct": "A",
+                    "explanation": "Vitalik Buterin's zkEVM taxonomy (August 2022 blog post) defines four types based on Ethereum compatibility vs. proving efficiency trade-off: Type 1 (Fully Ethereum-equivalent): Proves actual Ethereum blocks, identical to L1 in all aspects including data structures (uses Keccak for state trees, same RLP encoding). No modifications to Ethereum needed. Proving time: very slow (days). Used by Taiko. Type 2 (EVM-equivalent): Behaves exactly like the EVM but uses different internal data structures (e.g., Poseidon hash instead of Keccak for state trees). Existing Solidity contracts deploy unchanged, but internal proofs differ. Polygon zkEVM targets Type 2. Proving time: hours. Type 3 (Almost EVM-equivalent): Removes a few hard-to-prove EVM features (precompiles, specific edge cases). Most applications work unchanged. zkSync Era started here. Proving time: minutes. Type 4 (High-level language equivalent): Compiles Solidity/Vyper to a custom VM (not EVM bytecode). Applications may need recompilation; some Solidity features unavailable. zkSync Era's compiler, Starknet's Cairo (not EVM). Fastest proving. The fundamental trade-off: closer to EVM = more constraints = slower proving."
+                },
+                {
+                    "id": 11,
+                    "question": "zkSync Era is a Type 3/4 zkEVM. What is its native account abstraction model, and how does it differ from Ethereum's EOA/contract account distinction?",
+                    "options": {
+                        "A": "zkSync Era's account abstraction makes all accounts smart contracts by default — there are no Externally Owned Accounts (EOAs) on zkSync Era. Every account runs custom validation logic defined in the account contract's validateTransaction() function, enabling features like social recovery, multi-sig by default, spending limits, and paying gas in any ERC-20 token without additional infrastructure",
+                        "B": "zkSync Era's account abstraction is identical to EIP-4337 on Ethereum — it uses a bundler/mempool architecture with UserOperations; the only difference is that zkSync Era's EntryPoint contract is natively integrated into the system rather than deployed as a separate contract",
+                        "C": "zkSync Era's native account abstraction means all smart contract accounts are treated as EOAs for signature verification — Solidity contracts can sign transactions using the ECDSA key of their deployer, eliminating the need for separate private key management",
+                        "D": "Account abstraction in zkSync Era refers to abstract account numbers — users are identified by incrementing integers rather than 20-byte Ethereum addresses, which reduces state storage requirements and enables faster proof generation"
+                    },
+                    "correct": "A",
+                    "explanation": "zkSync Era implements native account abstraction (AA) at the protocol level, fundamentally different from Ethereum's model. On Ethereum, there are two account types: EOAs (controlled by private keys, can initiate transactions, no programmable validation) and Contract Accounts (cannot initiate transactions, execute code). This separation limits flexibility — to use multi-sig, you must route through a smart contract wallet, paying extra gas. zkSync Era's native AA: every account is a smart contract implementing the IAccount interface. The key method is validateTransaction(txHash, signedTxHash, transaction) which returns a magic value if valid. This enables: (1) Custom signature schemes (Ed25519, BLS, hardware security keys, passkeys). (2) Multi-sig by default. (3) Social recovery — lose private key, recover via trusted contacts. (4) Session keys — limited-validity keys for gaming. (5) Paymasters — third parties pay gas, or users pay in any ERC-20. (6) Batch transactions — execute multiple calls atomically. EIP-4337 on Ethereum adds AA as a layer-2 protocol without changing L1 consensus rules; zkSync Era's native AA is protocol-level, cheaper and more powerful."
+                },
+                {
+                    "id": 12,
+                    "question": "What is zkSync Era's 'Boojum' proof system, and what technological advancement did it introduce over the previous PLONK-based system?",
+                    "options": {
+                        "A": "Boojum is zkSync's STARK-based proof system that replaced their SNARK system, eliminating the need for a trusted setup entirely. Its key advancement is using FRI (Fast Reed-Solomon IOP of Proximity) instead of KZG polynomial commitments, enabling post-quantum security and GPU-friendly proof generation",
+                        "B": "Boojum is zkSync's hardware-level optimization that outsources proof generation to ASIC chips — the advancement is replacing general-purpose GPUs with custom silicon, reducing prover costs by 100x",
+                        "C": "Boojum is a recursive aggregation layer that proves the correctness of zkSync's sequencer ordering — it replaced the previous system where the sequencer's ordering was trusted without proof",
+                        "D": "Boojum is zkSync's data compression algorithm that reduces calldata costs — it replaced RLP encoding with a custom scheme achieving 10x compression of transaction data submitted to L1"
+                    },
+                    "correct": "A",
+                    "explanation": "Boojum (launched mid-2023) is zkSync Era's next-generation proof system that marked a fundamental architectural shift. Previous system: PLONK-based SNARKs using KZG polynomial commitments (requires trusted setup, uses elliptic curve pairings, not post-quantum secure). Boojum: STARK-based proof system using FRI (Fast Reed-Solomon IOP of Proximity) as the polynomial commitment scheme. Key advancements: (1) No trusted setup — eliminates the ceremony requirement and toxic waste risk. (2) Post-quantum security — hash-function-based commitments survive quantum computers. (3) GPU-friendly proving — FRI's arithmetic is simpler and more parallelizable on consumer GPUs compared to elliptic curve operations. Matter Labs reported 10x reduction in hardware requirements. (4) Recursive composition — Boojum enables efficient recursive proof aggregation, important for batch amortization. (5) Prover decentralization — lower hardware requirements make it economically viable for more parties to run provers, enabling decentralized proving in the future. Boojum represents a broader industry trend: ZK projects moving from pairing-based SNARKs toward STARK-based systems despite proof size increases."
+                },
+                {
+                    "id": 13,
+                    "question": "zkSync Era uses a 'sequencer + prover' architecture. What is the role of each component, and what trust assumptions apply to each?",
+                    "options": {
+                        "A": "The sequencer orders and executes transactions (users must trust it for liveness and censorship resistance — a malicious sequencer can delay or reorder transactions but cannot steal funds or create invalid state). The prover generates validity proofs (users do not need to trust it for correctness — an incorrect proof will be rejected by the L1 verifier, but a slow prover delays finality)",
+                        "B": "The sequencer and prover are the same entity — zkSync Era uses a combined sequencer-prover that executes transactions and generates proofs simultaneously; trust is binary: either both components are honest or the rollup fails",
+                        "C": "The sequencer is fully trustless because it operates via BFT consensus among 100 validators; the prover requires trust because validity proof generation is too complex to verify on L1 — users must trust the prover's hardware attestations",
+                        "D": "The prover is fully trustless because proofs are verified on L1; the sequencer is completely trusted with both liveness and asset safety — a malicious sequencer can steal all user funds, which is why zkSync maintains a hardware security module for sequencer key custody"
+                    },
+                    "correct": "A",
+                    "explanation": "Understanding the trust model of each rollup component is essential: Sequencer trust model: (1) Liveness — if the sequencer goes offline, users cannot submit transactions. zkSync Era has a 'forced transaction' mechanism: users can submit transactions directly to L1 if the sequencer ignores them for too long. (2) Censorship — the sequencer can reorder transactions (MEV extraction) or refuse to include specific users. Mitigated by: forced transactions, sequencer decentralization roadmap. (3) Correctness — the sequencer CANNOT steal funds by posting invalid state. Even if the sequencer posts a fraudulent state root, the validity proof will fail verification on L1 and be rejected. This is the key security property of ZK rollups vs. optimistic rollups. Prover trust model: (1) Correctness — a dishonest prover cannot forge proofs (cryptographic security). An invalid proof will fail the on-chain verifier. (2) Liveness — if the prover stops working, no new batches are finalized. Multiple provers or decentralized proving solves this. (3) No economic attack surface — unlike sequencers, provers have no opportunity to steal funds through computational manipulation."
+                },
+                {
+                    "id": 14,
+                    "question": "StarkNet is built on STARKs and uses Cairo as its native programming language. What is Cairo, and why did StarkWare build a new language instead of targeting EVM bytecode?",
+                    "options": {
+                        "A": "Cairo is a Rust-inspired, STARK-provable programming language designed from the ground up for ZK proof generation. StarkWare built Cairo instead of targeting EVM bytecode because EVM operations like KECCAK and JUMP are extremely expensive to prove in STARK arithmetic circuits (requiring millions of constraints per operation), whereas Cairo compiles directly to STARK-friendly opcodes requiring far fewer constraints",
+                        "B": "Cairo is a visual programming language for StarkNet that uses drag-and-drop circuit design; StarkWare built it because Solidity's text-based syntax is incompatible with the graphical ZK circuit specification format that STARKs require",
+                        "C": "Cairo is StarkNet's name for Solidity — it is the same language with different syntax for Egyptian-themed branding; StarkWare renamed it to differentiate StarkNet from other EVM chains",
+                        "D": "Cairo is a zero-knowledge-specific SQL dialect for querying StarkNet's state database; it replaces Solidity because smart contracts on StarkNet are fundamentally database queries rather than executable programs"
+                    },
+                    "correct": "A",
+                    "explanation": "Cairo (Cpu AIRo — Algebraic Intermediate Representation) is StarkWare's custom STARK-provable language. The motivation for a new language rather than EVM compatibility: The EVM was designed for execution efficiency, not proof efficiency. EVM operations that are trivial to execute (KECCAK256 hash: ~30 gas, executes in microseconds) are extremely expensive to prove in arithmetic circuits (KECCAK requires ~25,000 constraint rows per hash). Similarly, dynamic jumps, complex precompiles, and 256-bit arithmetic are proving nightmares. Cairo is designed around what arithmetic circuits can prove efficiently: (1) Field arithmetic — Cairo operates on a 252-bit prime field, matching STARK arithmetic. (2) Deterministic control flow — Cairo's memory model is write-once, making Turing-completeness provable without complexity. (3) Builtins — common operations (hashing, ECDSA, range checks) are handled by efficient STARK-native 'builtin' modules. (4) Sierra intermediate representation — Cairo 1.0 compiles to Sierra (Safe Intermediate Representation), then to CASM (Cairo Assembly), enabling provability guarantees at the type level. The trade-off: Cairo smart contracts are not directly portable from Solidity — developers must rewrite in Cairo or use transpilers."
+                },
+                {
+                    "id": 15,
+                    "question": "What is StarkNet's SHARP (Shared Prover), and how does it reduce per-transaction costs for StarkNet applications?",
+                    "options": {
+                        "A": "SHARP is a shared proving service that aggregates STARK proofs from multiple applications and users into a single proof submitted to Ethereum L1. Multiple StarkNet dapps, StarkEx instances, and users share the cost of a single L1 verification transaction, reducing per-transaction L1 cost proportionally to the number of users sharing the proof",
+                        "B": "SHARP is StarkWare's hardware leasing program where dapps rent GPU clusters for proof generation — cost sharing refers to the rental fee being split among multiple simultaneous renters rather than each dapp operating dedicated hardware",
+                        "C": "SHARP stands for Shared Recursion Protocol — it is the technique of reusing the same STARK proof circuit for all StarkNet transactions, eliminating the need to redesign circuits for each new dapp",
+                        "D": "SHARP is StarkNet's fee market mechanism where users bid for proof slots — high-fee transactions receive dedicated proofs while low-fee transactions are batched together; the 'Shared' refers to the fee revenue sharing between prover operators and the StarkWare foundation"
+                    },
+                    "correct": "A",
+                    "explanation": "SHARP (SHARed Prover) is a key infrastructure component developed by StarkWare that enables cross-application proof aggregation. Architecture: (1) Multiple applications submit jobs to SHARP: StarkNet transactions, StarkEx dexes (dYdX v3, Immutable X, Sorare), and other STARK-using systems. (2) SHARP aggregates these into a single STARK proof using recursive composition — a 'train' accumulates jobs until optimal aggregation is achieved. (3) ONE L1 Ethereum transaction submits the aggregated proof, covering state updates for ALL contributing applications. (4) Verification cost (~5M gas for a STARK) is amortized across all users. Cost impact: if 10,000 StarkNet transactions share a single L1 proof submission, each transaction's L1 data + proof cost becomes 1/10,000th of the full verification cost. This is why StarkNet can offer sub-cent transactions for L1 security-backed computation. The SHARP model also illustrates why ZK systems can support 'L3' chains: an L3 rollup generates its own STARK, which SHARP aggregates into the L2 StarkNet proof, which then goes to L1 Ethereum — the aggregation hierarchy enables multiple layers of compression."
+                },
+                {
+                    "id": 16,
+                    "question": "How does StarkNet's fee model work, and what role does the STRK token play in the network's fee and governance structure?",
+                    "options": {
+                        "A": "StarkNet fees are denominated in STRK (paid to sequencers and provers) and ETH (for L1 data availability costs). STRK serves as: the fee token (users pay transaction fees in STRK), the staking token (sequencers and provers stake STRK for economic security), and the governance token (STRK holders vote on protocol upgrades via the StarkNet Foundation)",
+                        "B": "StarkNet has zero fees because STARK proof costs are subsidized by StarkWare; STRK is purely a governance token with no economic role in fee payment — all users transact for free",
+                        "C": "STRK is StarkNet's version of ETH — it is the only fee token, and all ETH-based applications must convert their fee calculations to STRK denominations; Ethereum ETH is not used for any StarkNet purpose",
+                        "D": "StarkNet fees are fixed in USD at $0.001 per transaction regardless of Ethereum gas prices; STRK is burned with each transaction to maintain a deflationary supply schedule, giving it value independent of governance"
+                    },
+                    "correct": "A",
+                    "explanation": "StarkNet's economic model has evolved significantly. Fee structure: Transactions pay in STRK (or ETH with conversion). Fees cover: (1) Execution fee — compensates sequencer for ordering and executing transactions. (2) L1 data gas — cost of posting calldata/blobs to Ethereum. (3) Proof amortization — contribution to L1 proof verification gas. STRK roles: (1) Fee payment — users pay transaction fees in STRK (introduced in phases from 2024). (2) Staking — in the decentralized sequencer model, sequencers stake STRK to participate; slashing for misbehavior. (3) Governance — STRK holders (via the Starknet Foundation and on-chain governance) vote on protocol parameters, fee models, and upgrades. STRK was distributed via an airdrop to early users, GitHub contributors, and ecosystem participants in 2024. The dual-token fee model (STRK for execution, ETH for L1 costs) reflects that L1 DA costs are ultimately denominated in ETH and cannot be fully abstracted away — a fundamental constraint for any Ethereum-based rollup."
+                },
+                {
+                    "id": 17,
+                    "question": "Polygon zkEVM targets Type 2 EVM equivalence. What specific design decisions does it make to achieve full EVM bytecode compatibility while still generating ZK proofs?",
+                    "options": {
+                        "A": "Polygon zkEVM uses a 'zkASM' (ZK Assembly) interpreter that translates EVM opcodes one-by-one into STARK-compatible arithmetic operations, while using Poseidon hash for its internal Merkle state tree (instead of Keccak) to reduce proving complexity. The zkProver generates a STARK proof of the zkASM execution, which is then wrapped in a SNARK (Groth16) for cheap L1 verification",
+                        "B": "Polygon zkEVM achieves EVM compatibility by running a full Ethereum node inside a ZK circuit — the entire geth client is compiled into a SNARK circuit, so any valid geth execution automatically generates a ZK proof without any bytecode translation",
+                        "C": "Polygon zkEVM avoids ZK proofs for EVM execution entirely — it uses optimistic rollup mechanics for transaction ordering and reserves ZK proofs only for withdrawal verification, achieving a hybrid approach",
+                        "D": "Polygon zkEVM uses EVM bytecode natively without translation by exploiting a mathematical property of the EVM: all 140 EVM opcodes map directly to prime field operations in the BN254 curve field, requiring no intermediate representation"
+                    },
+                    "correct": "A",
+                    "explanation": "Polygon zkEVM's architecture is a sophisticated engineering achievement. The core challenge: EVM uses KECCAK for everything (state hashing, storage, block hashing), but KECCAK is an XOR/shift-heavy function with thousands of constraints per call in arithmetic circuits. Design decisions to achieve Type 2 compatibility: (1) zkASM microarchitecture — Polygon created a custom zkASM (Zero-Knowledge Assembly) microprocessor that implements the EVM instruction set. Each EVM opcode decomposes into zkASM instructions, each of which is a single row in the computation trace. (2) State tree optimization — Polygon zkEVM uses Poseidon hash (STARK-native) for its internal state Merkle tree instead of Keccak, achieving 100x fewer constraints per hash. Users interact with Ethereum-compatible addresses and hashes at the API level, but internal storage differs (Type 2 divergence). (3) STARK + SNARK hybrid proving — the zkProver generates a STARK proof of the full execution trace (enabling fast proving with no trusted setup). This STARK is then wrapped by a SNARK (Groth16) called the 'aggregator' which verifies the STARK, producing a ~200-byte proof for cheap L1 verification. This 'SNARK wrapping STARK' pattern avoids both STARK's large L1 proof size and SNARK's slow prover."
+                },
+                {
+                    "id": 18,
+                    "question": "What is the Polygon 2.0 vision for zkEVM chains, and how does 'AggLayer' aim to unify liquidity across multiple zkEVM networks?",
+                    "options": {
+                        "A": "Polygon 2.0 envisions a network of ZK-secured chains (including Polygon PoS, Polygon zkEVM, and external CDK chains) unified by AggLayer — a shared aggregation layer that combines validity proofs from all chains into a single proof submitted to Ethereum L1, and maintains a unified bridge where assets can move between chains with near-instant finality without going through L1",
+                        "B": "Polygon 2.0 replaces all existing Polygon products with a single monolithic zkEVM chain; AggLayer is the migration tool that converts existing smart contracts from Polygon PoS to the new zkEVM format",
+                        "C": "AggLayer is Polygon's cross-chain messaging protocol that uses optimistic bridges between zkEVM chains — validity proofs are only used for withdrawals to Ethereum L1, while inter-chain transfers use an optimistic 30-minute challenge window",
+                        "D": "Polygon 2.0 and AggLayer are purely marketing terms with no technical implementation — all Polygon products remain technically separate chains without shared proof aggregation"
+                    },
+                    "correct": "A",
+                    "explanation": "Polygon 2.0 (announced 2023) is a major architectural redesign centered on ZK-secured modularity. The vision: instead of a single chain, an ecosystem of chains all secured by ZK proofs aggregated to Ethereum. AggLayer (Aggregation Layer): (1) Receives validity proofs from all participating chains: Polygon zkEVM, Polygon CDK chains, Polygon PoS (migrating to ZK-secured), and external chains building with Polygon CDK. (2) Aggregates all proofs into a single pessimistic proof submitted to Ethereum L1. (3) Maintains unified bridge state: a global exit tree tracking all deposits and withdrawals across all chains. (4) Near-instant cross-chain transfers: because all chain states are verified by proofs before AggLayer accepts them, assets can move between chains without L1 round trips. The 'pessimistic proof' innovation: AggLayer generates a proof that no chain has created unbacked withdrawals (net transfers out <= net transfers in for each token). This prevents a compromised chain from draining other chains' liquidity. POL token (replacing MATIC) serves as the economic backbone — staked by validators securing Polygon PoS, used for governance across the ecosystem."
+                },
+                {
+                    "id": 19,
+                    "question": "ZK proof generation is computationally intensive. What hardware is used for production ZK proving, and what is the 'prover economics' challenge for decentralized rollups?",
+                    "options": {
+                        "A": "ZK proof generation currently uses high-end GPUs (NVIDIA A100/H100 clusters) for STARK provers and specialized CPUs for SNARK provers. The prover economics challenge: proof generation costs must be recovered through transaction fees, but L2 competition drives fees down. Without subsidies or high transaction volume, running a prover profitably requires either high fee revenue or extremely efficient hardware — creating centralization pressure toward a few well-capitalized prover operators",
+                        "B": "ZK proofs are generated on consumer-grade hardware (standard laptops) using browser-based proving — proof generation takes milliseconds, so economics are not a concern; the challenge is instead bandwidth (uploading proofs from user devices to L1)",
+                        "C": "Prover hardware is identical to Ethereum mining equipment (GPU mining rigs) — the proving economics are well-understood from PoW mining, and the same hardware rental markets apply directly to ZK proving",
+                        "D": "ZK proving hardware costs are fixed and set by a consortium of hardware manufacturers; the prover economics challenge is regulatory — in some jurisdictions, running a ZK prover constitutes money transmission and requires licensing"
+                    },
+                    "correct": "A",
+                    "explanation": "ZK proof generation is among the most computationally demanding tasks in blockchain systems. Current hardware landscape: GPUs — primary hardware for most ZK provers. NVIDIA A100 (80GB HBM2e) is the standard; H100 (with NVLink) for advanced systems. Parallelism is crucial: multi-scalar multiplication (MSM) and Number Theoretic Transform (NTT) are highly parallelizable. FPGAs — used for specific bottleneck operations (MSM, NTT). Can achieve 5-10x speedup vs GPUs for certain tasks. Companies like Ingonyama and Cysic design ZK-specific FPGAs. ASICs — early-stage development. Potential 100x improvement over GPUs. Still 2-3 years from production. Prover economics challenges: (1) Capital cost: an A100 server costs ~$200,000-500,000. Running 10-20 GPUs for a mid-size rollup requires millions in hardware. (2) Electricity: GPU clusters consume megawatts. (3) Revenue recovery: provers earn fees from sequencers. With fee competition, margins are thin. (4) Centralization risk: only well-capitalized entities can afford proving infrastructure, contradicting decentralization goals. Solutions being explored: proof marketplaces (Risc Zero Boundless, Succinct SP1), prover networks with economic incentives, hardware cost reduction through algorithm improvement."
+                },
+                {
+                    "id": 20,
+                    "question": "What are the current limitations of ZK rollups compared to optimistic rollups for general-purpose DeFi applications, and what developments are needed for ZK rollups to fully close this gap?",
+                    "options": {
+                        "A": "ZK rollups are already superior to optimistic rollups in every metric; the only remaining limitation is marketing — optimistic rollups have more users because they launched first, not due to any technical advantage",
+                        "B": "ZK rollups face three primary limitations: (1) EVM incompatibility — full Type 1 EVM equivalence requires proving Keccak and complex precompiles at acceptable speed; (2) Prover latency — time from transaction submission to L1 finalized proof is currently minutes to hours, not instant; (3) Proving cost — hardware capital costs and proving time increase transaction fees for low-volume applications. Developments needed: faster zkEVM implementations, proof parallelization, hardware acceleration (ASICs), and decentralized prover markets",
+                        "C": "ZK rollups' primary limitation is smart contract size — ZK proof systems can only prove computations with fewer than 1,000 arithmetic operations, so complex DeFi protocols like Uniswap v3 (which exceeds this limit) cannot be deployed on ZK rollups",
+                        "D": "ZK rollups are limited to fungible token transfers and cannot support NFTs, smart contracts, or complex financial instruments — the mathematical properties of ZK proofs only allow equality checks, not the rich conditional logic required by DeFi"
+                    },
+                    "correct": "B",
+                    "explanation": "ZK rollups have made remarkable progress but face legitimate remaining limitations vs. optimistic rollups: (1) EVM incompatibility: Type 1 zkEVM (fully compatible) remains too slow for production. Taiko attempts Type 1 but proof generation takes hours. Current production zkEVMs (Type 2-4) have minor incompatibilities. Some precompiles (BLS12-381, POINT_EVALUATION) are difficult to prove efficiently. Optimistic rollups (Arbitrum, Optimism) run real geth — any Ethereum code works identically. (2) Prover latency: submitting a transaction to zkSync Era, the batch proof may take 1-10 minutes to finalize on L1. For time-sensitive applications (liquidations, MEV), this delay matters. Optimistic rollups have soft finality in seconds (before challenge window). (3) Proving cost: for low-volume chains, proof generation costs (hardware + electricity) may exceed fee revenue, requiring subsidies. Small dapps may not generate enough volume to amortize proving costs. Solutions in progress: Hardware acceleration (FPGAs today, ASICs 2025-2027), parallel proving (multiple provers handling different tx subsets), decentralized prover markets with competitive pricing, and recursive aggregation (amortizing across more users). The gap is narrowing rapidly — zkSync Era and StarkNet already handle millions of transactions monthly."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

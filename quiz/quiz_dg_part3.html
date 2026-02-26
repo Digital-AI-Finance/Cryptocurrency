@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz DG-3: Treasury & Economics | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz DG-3: Treasury &amp; Economics</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz DG-3: Treasury &amp; Economics</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "As of 2023, the combined treasuries of the top DAO ecosystems (Uniswap, Lido, Optimism, Arbitrum, etc.) held assets valued in the range of tens of billions of dollars. What does the existence of these large on-chain treasuries fundamentally change about organisational finance?",
+                    "options": {
+                        "A": "Nothing fundamentally changes — on-chain treasuries are just a technical novelty with no practical difference from a corporate bank account held by a traditional foundation",
+                        "B": "On-chain treasuries eliminate the need for any human governance because smart contracts automatically optimise fund allocation based on on-chain signals",
+                        "C": "On-chain treasuries shift financial control from a legal entity with a board of directors to a set of addresses governed by token-holder votes — assets are held in smart contracts auditable by anyone, disbursements require on-chain approval, and there is no trusted custodian that can unilaterally move funds",
+                        "D": "On-chain treasuries are exclusively denominated in stablecoins, which insulates DAOs from cryptocurrency volatility and makes treasury management trivial"
+                    },
+                    "correct": "C",
+                    "explanation": "Traditional organisational finance relies on bank accounts held by legal entities, with fiduciary duties enforced by law and oversight by boards or shareholders. DAO treasuries invert this: assets (often the protocol's own governance token plus ETH, stablecoins, and partner tokens) sit in multisig wallets or governance-controlled smart contracts. Any token holder can inspect balances on-chain. Disbursements execute only after passing a governance vote that reaches quorum and approval threshold. There is no CEO who can move funds unilaterally; there is no bank that can freeze the account. This creates both advantages (censorship-resistance, transparency) and new challenges (slow decision-making, governance attack vectors, difficulty responding to emergencies)."
+                },
+                {
+                    "id": 2,
+                    "question": "The Uniswap DAO treasury held approximately $3 billion in UNI tokens as of 2023, yet the protocol had never distributed fee revenue to token holders. What structural problem does this illustrate about token-denominated treasuries?",
+                    "options": {
+                        "A": "It illustrates that Uniswap's smart contracts have a bug preventing fee distribution, which the DAO has been unable to fix due to governance deadlock",
+                        "B": "It illustrates concentration risk: a treasury primarily denominated in the protocol's own governance token has highly correlated value — if the token's price falls, the treasury loses value precisely when the protocol may need emergency resources most, and the treasury's paper value does not represent spendable purchasing power without selling tokens and suppressing the price",
+                        "C": "It illustrates that large treasuries are unnecessary because protocols generate sufficient fee revenue from smart contract fees to fund all operations without drawing on token reserves",
+                        "D": "It illustrates that regulatory pressure has prevented Uniswap from converting tokens to stablecoins, forcing the DAO to maintain an inflated token balance"
+                    },
+                    "correct": "B",
+                    "explanation": "When a DAO's treasury consists primarily of its own governance token, several interconnected problems arise. (1) Concentration risk: the treasury's USD value rises and falls with token price, creating pro-cyclical budget constraints — the DAO is richest when markets are euphoric and poorest when crisis funding is most needed. (2) Selling pressure: converting treasury tokens to pay contributors or fund grants requires selling on the open market, suppressing the very token that comprises the treasury's main asset. (3) Governance token vs. cash: a governance token grants voting rights but is not the same as spendable cash — the DAO cannot spend $3B freely without market impact. This is why DAO treasury management best practices emphasise diversification into stablecoins and blue-chip assets (ETH, BTC) to create a genuine operating runway."
+                },
+                {
+                    "id": 3,
+                    "question": "What is the concept of 'runway' in DAO treasury management, and why do treasury committees typically target 18-36 months of operating runway in stablecoins?",
+                    "options": {
+                        "A": "Runway is the number of months the DAO can fund all approved expenditures at the current burn rate using only liquid, non-volatile assets; 18-36 months is targeted to survive a full bear market cycle without forced token liquidations at depressed prices",
+                        "B": "Runway refers to the physical distance from the DAO's headquarters to its nearest airport; longer runway enables faster international expansion of the development team",
+                        "C": "Runway is the maximum number of governance proposals a DAO can process per month; it is capped at 36 to prevent governance fatigue among token holders",
+                        "D": "Runway refers to the time until the DAO's smart contracts must be redeployed due to Ethereum protocol upgrades; 18-36 months reflects the average Ethereum upgrade cycle"
+                    },
+                    "correct": "A",
+                    "explanation": "Operating runway = liquid stable assets / monthly burn rate. If a DAO spends $500,000/month on core contributors, audits, and grants, and holds $12M in USDC/USDT/DAI, it has 24 months of runway. The 18-36 month target is deliberately long because: (1) crypto bear markets often last 12-24 months, during which volatile treasury assets (governance tokens, ETH) may lose 70-90% of value; (2) governance processes to approve emergency token sales are slow — often weeks to months — meaning a DAO with only 6 months of runway in stablecoins can find itself insolvent before governance approves remedies; (3) contributors require stability to make long-term commitments. Protocols like MakerDAO and Aave have established treasury committees with explicit mandates to maintain minimum stablecoin runway."
+                },
+                {
+                    "id": 4,
+                    "question": "A DAO's treasury committee proposes moving $50 million from a single-signature hot wallet to a Gnosis Safe multisig configured as 4-of-7. What specific security properties does this configuration provide, and what are the operational tradeoffs?",
+                    "options": {
+                        "A": "The 4-of-7 configuration means 4 signers must approve each transaction, but any single signer can veto; this provides veto power to minority stakeholders but slows all treasury operations to a crawl",
+                        "B": "Any 4 of the 7 designated signers must co-sign each transaction for it to execute; this eliminates single-point-of-failure compromise (an attacker must corrupt 4 independent signers or their keys), tolerates loss of up to 3 signers without losing access, but requires coordination overhead for each disbursement",
+                        "C": "The configuration means 4 out of 7 blockchain validators must confirm each transaction; this provides enhanced on-chain security but requires paying 4x the standard transaction fee",
+                        "D": "Gnosis Safe 4-of-7 uses a secret sharing scheme where no single signer ever holds a complete key; the full key is reconstructed only at signing time using zero-knowledge proofs"
+                    },
+                    "correct": "B",
+                    "explanation": "A Gnosis Safe (now called Safe) multisig m-of-n configuration requires exactly m signatures from a pool of n designated signers. The 4-of-7 setup provides: (1) Single-key compromise resistance: stealing one signer's private key is insufficient — an attacker needs 4 keys from 7 independent people across different geographies, devices, and custody setups. (2) Key loss tolerance: if 3 signers die, lose keys, or become unavailable, the remaining 4 can still operate the treasury. (3) Collusion resistance: any coalition of 4 or more signers can act, but 3 or fewer cannot — designed so no small subgroup can unilaterally drain funds. Operational tradeoffs: coordinating 4 signers takes time (urgent transactions may need hours to days), signers need reliable communication channels, and key management for 7 individuals introduces procedural overhead."
+                },
+                {
+                    "id": 5,
+                    "question": "In a Gnosis Safe multisig, what is the difference between an 'owner' and a 'delegate,' and why might a DAO use timelock contracts in addition to multisig protection for large treasury operations?",
+                    "options": {
+                        "A": "Owners hold signing authority while delegates are read-only observers; timelocks are used to delay transactions until a specific block height to align with token unlock schedules",
+                        "B": "Owners control the governance token supply while delegates control the treasury allocation; timelocks synchronise the two systems to prevent simultaneous governance attacks",
+                        "C": "Owners are the m-of-n signers with full transaction approval authority; delegates (via Safe's transaction module) can be granted limited spending authority (e.g., recurring payroll up to a cap) without requiring full multisig approval; timelocks enforce a mandatory waiting period (e.g., 48-72 hours) between a transaction being queued and executed, giving token holders time to detect and cancel malicious transactions",
+                        "D": "Delegates are legal counsel who must approve all transactions above $100,000 for regulatory compliance; owners are the technical signers who execute transactions after legal approval"
+                    },
+                    "correct": "C",
+                    "explanation": "Safe (Gnosis Safe) has a rich permission model. Owners are the core m-of-n signers with full authority. Safe modules allow extending functionality — for example, a Zodiac Roles module can grant specific addresses (delegates) permission to execute predefined transaction types (e.g., pay up to 50,000 USDC/month to a specific payroll address) without consuming full multisig overhead. This enables operational efficiency for recurring payments. Timelocks add a separate security layer: even after m signatures are collected, the transaction is queued and cannot execute for a specified delay (24-72 hours is common). During this window, the community can monitor the queued transaction on-chain and trigger an emergency veto if it appears malicious (e.g., a compromised multisig draining the treasury). Compound Finance and Aave both use 48-72 hour timelocks on governance execution."
+                },
+                {
+                    "id": 6,
+                    "question": "A DAO's 5-of-9 multisig treasury holds $200 million. Three signers are unavailable for two weeks due to travel. A critical security patch requires immediate funding of $5 million to an auditor. The remaining 6 signers can form a 5-of-6 quorum. What governance best practice does this situation motivate?",
+                    "options": {
+                        "A": "DAOs should never use multisigs for operational treasuries because key unavailability creates unacceptable delays; all treasury funds should be governed by on-chain voting without human signers",
+                        "B": "Multisig configurations should set m low enough (e.g., 2-of-9) that quorum is always trivially achievable, eliminating availability concerns at the cost of security",
+                        "C": "DAOs should maintain an emergency sub-treasury (a separate lower-threshold multisig or a pre-approved spending module) with a capped amount (e.g., $5-10M) for time-sensitive expenditures, while the main high-threshold multisig protects the majority of assets — separating operational agility from principal protection",
+                        "D": "The DAO should immediately replace unavailable signers via governance vote before any emergency spending is possible, ensuring the full 5-of-9 is always available"
+                    },
+                    "correct": "C",
+                    "explanation": "This tension between security (high threshold) and operational agility (low threshold) is a fundamental multisig design problem. The best-practice solution is tiered treasury architecture: (1) Core treasury (large, high-threshold multisig — 5-of-9 or governed by full on-chain vote): holds the majority of assets, slow and secure. (2) Operational sub-wallet (smaller, lower-threshold multisig — 3-of-5 or a Safe module with spending limits): holds 3-6 months of operating budget, faster to act. (3) Emergency module: pre-approved by governance for specific defined emergencies (security patches, oracle failures) up to a defined cap. This mirrors corporate treasury design: a company has a primary account for long-term capital and a petty cash/operational account for day-to-day needs. MakerDAO, Aave, and Optimism all use some variant of tiered treasury architecture."
+                },
+                {
+                    "id": 7,
+                    "question": "A DAO treasury committee presents three diversification proposals: (A) Convert 30% of native token holdings to ETH; (B) Convert 20% to a basket of blue-chip stablecoins (USDC, DAI, USDT); (C) Deploy 15% into yield-generating DeFi protocols. What risk is uniquely introduced by option C that is absent in options A and B?",
+                    "options": {
+                        "A": "Option C introduces smart contract risk and protocol dependency risk — the treasury's capital is now subject to potential exploits, rug pulls, oracle manipulations, or governance attacks on the external protocol, meaning a hack of the yield protocol could cause sudden, irreversible loss of treasury capital beyond normal market risk",
+                        "B": "Option C introduces regulatory risk because DeFi yield is classified as securities income in most jurisdictions, while ETH and stablecoin holdings are not",
+                        "C": "Option C introduces inflation risk because yield protocols generate new tokens that dilute existing holders, unlike ETH or stablecoins which have fixed or predictable supply",
+                        "D": "Option C is unique only in that it generates taxable income for the DAO, while capital gains from options A and B are not taxable in most crypto-friendly jurisdictions"
+                    },
+                    "correct": "A",
+                    "explanation": "Options A (ETH) and B (stablecoins) introduce market risk and counterparty risk (stablecoin issuer risk for USDC), but assets remain directly controlled by the DAO's multisig. Option C — deploying to yield protocols like Aave, Compound, or Curve — adds smart contract risk: a code vulnerability in the external protocol (reentrancy, price oracle manipulation, flash loan attack) could result in immediate, irreversible loss of the deposited capital. History provides examples: the Euler Finance hack ($197M lost in March 2023), Cream Finance repeated exploits, and Harvest Finance flash loan attacks all wiped out deposited funds with no recourse. A DAO treasury losing principal to a protocol hack is categorically worse than a 30% ETH price decline — the latter recovers with the market; the former does not. Treasury committees must weigh yield enhancement against smart contract risk concentration."
+                },
+                {
+                    "id": 8,
+                    "question": "Why do DAO treasury managers often prefer DAI and FRAX over USDC and USDT for large stable holdings, despite USDC and USDT having higher market capitalisations and deeper liquidity?",
+                    "options": {
+                        "A": "DAI and FRAX earn higher yields than USDC/USDT because their issuers pass all protocol fee revenue to holders, making them strictly superior yield instruments",
+                        "B": "USDC and USDT introduce centralised custodian risk and censorship risk — Circle (USDC issuer) and Tether (USDT issuer) can freeze specific addresses and have the ability to blacklist wallets; DAI (MakerDAO) and FRAX are protocol-governed decentralised stablecoins with no single entity able to freeze a DAO's holdings",
+                        "C": "DAI and FRAX are preferred because they are backed exclusively by ETH, providing perfect correlation with the DAO's other treasury assets and simplifying risk modelling",
+                        "D": "USDC and USDT cannot be held directly by smart contracts; they require a legal wrapper, making them incompatible with on-chain DAO treasury architecture"
+                    },
+                    "correct": "B",
+                    "explanation": "The March 2023 USDC depeg incident (when Silicon Valley Bank's failure caused $3.3B in Circle's reserves to be temporarily at risk) and Tether's multiple controversies highlight the centralised counterparty risk in fiat-backed stablecoins. Critically, both USDC and USDT smart contracts include blacklist functions — Circle and Tether have demonstrated willingness to freeze addresses under regulatory pressure (e.g., OFAC sanctions compliance froze Tornado Cash-related addresses). A DAO holding $50M in USDC theoretically faces the risk that regulatory action could freeze its holdings if the protocol is deemed to be interacting with sanctioned parties. DAI (overcollateralised, MakerDAO-governed) and FRAX (hybrid algorithmic-collateralised) lack a centralised entity with freeze authority. However, DAI's own collateral includes significant USDC, creating partial indirect exposure — a well-known governance tension in MakerDAO."
+                },
+                {
+                    "id": 9,
+                    "question": "A DAO has a $500M treasury: 60% in native governance token, 25% in ETH, 10% in stablecoins, 5% in partner tokens. The treasury committee proposes a 'strategic diversification' to 40% native token, 25% ETH, 25% stablecoins, 5% BTC, 5% partner tokens. What specific mechanism is required to execute this rebalancing, and what governance considerations arise?",
+                    "options": {
+                        "A": "The committee can execute the rebalancing autonomously without governance approval because treasury management is delegated to the committee; the primary mechanism is a series of DEX swaps executed over several weeks",
+                        "B": "The rebalancing is executed via a governance vote that directly modifies the token contract's allocation table, with no actual market transactions required",
+                        "C": "Treasury rebalancing is automatically executed by a Chainlink Automation keeper that monitors target allocations and trades on Uniswap whenever deviation exceeds 5%, without requiring any human governance intervention",
+                        "D": "Rebalancing requires selling $100M worth of native governance tokens on the open market (converting from 60% to 40%), which requires a governance vote to authorise both the token sale and the specific execution strategy — the sale itself risks suppressing the token price, potentially triggering community opposition from holders who see treasury selling as a bearish signal"
+                    },
+                    "correct": "D",
+                    "explanation": "Moving from 60% to 40% native token allocation means selling 20% of a $500M treasury = $100M of governance tokens. This requires: (1) Governance authorisation: most DAO frameworks require a governance proposal for large treasury movements, typically with extended voting periods (3-7 days) and quorum requirements. (2) Execution strategy approval: selling $100M of tokens in a short period could severely suppress price. Governance must approve whether to use OTC deals (negotiate directly with institutional buyers off-exchange), TWAP/VWAP algorithms (spread the sale over days/weeks to minimise market impact), or a Treasury bill auction. (3) Community politics: token holders often resist treasury token sales, viewing them as dilution or bearish signals, even when the strategic rationale (stablecoin runway) is sound. The Uniswap DAO's multi-year debate over whether to activate fee sharing illustrates the political complexity of treasury decisions."
+                },
+                {
+                    "id": 10,
+                    "question": "Gitcoin Grants uses a mechanism called 'quadratic funding' for its grant program. What is the core principle of quadratic funding, and how does it differ from simple majority-vote grant allocation?",
+                    "options": {
+                        "A": "In quadratic funding, the matching amount from a common pool is proportional to the square of the sum of the square roots of individual contributions — this means the number of unique contributors matters more than the total amount raised, amplifying small contributions from many people over large contributions from few, thereby aligning funding with breadth of community support rather than plutocratic wealth",
+                        "B": "Quadratic funding means the DAO matches grants at a rate that grows quadratically with total contributions, ensuring exponential returns for projects that receive any funding — effectively rewarding fundraising success with unlimited matching",
+                        "C": "Quadratic funding allocates grants based on a quadratic formula that prioritises older projects (those with longer track records receive exponentially more matching), incentivising long-term commitment over new entrants",
+                        "D": "Quadratic funding is a yield optimisation strategy where grant recipients receive principal plus interest compounded quarterly, with the compounding rate determined by protocol governance votes"
+                    },
+                    "correct": "A",
+                    "explanation": "Quadratic funding (QF), formalised by Vitalik Buterin, Zoë Hitzig, and Glen Weyl in the paper 'Liberal Radicalism' (2018), calculates matching as: matching ∝ (Σ√c_i)² where c_i are individual contribution amounts. Crucially, the matching grows with the square of the number of contributors, not just the sum. Example: Project A receives one $10,000 donation → matching ∝ (√10,000)² = 10,000. Project B receives 100 donations of $100 each → matching ∝ (100 × √100)² = (100 × 10)² = 1,000,000. Project B receives 100x more matching despite the same total raised. QF corrects for the plutocratic bias of simple majority voting (where large token holders dominate) by weighting breadth of community support. Gitcoin has distributed over $50M via QF rounds to public goods projects in Ethereum ecosystem."
+                },
+                {
+                    "id": 11,
+                    "question": "Optimism's RetroPGF (Retroactive Public Goods Funding) differs from Gitcoin's prospective grants in its fundamental timing and incentive logic. What is the core argument for retrospective rather than prospective funding of public goods?",
+                    "options": {
+                        "A": "Retrospective funding is cheaper to administer because it requires only a single annual vote rather than continuous proposal review; the cost savings allow more funds to reach builders",
+                        "B": "Retrospective funding is legally required for DAOs incorporated in the Cayman Islands to avoid gift tax treatment of prospective grants; it is purely a compliance mechanism",
+                        "C": "Retrospective funding was invented by Optimism because their governance token was distributed after the protocol launched, making prospective grant authorisation technically impossible before the token existed",
+                        "D": "It is easier to evaluate impact that has already occurred than to predict future impact from proposals; retrospective funding rewards demonstrated value creation rather than promising pitches, reduces the risk of funding projects that fail to deliver, and creates 'impact = profit' incentives that attract self-sustaining organisations rather than grant-dependent ones"
+                    },
+                    "correct": "D",
+                    "explanation": "The RetroPGF thesis (articulated by Optimism co-founder Karl Floersch) argues: prospective grants require committees to predict which projects will create value — a notoriously difficult forecasting problem prone to hype, politics, and incomplete information. Retrospective funding evaluates work already done: the community votes to reward projects based on demonstrated impact on the ecosystem. This has several advantages: (1) No information asymmetry — voters can see actual outcomes. (2) Survivor bias works in your favour — only successful projects compete. (3) Creates expectation of future retrospective rewards, motivating builders to invest in public goods even without upfront grants ('build it and you will be paid'). (4) Reduces moral hazard: teams cannot collect grants then deliver nothing. Optimism has distributed multiple RetroPGF rounds totalling hundreds of millions of OP tokens to ecosystem contributors."
+                },
+                {
+                    "id": 12,
+                    "question": "Sablier and Superfluid are protocols that enable 'payment streaming' for DAO contributor compensation. What problem do payment streams solve that lump-sum or monthly payments do not?",
+                    "options": {
+                        "A": "Payment streaming solves the gas fee problem by batching all compensation payments into a single annual transaction, reducing Ethereum gas costs by 12x compared to monthly payments",
+                        "B": "Payment streaming is primarily a tax optimisation tool that spreads income recognition across multiple fiscal years, reducing the marginal tax rate applicable to contributor compensation",
+                        "C": "Streaming payments solve the stablecoin peg instability problem by automatically converting contributor payments to ETH at real-time oracle prices rather than holding depreciating stablecoin balances",
+                        "D": "Payment streaming provides real-time continuous disbursement (e.g., 1 USDC per second) rather than periodic lump sums — this reduces counterparty risk for contributors (they do not need to wait 30 days to receive earned compensation), eliminates the DAO's need to trust contributors to deliver before being paid (vesting happens continuously), and enables instant clawback of unvested funds if a contributor leaves or underperforms"
+                    },
+                    "correct": "D",
+                    "explanation": "Sablier (and Superfluid's CFA — Constant Flow Agreement) enables streams where tokens flow continuously at a defined rate (e.g., 1,000 USDC/day). This resolves a fundamental DAO compensation dilemma: (1) Front-loaded lump sum creates moral hazard — DAO pays upfront, contributor leaves. (2) Monthly payments create contributor risk — contributor works for 30 days, then depends on DAO governance to approve payment in time. Streaming solves both: the DAO locks funds in a Sablier contract with the contributor's address as recipient; funds unlock in real time proportional to time elapsed. Contributor can withdraw any time to claim accrued compensation. If the DAO cancels the stream, the unvested portion returns to the DAO treasury immediately. Multi-month contributor agreements (e.g., 6-month engagement at $20,000/month) are commonly structured as Sablier streams in protocols like Balancer, Gitcoin, and Uniswap grants."
+                },
+                {
+                    "id": 13,
+                    "question": "A DAO allocates 5% of its treasury ($25M) to a grants committee with a 3-month budget. The committee receives 200 applications requesting a total of $80M. What framework should the committee use to evaluate and prioritise grants, given this 3.2x oversubscription?",
+                    "options": {
+                        "A": "The committee should accept only the 25 applications with the highest requested amounts, as larger grants signal more ambitious projects and deliver more impactful outcomes",
+                        "B": "The committee should use a random lottery among all eligible applicants to ensure equal opportunity and avoid any perception of committee bias or favoritism",
+                        "C": "The committee should evaluate applications on a multi-factor rubric: strategic alignment with DAO objectives, team execution track record, defined milestones with measurable KPIs, requested amount vs. scope feasibility, and potential multiplier effect on ecosystem; milestone-based tranched funding reduces risk on larger grants by releasing tranches only upon verified delivery of prior milestones",
+                        "D": "The committee should accept all applications but fund each at 31% of the requested amount (25M / 80M) to distribute resources broadly and avoid appearing to favour particular projects"
+                    },
+                    "correct": "C",
+                    "explanation": "Best-practice DAO grant committees (as implemented by Uniswap Grants Program, Aave Grants DAO, and Compound Grants) use structured evaluation frameworks. Key dimensions: (1) Strategic fit: does the project advance a specific DAO objective (e.g., developer tooling, liquidity growth, L2 integrations)? (2) Team credibility: prior delivery track record matters more than whitepapers. (3) Milestones: large grants ($50K+) should be tranched — release 30% upfront, 40% at milestone 1, 30% at milestone 2, with clawback provisions. This aligns incentives and reduces the risk of funded projects delivering nothing. (4) Leverage: does the grant catalyse additional external funding? (5) KPIs: what measurable outcomes will prove success? The milestone-tranche model is critical — it converts grants from one-time donations to outcome-linked contracts, dramatically improving accountability."
+                },
+                {
+                    "id": 14,
+                    "question": "Bitcoin has a hard-coded maximum supply of 21 million BTC, while Ethereum has no hard cap but implements EIP-1559 fee burning. How do these different supply policies create different token economic dynamics?",
+                    "options": {
+                        "A": "Bitcoin's hard cap creates guaranteed deflation from day one, while Ethereum's lack of a cap creates guaranteed inflation — Ethereum is therefore strictly inferior as a store of value",
+                        "B": "Bitcoin's hard cap creates a predictable, algorithmically-enforced scarcity schedule (halving every ~210,000 blocks reduces new issuance by 50%), making long-term supply fully knowable; Ethereum's EIP-1559 burning means net supply change depends on transaction activity — during high-usage periods, burns can exceed new issuance (making ETH net deflationary), while during low activity, ETH is net inflationary, creating dynamic supply tied to network demand",
+                        "C": "Both models are economically equivalent because supply only matters relative to demand, and both assets have demonstrated similar price appreciation over their histories",
+                        "D": "Bitcoin's hard cap is a marketing myth — the 21M limit can be changed by miner vote, just as Ethereum's supply policy was changed by EIP-1559"
+                    },
+                    "correct": "B",
+                    "explanation": "Bitcoin's supply schedule is fully deterministic: ~900 BTC/day currently, halving to ~450 BTC/day at the next halving (~2024), eventually reaching zero new issuance around 2140. Total supply asymptotically approaches 21M. This terminal fixed supply is unique in monetary history — no central bank controls it. Ethereum's EIP-1559 (August 2021) changed fee mechanics: a base fee is burned (removed from supply) rather than paid to validators. Post-Merge, validators receive only priority tips and staking rewards. In periods of high on-chain activity (DeFi bull markets, NFT mints), burn rates exceeded new issuance — ETH became deflationary. In quiet periods, modest net issuance occurs. This makes ETH supply endogenous to network demand — often called 'ultrasound money' by proponents. From September 2022 (Merge) to 2023, roughly 350,000+ ETH were net burned."
+                },
+                {
+                    "id": 15,
+                    "question": "Curve Finance's tokenomics use a 'vote-escrow' mechanism (veCRV). Users lock CRV tokens for up to 4 years to receive veCRV, which grants boosted rewards and governance voting power. What economic problem is vote-escrow designed to solve?",
+                    "options": {
+                        "A": "Vote-escrow solves the gas fee problem: by locking tokens, users aggregate their votes into a single annual transaction, reducing the cost of governance participation by 98%",
+                        "B": "Vote-escrow is purely a supply reduction mechanism — its only economic effect is taking CRV off the market to support the token price, with no meaningful governance or incentive alignment effects",
+                        "C": "Vote-escrow aligns token holders' time horizons with the protocol's long-term health: liquid governance tokens incentivise short-term governance for immediate price appreciation; locking for 4 years to earn boosted rewards selects for participants with long-term commitment, reducing governance attacks by transient holders and creating 'sticky' liquidity that smooths out price volatility",
+                        "D": "Vote-escrow solves the multisig security problem by requiring all treasury signers to hold locked veCRV, ensuring they have skin-in-the-game before accessing treasury controls"
+                    },
+                    "correct": "C",
+                    "explanation": "Curve's veCRV model (designed by Michael Egorov) is one of the most influential tokenomics innovations in DeFi. The mechanism: lock CRV for t years (max 4) → receive veCRV ∝ CRV × (t/4). veCRV decays linearly to zero at lock expiry. Benefits of holding veCRV: (1) Up to 2.5x liquidity provision reward boost. (2) 50% of Curve trading fees. (3) Voting power to direct CRV emissions to liquidity pools. This created the 'Curve Wars': protocols (Convex, Yearn, Frax) compete to accumulate veCRV to control CRV emission direction, as directing emissions to their pools attracts liquidity. The 4-year lock means rational veCRV holders only benefit if Curve is healthy long-term — aligning incentives. The model has been widely copied: Balancer (veBAL), Frax (veFXS), Solidly (ve(3,3)), Angle (veANGLE)."
+                },
+                {
+                    "id": 16,
+                    "question": "Protocol revenue is generated by the Uniswap protocol (approximately $1-3 billion in cumulative trading fees as of 2023) but has not been distributed to UNI token holders. A governance proposal to 'turn on the fee switch' would redirect a percentage of fees from liquidity providers to the DAO treasury. What economic risk does this proposal carry?",
+                    "options": {
+                        "A": "Reducing LP revenue by the fee switch percentage could make Uniswap's liquidity provision less profitable than competing DEXs that do not levy a protocol fee, potentially causing LPs to migrate to Uniswap forks (like SushiSwap or Uniswap V3 forks), reducing Uniswap's total liquidity and making its prices less competitive, ultimately harming both traders and the protocol's long-term value",
+                        "B": "Redirecting fees to UNI holders would violate securities law by converting UNI into a dividend-paying security, forcing Uniswap to register with the SEC and pay retroactive taxes on all distributed fees",
+                        "C": "The fee switch is technically impossible to implement without a complete rewrite of Uniswap V3's core contracts, as the current architecture routes 100% of fees to LPs with no fee recipient parameter",
+                        "D": "Turning on the fee switch would cause UNI token price to collapse because the additional token issuance required to pay holders would create excessive inflation"
+                    },
+                    "correct": "A",
+                    "explanation": "The Uniswap fee switch debate is one of DeFi governance's most consequential discussions. Uniswap V3 contracts include a `feeProtocol` parameter allowing the DAO to claim 0-25% of pool fees as a protocol cut. The economic tension: Uniswap's competitive moat is its liquidity depth. LP revenue ∝ fees earned. If Uniswap takes 10% of LP fees, an LP comparing Uniswap vs. a fork that offers 100% fee revenue will face a 10% disadvantage. In competitive pool types (e.g., stablecoin pairs where multiple DEXs compete), even a small fee disadvantage could cause LP migration. Less liquidity means worse prices for traders, reducing trading volume, further reducing fees in a vicious cycle. The governance dilemma: UNI holders want protocol revenue (for grants, buybacks), but extracting it risks the goose laying golden eggs. This is the classic public goods extraction problem in DAO economics."
+                },
+                {
+                    "id": 17,
+                    "question": "Token buybacks and burns are a common treasury management tool. If a DAO has $10M in annual protocol revenue and spends $5M on operations, what are the three main choices for the remaining $5M, and how do their economic effects differ?",
+                    "options": {
+                        "A": "The three choices are: (1) hold as stablecoins, (2) burn to increase treasury value, (3) pay as dividends to the DAO's founding team — all three are economically equivalent in terms of token holder value",
+                        "B": "The only economically rational choice is reinvestment in protocol development because all other uses of surplus revenue create negative externalities for liquidity providers",
+                        "C": "The three choices are identical to corporate finance options and are governed by the same legal frameworks; DAOs have no unique considerations compared to traditional corporations",
+                        "D": "The three choices are: (1) accumulate in treasury (builds reserves, reduces runway risk, no immediate token price effect), (2) buy back and burn governance tokens (reduces supply, concentrates each remaining token's claim on future cash flows, directly supports token price), (3) distribute as dividends to token holders (directly rewards holders, may trigger securities classification risk, reduces treasury reserves) — each creates different risk/reward profiles and regulatory exposures"
+                    },
+                    "correct": "D",
+                    "explanation": "DAO surplus capital allocation choices map to analogous corporate finance decisions with crypto-specific twists: (1) Treasury accumulation: analogous to corporate cash reserve. Positive: reduces existential risk from bear markets, funds future development. Negative: capital sits idle, may not be valued by token markets. (2) Buyback and burn: analogous to corporate share buyback. Reduces token supply, theoretically increasing EPS (earnings per token). If $5M/year is burned from a $500M market cap token, that is 1% annual supply reduction — a meaningful deflationary pressure over time. Less regulatory risk than dividends. (3) Direct distribution to token holders: analogous to dividends. Immediate, tangible return to holders. However, SEC has argued that protocols distributing revenue from active promotion of token appreciation may be offering securities. GMX distributes 30% of fee revenue to GMX stakers and 70% to GLP holders — one of DeFi's clearest yield-sharing models."
+                },
+                {
+                    "id": 18,
+                    "question": "Gitcoin, a leading DAO, publishes all contributor compensation publicly on-chain through Sablier streams and governance-approved budgets. What are the specific advantages and disadvantages of radical pay transparency in a DAO context compared to traditional company pay secrecy?",
+                    "options": {
+                        "A": "Radical transparency has only advantages: it eliminates pay discrimination, reduces internal politics, and attracts talent by demonstrating fairness — there are no meaningful disadvantages",
+                        "B": "Advantages include: eliminates pay discrimination (all can verify equity), enables community oversight of treasury allocation (token holders can vote against excessive compensation), creates accountability (contributors must justify their compensation levels in governance), and builds trust. Disadvantages include: competitive intelligence (competitors learn your compensation levels to poach talent), social friction (contributors compare salaries constantly, creating resentment over perceived inequities), and difficulty compensating truly exceptional contributors above community norms without triggering governance objections",
+                        "C": "DAO pay transparency is purely a legal requirement — DAOs with public on-chain compensation cannot be held liable for pay discrimination claims, making transparency a compliance mechanism rather than a governance choice",
+                        "D": "Pay transparency is disadvantageous in all respects because it enables regulators to identify and tax all DAO contributors globally, creating a tax liability that traditional employment structures avoid"
+                    },
+                    "correct": "B",
+                    "explanation": "DAO pay transparency is a double-edged feature of on-chain governance. Advantages: (1) Accountability — the community can identify and vote against excessive or unjustified compensation; (2) Equity — contributors from underrepresented groups can verify equal pay without negotiation asymmetry; (3) Trust — token holders know where their treasury is going; (4) Market efficiency — public data sets market rates for DAO work. Disadvantages: (1) Competitor intelligence — Uniswap or Aave can directly observe MakerDAO's contributor compensation, enabling targeted poaching offers; (2) Salary comparison friction — contributors in adjacent roles with different compensation will benchmark publicly, creating pressure for homogenisation even when differentiation reflects different skills/impact; (3) Community politics — a superstar contributor receiving 3x market rate for unique skills may face governance proposal challenges from token holders who see the differential without context on impact. Protocols like Optimism and Compound have navigated this tension by publishing band ranges rather than individual amounts."
+                },
+                {
+                    "id": 19,
+                    "question": "Many DAOs struggle with 'contributor burnout' — core contributors work unsustainable hours for below-market compensation, then leave abruptly. What structural features of DAO work arrangements contribute to this problem, and what treasury mechanisms have been proposed to address it?",
+                    "options": {
+                        "A": "Burnout in DAOs is caused exclusively by cryptocurrency market cycles — contributors work harder during bull markets and burn out when prices fall. The only remedy is market-independent compensation denominated in fiat rather than tokens",
+                        "B": "Burnout is solely a problem of insufficient total compensation — DAOs that pay contributors above-market rates never experience burnout regardless of working conditions or governance structure",
+                        "C": "DAO work lacks the clear job descriptions, performance management structures, and HR functions of traditional employment; contributors often wear many hats without scope constraints; compensation in volatile tokens creates financial stress; and the 24/7 global nature of crypto removes natural work boundaries. Treasury mechanisms to address this include: capped monthly hour commitments in contributor agreements, USD-denominated base compensation with token upside, mandatory sabbaticals funded by the treasury, and wellness budgets governed by contributor sub-DAOs",
+                        "D": "The primary cause of DAO contributor burnout is smart contract execution risk — contributors who have deployed buggy code face constant anxiety about potential protocol exploits, which is a technical problem solved by better testing frameworks"
+                    },
+                    "correct": "C",
+                    "explanation": "DAO contributor burnout is a well-documented phenomenon (studied by Gitcoin, BanklessDAO, and Optimism). Contributing factors: (1) Blurred boundaries: no 9-5, Discord active 24/7 globally, contributor feels obligated to respond constantly. (2) Role ambiguity: 'contributor' is not a job description — scope creep is endemic. (3) Governance burden: being involved in protocol governance means reading endless forum discussions on top of technical work. (4) Token compensation volatility: when a contributor's $5,000/month package in DAO tokens falls 80% in a bear market, real compensation is $1,000/month — below subsistence. (5) No HR: no one is monitoring welfare. Treasury remedies implemented across protocols: Optimism's 'psychological safety' policies, MakerDAO's DAO-funded mental health resources, Gitcoin's sabbatical program, explicit role charters with scope limits, and guaranteed stablecoin floors that protect contributors from token price downside."
+                },
+                {
+                    "id": 20,
+                    "question": "A DAO governance proposal requests $2M in stablecoins to fund a 12-month 'growth initiative' with vague deliverables described as 'increasing ecosystem awareness and developer adoption.' A counter-proposal suggests funding the same $2M only if the team provides 6 monthly KPI reports with predefined metrics (GitHub contributors, protocol TVL change, developer workshop attendance). What principle does the counter-proposal embody, and why is it essential for DAO treasury accountability?",
+                    "options": {
+                        "A": "The counter-proposal embodies outcomes-based funding accountability: vague deliverables enable teams to collect treasury capital and claim success regardless of actual impact (moral hazard); predefined KPIs with periodic reporting create verifiable checkpoints, enable early termination of underperforming initiatives before full budget is disbursed, and establish a track record for future funding decisions — transforming treasury grants from unconditional donations to results-linked contracts",
+                        "B": "The counter-proposal embodies the principle of minimalism — by requiring reports, the DAO saves governance overhead by limiting the number of future proposals the team will need to submit",
+                        "C": "The counter-proposal embodies centralisation — requiring reporting to the DAO creates a hierarchical relationship that undermines the grantee's autonomy and contradicts the decentralised ethos of Web3",
+                        "D": "The counter-proposal is based purely on regulatory compliance — US securities law requires all DAO disbursements above $1M to include written performance reports, and the counter-proposal is simply implementing this legal requirement"
+                    },
+                    "correct": "A",
+                    "explanation": "Accountability mechanisms for grant funding are among the most important — and most neglected — aspects of DAO treasury governance. The core moral hazard: once funds are on-chain in a grantee's wallet, the DAO has limited technical recourse to recover them if deliverables are not met (unlike a legal contract with clawback provisions). Best practices from Aave Grants DAO, Uniswap Grants Program, and Compound Grants: (1) Milestone-based tranching: release 30% on start, 35% at milestone 1 (month 4), 35% at milestone 2 (month 8) — only 30% is at risk if the team delivers nothing. (2) Pre-defined KPIs: 'increase developer adoption by 50 qualified GitHub contributors' is measurable; 'increase ecosystem awareness' is not. (3) Post-grant reporting: public accountability reports visible to all token holders. (4) Grants committee review: an empowered committee can recommend clawback proposals to governance if KPIs are missed. Without these mechanisms, DAO treasuries become ineffective redistribution engines rather than strategic investment vehicles."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Layer 2 Scaling Solutions} \textcolor{mlgray}{|} Lesson 10 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{Layer 2 Scaling Solutions}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 10 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% -- Activity 1 ----------------------------------------------------------------
+\activitybox{Activity 1: Explore L2 Solutions}{10 min}{%
+Visit \textbf{L2Beat.com}, the canonical aggregator of Layer 2 data, and explore the current L2 ecosystem. Answer:
+\begin{enumerate}
+\item What is the total TVL across all Layer 2 solutions? How does it compare to Ethereum L1 DeFi TVL?
+\item List the top 3 L2s by TVL. For each note: name, TVL, technology type (Optimistic / ZK / Other), and TPS.
+\item Pick one L2 and examine its ``Risk Analysis'' page on L2Beat. What are the main trust assumptions? Is the sequencer centralized?
+\item Compare the average transaction fee on Ethereum L1 vs.\ your chosen L2. What is the approximate cost ratio?
+\end{enumerate}
+\textbf{Bonus:} Find an L2 with a ``Stage~2'' designation on L2Beat. What does Stage~2 mean for decentralization and user security?
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{L2 Name} & \textbf{TVL (\$)} & \textbf{Type} & \textbf{Avg Fee (\$)} & \textbf{Stage} \\
+\midrule
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 2 ----------------------------------------------------------------
+\activitybox{Activity 2: Rollup Comparison}{10 min}{%
+Investigate the two dominant rollup architectures and compare their key properties. Answer:
+\begin{enumerate}
+\item How does an Optimistic Rollup handle an invalid transaction? How long does the challenge period typically last, and what happens during that window?
+\item How does a ZK Rollup prevent invalid transactions from being accepted? What is the role of the prover, and why is no challenge period needed?
+\item Which rollup type achieves faster finality on L1? Why does the other type require a delay?
+\item Which type is currently cheaper to operate, and why? What is the main computational bottleneck for the other type?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}p{3.4cm}p{4.6cm}p{4.6cm}@{}}
+\toprule
+\textbf{Dimension} & \textbf{Optimistic Rollup} & \textbf{ZK Rollup} \\
+\midrule
+Proof Type           & \fillcell & \fillcell \\
+Finality Time        & \fillcell & \fillcell \\
+Computation Cost     & \fillcell & \fillcell \\
+EVM Compatibility    & \fillcell & \fillcell \\
+Major Examples       & \fillcell & \fillcell \\
+Trust Assumption     & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 3 ----------------------------------------------------------------
+\activitybox{Activity 3: Bridge Security Analysis}{5 min}{%
+Research major bridge hacks to understand the security risks of cross-chain asset transfers. Answer:
+\begin{enumerate}
+\item Look up the \textbf{Ronin Bridge hack} (March 2022). How much was stolen? What was the root cause (validator key compromise, smart contract bug, or other)?
+\item Look up the \textbf{Wormhole hack} (February 2022). What specific vulnerability was exploited in the smart contract?
+\item Estimate the total value lost across the top 5 bridge hacks in history. What percentage of current total L2 TVL does this represent?
+\item What is the difference between a \textit{trusted bridge} and a \textit{trustless bridge}? Which offers stronger security guarantees and why?
+\end{enumerate}
+\vspace{4pt}
+\noindent
+\textbf{Total Bridge Losses:}~\$\fillcell\quad
+\textbf{Largest Single Hack:}~\$\fillcell\quad
+\textbf{Root Cause Pattern:}~\fillcell
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 4 ----------------------------------------------------------------
+\activitybox{Activity 4: L2 Fee Analysis}{5 min}{%
+Compare transaction costs across Ethereum L1 and major L2 networks. Answer:
+\begin{enumerate}
+\item Go to \textbf{l2fees.info}. Compare the cost of a simple ETH transfer on: Ethereum L1, Arbitrum, Optimism, zkSync Era, and Base. Record your findings in the table below.
+\item How did \textbf{EIP-4844} (Dencun upgrade, March 2024) change L2 fees? What are ``blobs'' and why do they reduce L2 costs by 10--100$\times$?
+\item If a user makes 10 transactions per day, calculate the monthly cost savings of using an L2 vs.\ Ethereum L1.
+\item How does the L2 sequencer earn revenue? How does the total user fee get split between L1 data posting costs and L2 execution costs?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Chain} & \textbf{ETH Transfer (\$)} & \textbf{Token Swap (\$)} & \textbf{Monthly Cost (10 tx/day)} \\
+\midrule
+Ethereum L1  & \fillcell & \fillcell & \fillcell \\
+Arbitrum     & \fillcell & \fillcell & \fillcell \\
+Optimism     & \fillcell & \fillcell & \fillcell \\
+zkSync Era   & \fillcell & \fillcell & \fillcell \\
+Base         & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{4pt}
+
+% -- Glossary ------------------------------------------------------------------
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.6cm}p{11.0cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{Layer 2 (L2)}               & A scaling solution built on top of a Layer 1 blockchain (like Ethereum) that processes transactions off-chain while inheriting the security of the underlying L1 through proofs or fraud challenges. Reduces congestion and fees without changing the base layer. \\
+\textbf{Rollup}                     & A Layer 2 scaling technique that executes transactions off-chain, then posts compressed transaction data back to L1. Anyone can verify correctness using this data. The two main variants are optimistic rollups and zero-knowledge rollups. \\
+\textbf{Optimistic Rollup}          & A rollup that assumes all transactions are valid by default and only checks them if a verifier submits a fraud proof during the challenge period (typically 7 days). Examples include Arbitrum, Optimism, and Base. \\
+\textbf{Zero-Knowledge Rollup}      & A rollup that generates a cryptographic validity proof (ZK-SNARK or ZK-STARK) for every batch of transactions, providing instant mathematical certainty of correctness. No challenge period is needed. Examples: zkSync Era, StarkNet, Polygon zkEVM. \\
+\textbf{Fraud Proof}                & A mechanism in optimistic rollups where any verifier can challenge an invalid state transition by submitting evidence to the L1 contract, triggering re-execution. If fraud is confirmed, the sequencer is penalized and the state is corrected. \\
+\textbf{Validity Proof}             & A cryptographic proof (ZK-SNARK or ZK-STARK) submitted by a ZK rollup prover that mathematically guarantees a batch of transactions was executed correctly. Accepted by the L1 contract without trusting the prover. \\
+\textbf{Sequencer}                  & The entity responsible for ordering transactions, executing them off-chain, and submitting batches to L1. Most current L2 designs use a single centralized sequencer, which is a key trust and liveness assumption. \\
+\textbf{State Channel}              & A Layer 2 technique where participants open a channel on-chain, conduct many off-chain transactions between themselves, then settle the final state on-chain. Best suited for repeated interactions between fixed parties (e.g., the Lightning Network for Bitcoin). \\
+\textbf{Sidechain}                  & An independent blockchain with its own consensus mechanism, connected to a main chain via a bridge. Unlike rollups, sidechains do \emph{not} inherit L1 security---they rely on their own validator set. Example: Polygon PoS. \\
+\textbf{Bridge}                     & A protocol enabling asset transfers between different blockchains or between L1 and L2. Bridges lock assets on the source chain and mint equivalent tokens on the destination chain. They are a major attack surface: over \$1B has been stolen from bridges. \\
+\textbf{Data Availability (DA)}     & The guarantee that transaction data is published and accessible so anyone can independently verify the L2 state. Without data availability, users cannot reconstruct the L2 state or challenge invalid transitions. A critical security property for rollups. \\
+\textbf{Blob (EIP-4844)}            & A new transaction type introduced in Ethereum's Dencun upgrade (March 2024) providing cheap, temporary data storage for rollups. Blobs are pruned after $\approx$18 days and reduced L2 costs by 10--100$\times$ compared to posting data as calldata. \\
+\textbf{ZK-SNARK}                   & Zero-Knowledge Succinct Non-Interactive Argument of Knowledge. A proof system producing small, fast-to-verify proofs. Requires a trusted setup ceremony to generate public parameters. Used by zkSync Era and Polygon zkEVM. \\
+\textbf{ZK-STARK}                   & Zero-Knowledge Scalable Transparent Argument of Knowledge. A proof system requiring no trusted setup, making it fully transparent and quantum-resistant. Produces larger proofs than SNARKs but is verifiable without any ceremony. Used by StarkNet and StarkEx. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Layer 2 Scaling Solutions --- Lesson 10 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

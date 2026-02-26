@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz DG-1: DAO Fundamentals | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz DG-1: DAO Fundamentals</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz DG-1: DAO Fundamentals</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is a Decentralized Autonomous Organization (DAO), and what are its three defining characteristics?",
+                    "options": {
+                        "A": "A DAO is an organization whose rules are encoded in smart contracts on a blockchain, operating without centralized management; its three defining characteristics are decentralized control (no single authority), autonomous execution (rules enforced by code), and transparent governance (all actions visible on-chain)",
+                        "B": "A DAO is a government-chartered corporation that uses blockchain for record-keeping; its three characteristics are limited liability, regulatory compliance, and token issuance",
+                        "C": "A DAO is a type of decentralized exchange where users pool liquidity; its three characteristics are permissionless access, automated market making, and fee distribution to liquidity providers",
+                        "D": "A DAO is a venture capital fund managed by a committee of token holders; its three characteristics are majority voting, quarterly distributions, and regulatory exemptions for crypto-native entities"
+                    },
+                    "correct": "A",
+                    "explanation": "A DAO (Decentralized Autonomous Organization) combines three properties: (1) Decentralized control — decision-making power is distributed among token holders or members rather than concentrated in a board or management team; no single entity can unilaterally change the rules. (2) Autonomous execution — once a proposal passes governance, smart contracts execute the outcome automatically without human intermediaries (e.g., releasing funds from treasury, changing protocol parameters). (3) Transparent governance — all proposals, votes, and on-chain actions are publicly visible on the blockchain, enabling trustless coordination among pseudonymous participants worldwide. The concept originates from Vitalik Buterin's early writings on Ethereum and was first implemented at scale with 'The DAO' in 2016."
+                },
+                {
+                    "id": 2,
+                    "question": "Which of the following best describes why smart contracts are essential to a DAO's operation, and what property do they provide that human administrators cannot?",
+                    "options": {
+                        "A": "Smart contracts provide legal enforceability — because they are recorded on a blockchain, courts in all jurisdictions automatically recognize their terms as legally binding contracts",
+                        "B": "Smart contracts provide credible commitment — their rules execute deterministically and cannot be altered by any single party after deployment; this eliminates the need to trust administrators to faithfully implement governance outcomes",
+                        "C": "Smart contracts provide scalability — they allow a DAO to process millions of governance votes per second, whereas human administrators could only handle a few hundred decisions per day",
+                        "D": "Smart contracts provide anonymity — they ensure that no participant's identity is ever linked to their governance actions, protecting members from regulatory scrutiny"
+                    },
+                    "correct": "B",
+                    "explanation": "The fundamental value of smart contracts in DAOs is credible commitment — the rules are self-enforcing and cannot be selectively applied or overridden by any administrator. In a traditional organization, even if governance rules are written down, a CEO or board can choose not to comply. In a DAO, if a proposal passes with the required threshold, the treasury transfer or parameter change executes automatically — no compliance step, no trust in a human executor. This 'code is law' property enables trustless coordination: participants do not need to know or trust each other, only the audited smart contract code. However, this also means bugs in smart contracts can be catastrophic — as demonstrated by 'The DAO' hack in 2016, where $60M was drained through a reentrancy vulnerability."
+                },
+                {
+                    "id": 3,
+                    "question": "What distinguishes a DAO from a traditional corporation with a shareholder voting system? Identify the most fundamental structural difference.",
+                    "options": {
+                        "A": "DAOs are larger than corporations — they typically have more members because tokens can be purchased by anyone globally, whereas corporate shares are restricted to accredited investors",
+                        "B": "DAOs use cryptographic voting while corporations use paper ballots — the difference is purely technological; the governance structures are otherwise functionally identical",
+                        "C": "DAOs distribute all revenue to token holders automatically, whereas corporations retain earnings at management's discretion; this makes DAOs inherently more profitable for investors",
+                        "D": "DAOs operate without legal personhood by default — they cannot sign contracts, own property in their own name, or sue/be sued under most jurisdictions' laws, whereas corporations are legal persons with clearly defined rights and obligations"
+                    },
+                    "correct": "D",
+                    "explanation": "The most fundamental structural difference is legal personhood. A corporation is a legal entity recognized by the state — it can enter contracts, hold assets, employ people, and be sued or sue. A DAO typically exists as a network of smart contracts on a public blockchain with no default legal recognition. This creates significant practical problems: a DAO's treasury (held in smart contracts) has no legal owner, members may be treated as a general partnership with unlimited personal liability, and the DAO cannot sign office leases or employment agreements. Jurisdictions addressing this gap include Wyoming (DAO LLC), Marshall Islands (DAO recognition), and the Cayman Islands (Foundation Company structures). The governance mechanism (voting) is a secondary distinction — the legal personality gap is the primary structural difference."
+                },
+                {
+                    "id": 4,
+                    "question": "The original 'The DAO' was hacked in June 2016, draining approximately $60 million in ETH through a reentrancy attack. What governance and technical lessons did this event teach about DAOs?",
+                    "options": {
+                        "A": "The hack proved that DAOs are fundamentally insecure and should never be used to hold significant value; all subsequent DAO projects abandoned treasury management in response",
+                        "B": "The hack was caused by centralized admin keys being stolen; it taught that DAOs must use multi-sig wallets controlled by at least five trusted signers to prevent single points of failure",
+                        "C": "The hack revealed that DAOs cannot function without KYC requirements for all members, as the anonymity of the attacker made recovery impossible",
+                        "D": "The hack demonstrated that smart contract code governs all outcomes including exploits — the attacker technically followed the code's logic. It taught that (1) smart contract audits are critical, (2) governance cannot reverse exploits without contentious hard forks, and (3) 'code is law' has limits when code contains bugs — leading to Ethereum's controversial hard fork to restore funds"
+                    },
+                    "correct": "D",
+                    "explanation": "The DAO hack of June 2016 is one of the most important events in blockchain history. The attacker exploited a reentrancy vulnerability: the smart contract sent ETH before updating the internal balance, allowing recursive calls to drain funds. Key lessons: (1) Smart contract security is paramount — formal audits, formal verification, and bug bounties are necessary before deploying contracts holding significant value. (2) The 'code is law' principle has social limits — the Ethereum community chose to hard fork (creating Ethereum Classic vs. Ethereum) to reverse the exploit, showing that human consensus can override immutable code. (3) Governance cannot efficiently respond to rapid exploits — the DAO's governance process was too slow to prevent the drain. This led to circuit breakers, timelocks, and pause mechanisms in modern DAO designs."
+                },
+                {
+                    "id": 5,
+                    "question": "A traditional corporation makes decisions through a board of directors. How does this compare to a DAO's typical decision-making process, and what inefficiency does the DAO model introduce?",
+                    "options": {
+                        "A": "Corporations make faster decisions than DAOs because boards have fewer members; DAOs compensate by requiring a simple majority of all token holders for every decision, including routine operational matters",
+                        "B": "Both structures have identical decision-making speed; the difference is only in who participates — corporations use professional directors while DAOs use anonymous token holders",
+                        "C": "Corporate boards can make rapid, expert-informed decisions with full legal authority; DAOs require public proposals, discussion periods, and on-chain voting by dispersed token holders — introducing governance latency (often days to weeks per decision) and coordination challenges, especially for time-sensitive responses",
+                        "D": "DAOs are faster than corporations because smart contracts automatically determine the optimal decision without requiring any vote; human governance is only needed for decisions that smart contracts cannot evaluate"
+                    },
+                    "correct": "C",
+                    "explanation": "Decision speed is a core trade-off in DAO governance versus traditional corporate structures. A corporate board of 7-12 directors can convene, deliberate, and authorize action within hours. A DAO proposal typically requires: (1) a discussion period (days to weeks), (2) a formal proposal submission with minimum token threshold, (3) a voting period (commonly 3-7 days), and (4) a timelock before execution (1-48 hours for security). Total cycle time: often 1-3 weeks minimum. This is well-suited for slow, high-stakes decisions (treasury allocations, protocol upgrades) but problematic for operational emergencies (responding to an exploit, adjusting rates during market stress). Modern DAOs address this through multi-sig emergency committees with delegated authority, creating a hybrid centralized-decentralized structure that compromises pure decentralization for operational efficiency."
+                },
+                {
+                    "id": 6,
+                    "question": "What is the principal-agent problem in traditional organizations, and how does a DAO's structure attempt to mitigate it?",
+                    "options": {
+                        "A": "The principal-agent problem occurs when employees work too slowly; DAOs solve this by paying contributors in tokens whose value rises when the protocol succeeds, directly aligning incentives",
+                        "B": "The principal-agent problem arises when agents (managers/executives) act in their own interests rather than the principals' (shareholders) interests — e.g., empire-building, excessive salaries, or hiding bad news. DAOs attempt to mitigate this by replacing human agents with self-executing smart contracts, making all treasury flows transparent on-chain, and enabling direct stakeholder voting on major decisions",
+                        "C": "The principal-agent problem is unique to DAOs — traditional corporations do not face it because boards have legal fiduciary duties that perfectly align their interests with shareholders",
+                        "D": "The principal-agent problem only occurs in DAOs when token holders vote against the DAO's best interests; traditional corporations avoid this because professional managers have superior information and expertise"
+                    },
+                    "correct": "B",
+                    "explanation": "The principal-agent problem (agency problem) is central to organizational design. Shareholders (principals) delegate control to managers (agents) who may pursue personal interests — excessive compensation, risk-taking for short-term bonuses, or prioritizing job security over value creation. Traditional mitigations include board oversight, performance pay, and fiduciary duties. DAOs attempt deeper mitigations: (1) Transparent treasuries — all fund flows are visible on-chain, unlike corporate accounting that requires auditors and can conceal misallocation. (2) Direct democracy — token holders vote directly on major proposals rather than delegating all power to managers. (3) Programmable rules — smart contracts enforce constraints that no individual can override. However, DAOs introduce new agency problems: large token holders (whales) may act as super-agents with disproportionate power, and anonymous delegates may not be accountable to their delegators."
+                },
+                {
+                    "id": 7,
+                    "question": "A startup company wants to raise funding and distribute equity to early contributors globally. Why might a DAO structure be more practical than a traditional Delaware C-Corp for this use case?",
+                    "options": {
+                        "A": "A DAO is always superior to a C-Corp because DAO tokens are not considered securities, allowing unrestricted global fundraising without regulatory compliance",
+                        "B": "A C-Corp requires physical offices in Delaware, whereas a DAO can operate entirely online — this geographic advantage is the primary reason to choose a DAO structure",
+                        "C": "A traditional C-Corp faces barriers to global equity distribution: share transfers require legal infrastructure, foreign ownership may trigger compliance requirements, and equity grants to contributors in 50+ countries require complex legal arrangements. A DAO can distribute governance tokens programmatically to contributors worldwide via smart contracts, with no transfer agents, cap table management software, or cross-border legal complexity",
+                        "D": "DAO tokens provide limited liability protection identical to corporate shares, so founders should always choose DAO structures to avoid personal liability in case of legal disputes"
+                    },
+                    "correct": "C",
+                    "explanation": "Global contributor equity distribution is a genuine pain point that DAOs address elegantly. A Delaware C-Corp issuing equity to 200 contributors across 40 countries would face: (1) Securities law compliance in each jurisdiction, (2) Complex tax reporting obligations (409A valuations, Option Pool setup), (3) Physical cap table maintenance and share transfer restrictions, (4) Legal infrastructure in each country for contributor agreements. A DAO can programmatically distribute governance tokens to wallet addresses anywhere in the world in seconds, with all ownership recorded transparently on-chain. However, the critical caveat of Option A: DAO tokens are frequently classified as securities by the SEC and other regulators, especially if they confer profit rights. Many DAOs have faced enforcement actions (e.g., Ooki DAO, bZx). The practical advantage of DAOs is permissionless distribution, not regulatory exemption."
+                },
+                {
+                    "id": 8,
+                    "question": "OpenZeppelin's Governor contract is the most widely used DAO governance framework. What is the modular architecture of Governor, and what components can be customized?",
+                    "options": {
+                        "A": "Governor is a monolithic contract with fixed parameters; all DAOs using Governor must use identical voting periods, quorum requirements, and token structures — customization requires forking the entire codebase",
+                        "B": "Governor is an off-chain system that reads Snapshot votes and then executes on-chain via a trusted multi-sig; the customization is limited to the multi-sig composition and execution delay",
+                        "C": "Governor contracts can only govern ERC-20 token transfers; for complex operations like upgrading proxy contracts or calling external protocols, DAOs must use a separate execution framework called Gnosis Safe Module",
+                        "D": "Governor uses an abstract base contract with pluggable modules: GovernorVotes (token integration), GovernorVotesQuorumFraction (quorum logic), GovernorTimelockControl (timelock integration), and GovernorSettings (adjustable parameters) — each module can be mixed and matched to create custom governance configurations"
+                    },
+                    "correct": "D",
+                    "explanation": "OpenZeppelin Governor is designed as a modular system using Solidity inheritance. The core Governor abstract contract defines the proposal lifecycle (propose, vote, execute) but delegates specifics to pluggable modules: (1) GovernorVotes — integrates with ERC20Votes or ERC721Votes tokens to count voting power based on snapshotted balances at the proposal block. (2) GovernorVotesQuorumFraction — defines quorum as a percentage of total supply (e.g., 4%). (3) GovernorTimelockControl — integrates with a TimelockController contract, adding a delay between vote passing and execution. (4) GovernorSettings — allows on-chain adjustment of voting delay, voting period, and proposal threshold. Developers combine these via multiple inheritance (e.g., contract MyGovernor is Governor, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl). Compound's GovernorBravo and Uniswap's governance are early examples of this pattern."
+                },
+                {
+                    "id": 9,
+                    "question": "In a Governor-based DAO, what is the purpose of the TimelockController contract, and why is it considered a critical security component?",
+                    "options": {
+                        "A": "TimelockController enforces a mandatory delay between when a governance vote passes and when the approved action is executed on-chain; this delay gives token holders and the broader community time to review the pending action and exit the protocol if they disagree with it",
+                        "B": "TimelockController limits how frequently proposals can be submitted — it enforces a minimum time between consecutive proposals to prevent spam attacks on the governance system",
+                        "C": "TimelockController is an access control system that restricts which addresses can submit governance proposals; it prevents Sybil attacks by requiring a minimum token balance for proposal submission",
+                        "D": "TimelockController automatically cancels proposals that pass but are later found to contain malicious code; it runs static analysis on all proposal calldata before allowing execution"
+                    },
+                    "correct": "A",
+                    "explanation": "The TimelockController (typically 24-72 hours minimum delay) is a critical safety mechanism for several reasons: (1) Exit window — if a malicious or mistaken proposal passes (e.g., through governance attack or voter manipulation), the delay gives users time to withdraw funds before the damaging action executes. (2) Review period — security researchers and the community can audit the exact on-chain calldata of the queued transaction before it executes, catching bugs that weren't visible in the proposal's human-readable description. (3) Defense against governance attacks — an attacker who temporarily acquires enough voting power to pass a malicious proposal still cannot execute it instantly; they must maintain control through the timelock period. Compound, Aave, and Uniswap all use 48-72 hour timelocks. The COMP governance attack of 2022 (flash loan governance exploit attempt) demonstrated why timelocks are non-negotiable."
+                },
+                {
+                    "id": 10,
+                    "question": "A DAO governance proposal contains the following calldata: transferring 1,000 ETH from the treasury to address 0xDeAdBeEf. How is this proposal represented and executed in a Governor contract?",
+                    "options": {
+                        "A": "The proposal is stored as a text description on IPFS; the Governor contract reads the description and manually parses it to determine what actions to take, using natural language processing",
+                        "B": "The proposal is stored as an array of (target address, ETH value, calldata) tuples — for example, [(treasury, 1000 ETH, transferTo(0xDeAdBeEf))]; upon execution after timelock, the Governor calls the target contract with the specified value and calldata, directly triggering the on-chain action",
+                        "C": "Proposals are stored as signed messages by the proposal submitter; once a vote passes, a trusted executor bot reads the message and manually submits the corresponding transaction",
+                        "D": "The ETH transfer is executed during the voting period as a preview; if the vote fails, the transfer is automatically reversed using a rollback mechanism built into the EVM"
+                    },
+                    "correct": "B",
+                    "explanation": "Governor proposals are encoded as executable on-chain actions, not just text. Each proposal stores arrays of: targets[] (contract addresses to call), values[] (ETH amounts to send), calldatas[] (ABI-encoded function calls), and a description string (human-readable, often an IPFS-linked forum post). For a 1,000 ETH treasury transfer, the calldata would encode the exact function signature and parameters. This is why governance UIs show both a human description and the raw calldata — users should verify that the calldata matches the described intent. After a proposal passes and the timelock expires, anyone can call Governor.execute() with the same proposal parameters to trigger the on-chain actions. The proposal ID is the hash of all these parameters, ensuring no substitution attacks. Malicious proposals that pass valid votes but hide damaging calldata in encoded function calls have been documented in real DAOs."
+                },
+                {
+                    "id": 11,
+                    "question": "What is the 'proposal threshold' in a Governor contract, and what dual purpose does it serve in DAO governance?",
+                    "options": {
+                        "A": "The proposal threshold is the minimum vote percentage required for a proposal to pass (e.g., 51%); it serves to ensure majority rule and prevent minority factions from imposing their preferences",
+                        "B": "The proposal threshold is the maximum number of proposals that can be active simultaneously; it prevents governance overload by queuing proposals when the system is busy",
+                        "C": "The proposal threshold is the minimum number of tokens a wallet must hold (or have delegated) to submit a new governance proposal; it serves to (1) prevent spam proposals from addresses with no skin-in-the-game, and (2) ensure proposers have sufficient stake to be accountable for their proposals",
+                        "D": "The proposal threshold is a dynamic parameter set by the DAO's multi-sig committee that adjusts based on recent governance participation rates and market conditions"
+                    },
+                    "correct": "C",
+                    "explanation": "The proposal threshold (set via GovernorSettings) requires a wallet to hold or have delegated a minimum token balance to submit proposals. For example, Compound requires 25,000 COMP (~$2M at current prices) to propose. This serves two purposes: (1) Spam prevention — requiring genuine stake eliminates trivial or frivolous proposals; without a threshold, any address could flood governance with meaningless proposals. (2) Accountability — proposers with large token holdings are economically aligned with the protocol; they face financial consequences if their proposal is harmful. The threshold creates a tension: too high, and only wealthy insiders can propose, undermining decentralization. Too low, and governance becomes noisy. Many DAOs also allow delegation — token holders without sufficient tokens can pool delegated voting power from other holders to meet the threshold, improving accessibility."
+                },
+                {
+                    "id": 12,
+                    "question": "What is a token-based DAO membership model, and what is its primary governance weakness?",
+                    "options": {
+                        "A": "In a token-based model, membership is granted to users who complete identity verification; the primary weakness is that KYC requirements exclude pseudonymous participants and create privacy risks",
+                        "B": "In a token-based model, governance power is proportional to token holdings — one token, one vote; the primary weakness is plutocracy: wealthy token holders ('whales') have disproportionate influence, enabling a small number of large holders to dominate governance against the interests of the broader community",
+                        "C": "Token-based models use non-transferable tokens assigned at protocol launch; the primary weakness is that founding members retain permanent majority control with no mechanism for new members to gain proportional influence",
+                        "D": "Token-based models require all members to actively vote on every proposal; the primary weakness is voter fatigue — token holders who miss votes automatically lose their tokens, discouraging participation"
+                    },
+                    "correct": "B",
+                    "explanation": "Token-weighted governance (one token = one vote) is the most common DAO membership model. It has significant advantages — tokens can be earned through contribution or purchased, creating market-determined distribution, and token holders are financially aligned with the protocol. However, the primary weakness is plutocracy: if a single whale holds 30% of tokens, they can effectively veto any proposal. Real-world examples: (1) Uniswap governance, where the top 10 addresses control over 40% of voting power. (2) The $UNI vote that allocated funds to Uniswap Foundation was passed primarily by large VC holders. (3) MakerDAO governance has been significantly influenced by a few large MKR holders. This creates the 'Ethereum governance paradox': sufficient token concentration for efficient decision-making conflicts with the decentralization ethos that justifies a DAO structure in the first place."
+                },
+                {
+                    "id": 13,
+                    "question": "Moloch DAO pioneered the 'share-based' membership model. How does it differ from token-based governance, and what is 'ragequit'?",
+                    "options": {
+                        "A": "Moloch uses non-transferable shares granted through membership proposals voted on by existing members; ragequit allows a member who disagrees with a passed proposal to exit the DAO and withdraw their proportional share of the treasury before the approved action executes — protecting minority members from being trapped in decisions they oppose",
+                        "B": "Moloch uses transferable ERC-20 shares tradeable on open markets; ragequit is a mechanism that allows members to sell their shares back to the DAO at a premium if they disagree with a governance decision",
+                        "C": "Moloch uses reputation-based voting where shares are earned through on-chain activity metrics; ragequit is a penalty mechanism that burns a dissenting member's shares if they vote against proposals that subsequently prove beneficial",
+                        "D": "Moloch shares are identical to traditional LLC membership units; ragequit is the legal right to dissolve the entity, requiring unanimous member agreement and a court order in Wyoming"
+                    },
+                    "correct": "A",
+                    "explanation": "Moloch DAO (launched 2019 to fund Ethereum ecosystem development) introduced a membership model with important innovations. Shares are non-transferable, requiring a membership proposal to be voted in by existing members — this creates curated membership rather than open-market access. The treasury is collectively owned, and each share represents a proportional claim. Ragequit (or 'Graceful Exit') is the critical innovation: any member can exit with their pro-rata treasury share at any time, including in the 'grace period' after a proposal passes but before it executes. This means the majority cannot trap minority members in decisions they find unacceptable — a member who disagrees with a $1M grant to a specific project can ragequit and exit with their proportional funds. This greatly reduces the governance attack surface. Moloch v2 and v3 (Moloch DAO framework, used by DAOhaus) extended these principles to multi-asset treasuries."
+                },
+                {
+                    "id": 14,
+                    "question": "What is reputation-based DAO membership, and how does DAOstack's Holographic Consensus system use reputation scores?",
+                    "options": {
+                        "A": "Reputation-based membership assigns votes based on a member's net worth and professional credentials verified by a centralized authority; DAOstack uses this to weight votes by proven expertise in relevant domains",
+                        "B": "Reputation scores are earned through on-chain contributions (task completion, peer endorsements, protocol usage) and are non-transferable and non-purchasable; DAOstack's Holographic Consensus uses reputation for relative voting weight and combines it with a prediction market (GEN token staking) to surface important proposals for attention, enabling scalable governance without requiring all members to vote on every proposal",
+                        "C": "Reputation in DAOs is equivalent to credit scores — high-reputation members receive larger token allocations and lower transaction fees; DAOstack enforces this through a reputation oracle updated monthly",
+                        "D": "DAOstack's reputation system uses soul-bound tokens that decay over time if members do not vote regularly; Holographic Consensus punishes reputation decay by reducing treasury access for inactive members"
+                    },
+                    "correct": "B",
+                    "explanation": "Reputation-based governance addresses plutocracy by making voting power earned rather than purchased. Key properties: non-transferable (cannot be bought or sold — only earned through recognized contribution), non-dilutable by new members (earning more reputation doesn't take from others), and context-specific (reputation in one DAO domain doesn't transfer to another). DAOstack's Holographic Consensus solves a core DAO scaling problem: with hundreds of proposals and thousands of members, requiring everyone to vote on everything is impractical. Their solution uses GEN token stakers who 'boost' proposals they predict will pass — boosted proposals need only a local majority (majority of actual voters), while unboosted proposals need an absolute majority (majority of all reputation). This creates an attention market where stakeholders economically filter which proposals deserve broad member attention. DAOstack DAOs (like DXdao) used this for scalable governance of multiple DeFi protocols."
+                },
+                {
+                    "id": 15,
+                    "question": "A DAO uses NFTs as membership tokens where each NFT grants exactly one vote, regardless of how many NFTs a wallet holds. What governance model is this, and what property does it try to achieve?",
+                    "options": {
+                        "A": "This is a proof-of-work model where NFT ownership proves computational contribution; it tries to achieve Sybil resistance by requiring real-world work to obtain voting rights",
+                        "B": "This is a quadratic voting implementation where each additional NFT held reduces marginal voting power; the model tries to achieve proportional representation while limiting whale dominance",
+                        "C": "This is a one-person-one-vote model approximated through NFT membership; by capping voting power at one vote per wallet, it attempts to achieve more egalitarian governance — though it remains vulnerable to Sybil attacks where one entity creates multiple wallets to acquire multiple NFTs",
+                        "D": "This is a liquid democracy model where NFT holders can delegate their vote to other NFT holders; it tries to achieve representative governance through voluntary delegation chains"
+                    },
+                    "correct": "C",
+                    "explanation": "NFT-gated, one-NFT-one-vote governance is an attempt to implement one-person-one-vote principles in a pseudonymous context. The NFT serves as a membership credential with capped influence per token. Examples include Nouns DAO (one Noun NFT = one vote) and some guild DAOs. The model tries to prevent whale plutocracy by ensuring even a billionaire with 1,000 ETH can only acquire as many votes as NFTs they hold (and if the DAO caps votes per wallet, only one). The critical vulnerability is Sybil attacks: without identity verification, a single entity can create 100 wallets, acquire 100 NFTs, and control 100 votes. Solutions include soul-bound tokens (non-transferable NFTs), social attestations (Proof of Humanity, Worldcoin), or reputation systems. The Gitcoin Passport and similar identity systems try to create Sybil resistance without KYC while preserving pseudonymity."
+                },
+                {
+                    "id": 16,
+                    "question": "Compound Finance uses the Governor Bravo framework. What are the key parameters of Compound's governance system, and what does the COMP token's role reveal about protocol governance design?",
+                    "options": {
+                        "A": "Compound uses Governor Alpha with immutable parameters set at launch; COMP tokens are purely economic tokens with no governance function, and actual governance is performed by the Compound Labs development team",
+                        "B": "Compound uses a one-person-one-vote system where COMP tokens are merely access credentials; voting power is determined by on-chain activity metrics including total borrowing volume and protocol tenure",
+                        "C": "COMP holders vote on individual loan approvals and interest rate adjustments in real-time; the Governor Bravo system processes thousands of micro-governance decisions per day to maintain competitive rates",
+                        "D": "Compound's Governor Bravo requires 25,000 COMP to propose, a 3-day voting period, 4% quorum of total supply (400,000 COMP), and a 2-day timelock; COMP was distributed to borrowers and lenders via liquidity mining, demonstrating how governance token distribution to protocol users creates stakeholders aligned with protocol health"
+                    },
+                    "correct": "D",
+                    "explanation": "Compound's governance is a landmark case study. Key parameters: 25,000 COMP proposal threshold (high barrier, reflecting early governance design when COMP was less distributed), 3-day voting period, 4% quorum (~400,000 COMP out of 10M total), and 48-hour timelock. Crucially, COMP was distributed via liquidity mining — users who supplied or borrowed assets received COMP proportional to their activity. This 'fair launch' governance distribution created genuine protocol stakeholders: large COMP holders are typically users who contributed significant liquidity. However, it also created plutocratic tendencies since large users received proportionally large COMP amounts. Compound governance has handled major protocol changes including cToken upgrades, interest rate model changes, and the COMP distribution itself. The COMP governance incident of September 2021 — where $90M in COMP was accidentally distributed due to a governance-approved upgrade bug — illustrates the stakes of on-chain governance."
+                },
+                {
+                    "id": 17,
+                    "question": "Aragon is a DAO framework that provides legal wrappers alongside smart contract governance. What problem does Aragon's legal wrapper solve, and what jurisdictions have created formal DAO legal structures?",
+                    "options": {
+                        "A": "Aragon's legal wrapper enables DAOs to interact with the traditional legal system — signing contracts, opening bank accounts, employing workers, and limiting member liability — by connecting the DAO's on-chain governance to an off-chain legal entity. Wyoming (DAO LLC since 2021), Marshall Islands, Panama, and the Cayman Islands have created formal DAO-compatible legal structures",
+                        "B": "Aragon's legal wrapper converts DAO tokens into traditional shares recognized under the 1933 Securities Act; this allows DAOs to fundraise from US investors without registering with the SEC",
+                        "C": "Legal wrappers are only necessary for DAOs that wish to hold real-world assets; pure DeFi DAOs with fully on-chain treasuries have no need for any legal structure and face no regulatory risk",
+                        "D": "Aragon's legal wrapper creates a Delaware C-Corp automatically when a DAO is deployed; all governance tokens are automatically classified as equity securities subject to standard corporate law"
+                    },
+                    "correct": "A",
+                    "explanation": "The legal wrapper problem is one of the most consequential issues in DAO design. Without legal recognition, a DAO faces: (1) Unlimited liability for all members (general partnership rules), (2) Inability to sign commercial contracts, (3) Banking inaccessibility (no corporate account), (4) Employment law violations when paying contributors. Legal wrappers solve these by creating a recognized legal entity that mirrors the DAO's on-chain governance. Key jurisdictions: Wyoming DAO LLC (July 2021) — first US state to recognize DAOs, uses on-chain governance as the operating agreement. Marshall Islands DAO (passed 2022) — offshore recognition with flexible structure. Cayman Islands Foundation Company — popular for major DeFi protocols (Uniswap, Aave). Panama Foundation. Aragon's Aragon Association (Switzerland) and more recently their work on legal wrappers provide frameworks for DAOs to achieve legal compliance while preserving decentralization. The Ooki DAO case (2022 CFTC enforcement) where token voters were held personally liable underscores why legal wrappers matter."
+                },
+                {
+                    "id": 18,
+                    "question": "MakerDAO migrated from a DAO governance model toward a 'SubDAO' structure in 2022-2023. What problem did this solve, and what does it reveal about DAO scalability challenges?",
+                    "options": {
+                        "A": "SubDAOs were created because MakerDAO's smart contracts could not handle more than 10,000 governance votes simultaneously; the technical limitation required distributing computation across multiple smaller contracts",
+                        "B": "MakerDAO's monolithic governance struggled with voter fatigue and slow decisions across its expanding product suite; SubDAOs (Spark Protocol, RWA vaults, stablecoin products) with delegated authority allow specialized teams to govern their domains independently while MKR holders retain top-level oversight — demonstrating that large DAOs require hierarchical governance structures to remain functional",
+                        "C": "SubDAOs were created to allow MakerDAO to comply with EU banking regulations that prohibit a single DAO from managing assets exceeding $1 billion; each SubDAO handles a regulated portion of the portfolio",
+                        "D": "The SubDAO structure allows MakerDAO to issue separate governance tokens for each product, creating independent token economies that do not affect the MKR price — purely a tokenomics decision with no governance implications"
+                    },
+                    "correct": "B",
+                    "explanation": "MakerDAO's 'Endgame Plan' (proposed by founder Rune Christensen in 2022) is a landmark case study in DAO scalability. Problems with monolithic DAO governance at scale: (1) Voter fatigue — MKR holders faced hundreds of executive votes per year across complex risk parameters, collateral types, and protocol changes. (2) Information asymmetry — voters couldn't meaningfully evaluate technical risk parameters for all collateral types. (3) Slow decision-making — full MKR governance for operational decisions (adjusting stability fees, adding collateral) was too slow. SubDAOs (Spark Protocol for lending, PhoenixDAOs for RWA, etc.) receive delegated authority with their own governance tokens and teams, making operational decisions independently. MKR holders govern the SubDAO framework itself and resolve disputes. This hierarchical model mirrors corporate subsidiaries with board oversight. It demonstrates that as DAOs grow, flat governance becomes impractical and hierarchical delegation becomes necessary — a profound challenge to pure decentralization ideals."
+                },
+                {
+                    "id": 19,
+                    "question": "What is a 'governance attack' in the context of DAOs, and what was the Beanstalk Farms governance exploit of April 2022?",
+                    "options": {
+                        "A": "A governance attack is when regulators intervene in a DAO's operations through legal proceedings; the Beanstalk Farms case involved the SEC issuing a cease-and-desist during an active governance vote",
+                        "B": "A governance attack is when a competing protocol buys governance tokens to force the target protocol to change its parameters; Beanstalk was attacked by a competing stablecoin protocol seeking to eliminate competition",
+                        "C": "A governance attack exploits flaws in voting mechanics to pass malicious proposals; in April 2022, an attacker used a flash loan to borrow $1 billion in assets, used those assets to acquire temporary supermajority governance control in Beanstalk, passed a malicious proposal draining $182 million from the treasury — all within a single transaction block",
+                        "D": "The Beanstalk governance exploit involved a malicious developer who had secretly retained admin keys after the public launch; the exploit was not technically a governance attack but a rug pull disguised as one"
+                    },
+                    "correct": "C",
+                    "explanation": "The Beanstalk Farms exploit (April 17, 2022) is the most instructive governance attack in DeFi history. The attack sequence: (1) Attacker submitted a malicious 'Emergency Governance Proposal' (BIP-18) one day before execution. (2) Using Aave flash loan, borrowed ~$1B in assets (DAI, USDC, BEAN). (3) Deposited assets into Beanstalk's Silo (earning governance tokens proportional to deposit). (4) The flash loan-funded deposit gave the attacker ~79% of all outstanding Stalk (voting power). (5) Beanstalk's emergency governance required only a 2/3 supermajority — attacker had 79%. (6) Called emergencyCommit() immediately after proposal creation (no waiting period for emergency proposals). (7) The malicious proposal transferred all protocol assets to the attacker's wallet. (8) Attacker repaid flash loan and kept $182M profit. (9) Entire attack happened in one transaction. The fix: timelocks on ALL proposals (including emergency), separating emergency powers to a multi-sig, and removing flash loan exploitability from governance snapshot timing."
+                },
+                {
+                    "id": 20,
+                    "question": "What is the 'decentralization spectrum' for DAOs, and why do most operational DAOs sit in a middle ground rather than at either extreme?",
+                    "options": {
+                        "A": "The decentralization spectrum measures how many blockchain networks a DAO operates across; fully decentralized DAOs operate on all major chains simultaneously, while centralized DAOs operate on only one chain",
+                        "B": "The decentralization spectrum measures the geographic distribution of node validators; DAOs must maintain validators in at least 20 countries to be considered sufficiently decentralized for regulatory purposes",
+                        "C": "The spectrum describes the ratio of on-chain to off-chain assets in a DAO's treasury; a fully decentralized DAO holds 100% on-chain assets, while partially decentralized DAOs hold real-world assets requiring trusted custodians",
+                        "D": "The decentralization spectrum ranges from fully centralized (single admin key, no governance) to fully decentralized (all decisions by token vote, no privileged roles); most DAOs sit in the middle because full decentralization sacrifices operational efficiency and emergency response capability, while full centralization defeats the trust-minimization purpose of using a blockchain"
+                    },
+                    "correct": "D",
+                    "explanation": "The decentralization spectrum in governance reveals a fundamental trade-off. At the fully centralized extreme: a single team holds admin keys, can upgrade contracts and drain treasury unilaterally — essentially a traditional company using blockchain for transactions. At the fully decentralized extreme: every parameter change requires a token vote with multi-week cycles, no privileged roles exist. Most successful DAOs (Aave, Uniswap, Compound, MakerDAO) operate in the middle for practical reasons: (1) Emergency response — protocol exploits require immediate action; a 7-day governance vote to pause a contract during an active hack would be catastrophic. Guardian multi-sigs with emergency pause powers are common. (2) Operational efficiency — routine decisions (bug fixes, minor parameter adjustments) would clog governance if every change needed a full vote. (3) User experience — users interact with DAO products daily; governance slowness cannot impede operations. The goal is 'progressive decentralization' — starting more centralized for iteration speed and moving toward decentralization as the protocol matures and proves its security."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

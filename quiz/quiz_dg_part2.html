@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz DG-2: Voting & Governance | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz DG-2: Voting &amp; Governance</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz DG-2: Voting &amp; Governance</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What are the five standard lifecycle stages of a governance proposal in a Governor-based DAO, and what triggers the transition between each stage?",
+                    "options": {
+                        "A": "Pending, Active, Succeeded/Defeated, Queued, Executed — transitions are triggered by block timestamps and on-chain conditions: voting delay expiry (Pending to Active), voting period end plus quorum/threshold check (Active to Succeeded or Defeated), timelock queuing (Succeeded to Queued), and timelock expiry (Queued to Executed)",
+                        "B": "Draft, Review, Approved, Queued, Executed — transitions are triggered by administrator approval at each stage, with a centralized committee holding veto power over any transition",
+                        "C": "Proposed, Voting, Passed, Challenged, Finalized — a 48-hour challenge period after passing allows any token holder to veto the proposal by locking tokens as a bond that is slashed if the veto is deemed frivolous",
+                        "D": "Created, Signed, Validated, Confirmed, Settled — each stage requires cryptographic signatures from a predefined set of signers, similar to a multi-sig wallet flow"
+                    },
+                    "correct": "A",
+                    "explanation": "OpenZeppelin's Governor defines five proposal states with on-chain state machine logic: (1) Pending — the proposal exists but the voting delay has not yet elapsed (typically 1-2 days); this gives token holders time to acquire/delegate tokens before the vote snapshot is taken. (2) Active — the voting period is open; token holders can cast For, Against, or Abstain votes. (3) Succeeded or Defeated — after the voting period ends, the contract evaluates whether the quorum was met AND more For votes than Against were cast (Succeeded) or not (Defeated). (4) Queued — a Succeeded proposal is submitted to the TimelockController; execution is delayed by the timelock (typically 24-72 hours). (5) Executed — after the timelock delay, anyone calls Governor.execute() to trigger the on-chain actions. Proposals can also enter Canceled (if proposer withdraws or loses threshold tokens) or Expired (if not executed within a grace period after the timelock expires)."
+                },
+                {
+                    "id": 2,
+                    "question": "Why is there a 'voting delay' period between when a proposal is submitted and when voting begins, and what attack does it prevent?",
+                    "options": {
+                        "A": "The voting delay gives the DAO's legal team time to review proposals for regulatory compliance before they are exposed to public voting; it primarily prevents accidental violations of securities law",
+                        "B": "The voting delay prevents flash loan governance attacks where an attacker borrows tokens, votes on a proposal, and repays the loan within a single block — by requiring a delay before voting opens, vote snapshots are taken at a specific past block height before which the attacker would need to already hold tokens",
+                        "C": "The voting delay provides time for the proposal submitter to market their proposal to other token holders; without this period, large holders could pass proposals before smaller holders even become aware they exist",
+                        "D": "The voting delay is a mandatory regulatory cooling-off period required by the EU's Markets in Crypto-Assets (MiCA) regulation for all governance systems involving tokens classified as asset-referenced tokens"
+                    },
+                    "correct": "B",
+                    "explanation": "The voting delay (and vote snapshot mechanism) is a critical security feature against flash loan attacks. Without it, an attacker could: (1) Borrow 100M tokens via flash loan (no collateral needed), (2) Vote on a proposal in the same transaction, (3) Repay the loan. To prevent this, Governor snapshots token balances at the proposal creation block (or a specified past block). Votes are counted based on balances at that historical block, not at the time of voting. Since flash loans exist within a single block, borrowed tokens were not held at the snapshot block. The voting delay (e.g., 1 block = 12 seconds, or up to 2 days on some DAOs) also serves the purpose in Option C — giving the community awareness time — but this is secondary. The primary security purpose is the snapshot mechanism that makes flash loan attacks economically infeasible, since an attacker must hold tokens genuinely before the snapshot."
+                },
+                {
+                    "id": 3,
+                    "question": "A governance proposal in Uniswap DAO passes the vote but the proposer never calls the execute() function. What happens to the proposal, and what does this reveal about DAO execution mechanics?",
+                    "options": {
+                        "A": "Uniswap's system automatically executes all passed proposals within 24 hours via a keeper network; no manual execution call is ever needed once a proposal passes",
+                        "B": "The proposal is automatically re-submitted for a second vote if not executed within 7 days; this forces the proposer to remain engaged or lose their proposal threshold deposit",
+                        "C": "The proposal enters a 'grace period' (typically 14 days in Uniswap) during which any address can call execute(); if execute() is never called within the grace period, the proposal expires and becomes permanently invalid — it cannot be re-executed and would need to be re-proposed",
+                        "D": "In Uniswap's governance, the protocol's multi-sig committee automatically executes all passed proposals; the community vote is advisory only and multi-sig members retain the right to refuse execution of passed proposals they deem harmful"
+                    },
+                    "correct": "C",
+                    "explanation": "Governor contracts have an 'Expired' state for exactly this scenario. After a proposal passes and is queued in the timelock, it enters a grace period (configurable, commonly 14 days in Uniswap). During this period, any Ethereum address can call Governor.execute() — it is permissionless, not restricted to the proposer. If the grace period expires without execution, the proposal becomes permanently expired. Why might execution not happen? Proposers may abandon proposals they no longer want (a de facto veto), execution bots may fail, or changed market conditions may make execution undesirable. The permissionless execution model means proposals pass and execute based on governance consensus alone — no trusted executor is required. However, this also means that adversarial actors can front-run execution to benefit from the known outcome, or delay execution to extend optionality. Real-world example: Uniswap fee switch proposals passed votes but were not executed for extended periods due to this dynamic."
+                },
+                {
+                    "id": 4,
+                    "question": "What is Snapshot, and why do most major DAOs use it for governance voting despite their treasuries being managed by on-chain Governor contracts?",
+                    "options": {
+                        "A": "Snapshot is an on-chain voting contract that stores all votes in a Merkle tree for gas efficiency; it is used because it reduces gas costs by batching thousands of votes into a single on-chain transaction",
+                        "B": "Snapshot is a legal compliance tool that records governance votes as legally admissible evidence for DAO court proceedings; DAOs use it to create a paper trail of decision-making for regulatory purposes",
+                        "C": "Snapshot creates cryptographically binding votes that automatically trigger smart contract execution upon reaching quorum; it eliminates the need for a separate on-chain Governor contract entirely",
+                        "D": "Snapshot is an off-chain voting platform where token holders sign messages with their wallets to cast votes; it is free to vote (no gas costs), making governance accessible to small token holders. Major DAOs use it for signal voting, temperature checks, and governance discussion before committing binding on-chain votes"
+                    },
+                    "correct": "D",
+                    "explanation": "Snapshot (snapshot.org) uses off-chain vote signing: token holders sign a vote message with their private key (proving token ownership at a specified block height) without submitting a blockchain transaction. Since no on-chain transaction occurs, voting is completely free — a critical accessibility feature because on-chain votes can cost $5-50+ in gas fees per vote. This dramatically increases participation: Aave, Uniswap, Balancer, and most major DAOs conduct preliminary votes on Snapshot. The governance flow typically: (1) Informal forum discussion (Discourse/Commonwealth), (2) Snapshot temperature check (non-binding), (3) Formal on-chain Governor proposal (binding). The weakness of Snapshot: results are not automatically enforceable — a multi-sig must manually implement the outcome, creating trust assumptions. Some DAOs use Snapshot + Zodiac Reality Module to bridge off-chain votes to on-chain execution via optimistic oracle mechanisms, attempting to combine free voting with trustless execution."
+                },
+                {
+                    "id": 5,
+                    "question": "What are the primary tradeoffs between fully on-chain voting (Governor contracts) and fully off-chain voting (Snapshot), and when is each appropriate?",
+                    "options": {
+                        "A": "On-chain voting is always superior for security and should be used for all governance decisions; off-chain voting is only appropriate for non-binding social media polls that have no connection to protocol governance",
+                        "B": "On-chain voting: binding execution (no trusted executor), immutable audit trail, Sybil-resistant via token cost of attack — but expensive for voters ($5-50 gas per vote) and slow. Off-chain voting: free for voters, accessible to small holders, fast — but non-binding (requires trusted multi-sig execution), susceptible to front-running if outcomes are known before on-chain execution. Use on-chain for binding protocol changes; off-chain for temperature checks and community signal",
+                        "C": "Off-chain voting has no security weaknesses because cryptographic signatures are equivalent to on-chain transactions in terms of enforceability — the only difference is where the record is stored, and IPFS storage is equally permanent to blockchain storage",
+                        "D": "On-chain voting cannot be used for large DAOs with more than 10,000 token holders because Ethereum's block gas limit prevents processing more than 1,000 votes per block; off-chain voting is mandatory above this threshold"
+                    },
+                    "correct": "B",
+                    "explanation": "The on-chain vs. off-chain governance tradeoff is fundamental to DAO design. On-chain advantages: execution is automatic and trustless upon proposal success (no multi-sig bottleneck), all votes are permanently recorded on-chain as immutable evidence, and attacking governance requires real token expenditure. On-chain disadvantages: gas costs create plutocratic barriers (only economically rational for large holders), high costs suppress participation from smaller token holders, and the voting period is constrained by blockchain finality. Off-chain advantages: zero marginal cost per vote enables broad participation, signing is fast and user-friendly via wallets like MetaMask or WalletConnect. Off-chain disadvantages: requires a trusted party to implement results (multi-sig), introduces delay between vote and execution, creates potential for multi-sig veto or capture. Best practice: use off-chain for governance culture and temperature checking, on-chain for binding parameter changes. Hybrid systems (Optimistic Governance, Gnosis Zodiac) attempt to combine free voting with trustless execution."
+                },
+                {
+                    "id": 6,
+                    "question": "Aave governance uses an on-chain voting system with different vote weights for 'short executor' and 'long executor' proposals. What is the purpose of this dual executor architecture?",
+                    "options": {
+                        "A": "Short executor handles Aave token economics (staking rewards, token emission), while long executor handles user interface changes; the distinction is based on technical domain rather than risk level",
+                        "B": "The dual executor architecture applies different security thresholds based on proposal risk: short executor (2-day timelock, 50% quorum differential) for routine parameter changes (interest rate updates, new asset listings), and long executor (7-day timelock, higher quorum) for critical changes (contract upgrades, governance system changes) — ensuring that higher-risk proposals face stricter review periods and more conservative thresholds",
+                        "C": "Short and long executors run in parallel as redundant systems; all proposals are submitted to both simultaneously, and only execute if both approve — a dual-key security mechanism requiring unanimous executor agreement",
+                        "D": "The long executor is used for proposals exceeding $10M in treasury value, while the short executor handles smaller proposals; this purely financial threshold determines which executor processes each governance action"
+                    },
+                    "correct": "B",
+                    "explanation": "Aave's dual executor architecture is a sophisticated risk-tiered governance design. The short executor (used for most proposals): 1-day voting delay, 3-day voting period, 2-day timelock — total cycle ~6 days. It handles routine operations: listing/delisting assets, adjusting risk parameters (LTV ratios, liquidation thresholds), updating interest rate strategies. The long executor: longer voting delay, longer voting period, 7-day timelock, higher quorum and differential thresholds — total cycle ~14+ days. It handles critical changes: upgrading core lending pool contracts, modifying the governance system itself, changing safety module parameters. This tiered approach reflects that not all governance decisions carry equal risk — routine parameter adjustments need governance oversight but not maximum security review time, while fundamental protocol upgrades warrant extended scrutiny. The Aave Safety Module (staked AAVE that can be slashed to cover protocol shortfalls) adds another layer of security alignment."
+                },
+                {
+                    "id": 7,
+                    "question": "In token-weighted voting, a DAO has 10 million total tokens. Holder A has 3 million tokens, Holder B has 2 million, and 1,000 other holders average 5,000 tokens each. If all vote, who controls the outcome?",
+                    "options": {
+                        "A": "The 1,000 small holders control the outcome because they represent the majority of addresses (1,000 vs. 2 large holders); one-address-one-vote would give them 1,000 votes to 2",
+                        "B": "No single party controls the outcome; the system is perfectly democratic because any proposal requires 51% approval, which neither A, B, nor the small holders can achieve independently",
+                        "C": "Holders A and B together control 5 million tokens (50% of total supply); the remaining 1,000 holders control 5 million tokens (1,000 × 5,000). If A and B vote together, they match the entire small-holder bloc — a coalition of just 2 addresses effectively controls 50% of governance power, demonstrating how token concentration creates oligarchic governance",
+                        "D": "Holder A controls the outcome outright with 30% of tokens — under standard governance rules, 30% is sufficient for a blocking minority that can always defeat proposals they oppose and pass proposals through strategic coalition-building"
+                    },
+                    "correct": "C",
+                    "explanation": "The arithmetic reveals the plutocratic dynamics of token-weighted governance. Total supply: 10M. Holder A: 3M (30%). Holder B: 2M (20%). 1,000 small holders: 1,000 x 5,000 = 5M (50%). A and B combined: 5M (50%). Small holders combined: 5M (50%). If A and B coordinate, they have exactly matching power to the entire small-holder community despite being 2 addresses vs. 1,000. In practice, coordination costs are much lower for A and B than for 1,000 dispersed small holders (Arrow's impossibility theorem applied to governance). This means: A and B can informally coordinate via direct communication; small holders face a massive collective action problem to coordinate. In real DAOs, this dynamic is even more extreme: Uniswap's top 10 addresses hold over 40% of UNI voting power. The a16z venture firm alone holds enough UNI to block many proposals. This has led to criticism that DeFi governance recreates venture capital control structures under a decentralization veneer."
+                },
+                {
+                    "id": 8,
+                    "question": "What is 'voter apathy' in DAO governance, and what governance attack does low participation enable?",
+                    "options": {
+                        "A": "Voter apathy refers to token holders selling their governance tokens when they disagree with governance outcomes; it enables hostile takeovers because the supply of tokens on the market allows attackers to buy governance control cheaply",
+                        "B": "Voter apathy is primarily a legal concern — regulators consider DAOs non-binding if less than 50% of tokens participate in governance votes; low participation enables legal challenges to governance outcomes in court",
+                        "C": "Voter apathy occurs when token holders delegate all their votes to a single delegate and then stop monitoring governance; it enables delegates to act against delegators' interests without detection",
+                        "D": "Voter apathy — the tendency of most token holders not to vote on most proposals — enables minority governance capture: when only 5-10% of tokens vote, a well-organized minority holding a small absolute percentage of total supply can consistently win votes. A 4% quorum with 5% participation means passing proposals requires only ~2.5% of total supply"
+                    },
+                    "correct": "D",
+                    "explanation": "Voter apathy is one of the most serious practical governance problems in DAOs. Real participation data: Compound governance averages 3-8% of COMP participating in votes. Uniswap rarely exceeds 5% participation. This creates compounding vulnerability: if a quorum is 4% of supply, and only 5% of supply actually votes, then passing a proposal requires only slightly more than half of 5% = ~2.5% of total supply to vote in favor. A well-coordinated group holding 3% of tokens can consistently capture governance. Apathy stems from: (1) High gas costs (voting on-chain costs real money), (2) Information overload (too many proposals to evaluate), (3) Free-rider problem (individual vote rarely changes outcome), (4) Rational ignorance (expected payoff of voting is low relative to research cost). Solutions attempted: delegation to professional delegates, Optimism's delegation with publicized reasoning, Gitcoin's governance health scoring, and vote incentive mechanisms (Curve's gauge voting with CRV bribes)."
+                },
+                {
+                    "id": 9,
+                    "question": "What is 'governance token bribery' and how does Curve Finance's 'Convex-Curve Wars' illustrate the political economy of bribery in DeFi governance?",
+                    "options": {
+                        "A": "Governance token bribery (also called 'vote incentivization' or 'bribing') involves paying token holders to vote in specific ways; the Curve Wars illustrates this because veCRV holders control gauge weights (determining which pools receive CRV emissions), so protocols pay veCRV holders to direct emissions to their pools — creating an explicit market price for governance influence (platforms like Votium aggregate these bribes)",
+                        "B": "Governance bribery is illegal in all jurisdictions where DeFi protocols have legal wrappers; the Curve-Convex controversy resulted in criminal charges against CRV token holders who accepted payments for directing gauge votes",
+                        "C": "Bribery in the Curve Wars refers to Convex Finance illegally acquiring CRV tokens by offering above-market prices; Convex was able to bribe CRV holders to sell their tokens at a premium, accumulating governance control through purchases rather than open market trading",
+                        "D": "The Curve Wars illustrates how protocols compete for developer talent by offering governance tokens as compensation; 'bribing' developers with CRV allocations created the war for technical expertise rather than governance influence"
+                    },
+                    "correct": "A",
+                    "explanation": "The Curve Finance gauge system is the most elaborated example of on-chain governance political economy. veCRV (vote-escrowed CRV) holders vote on 'gauge weights' — the allocation of CRV liquidity mining rewards across different pools. Pools receiving higher gauge weights attract more liquidity (due to higher APY), making gauge votes extremely valuable to protocols competing for liquidity. The mechanism: (1) Protocol X wants deep liquidity for its stablecoin pool. (2) Protocol X pays veCRV holders to vote for its gauge (in ETH, stablecoins, or their own token). (3) Convex Finance aggregated veCRV by offering cvxCRV (liquid receipt tokens) — acquiring ~50% of all veCRV supply. (4) Platforms like Votium, Hidden Hand, and Redacted Cartel emerged as bribe aggregators, creating a formal market for gauge vote influence. (5) Protocols regularly pay $1-5M+ in monthly bribes for significant gauge allocations. This created the 'meta-governance' layer: controlling Convex (via CVX tokens) meant controlling Curve's gauge weights, making CVX the most politically influential token in DeFi at peak."
+                },
+                {
+                    "id": 10,
+                    "question": "What is quadratic voting, and what problem does it solve compared to token-weighted voting? Provide the formula for vote power calculation.",
+                    "options": {
+                        "A": "Quadratic voting assigns each token holder a fixed number of 'voice credits' equal to their token balance squared; votes can only be cast in integer amounts and unused credits expire at the end of the voting period",
+                        "B": "In quadratic voting, a participant's vote influence equals the square root of the tokens (or credits) they spend on a proposal: influence = sqrt(tokens_spent). Spending 1 token = 1 vote influence; spending 4 tokens = 2 vote influences; spending 100 tokens = 10 vote influences. This makes each additional unit of influence increasingly expensive, reducing the advantage of large holders while preserving proportionality for genuine preferences",
+                        "C": "Quadratic voting divides each voter's tokens into quarters and allocates one quarter to each of four voting positions (strongly for, weakly for, weakly against, strongly against); voters cannot choose a single position — they must express nuanced opinions across all four",
+                        "D": "Quadratic voting is identical to one-person-one-vote but with a penalty: wallets that vote against the majority outcome lose a quadratic fraction of their tokens as a 'wrong prediction' penalty, incentivising conformity with majority opinion"
+                    },
+                    "correct": "B",
+                    "explanation": "Quadratic voting (QV) was formalized by economists Glen Weyl and Vitalik Buterin. The formula: vote_influence = sqrt(tokens_allocated). Example: Alice allocates 100 tokens = 10 vote influence. Bob allocates 10,000 tokens = 100 vote influence. In linear token-weighted voting, Bob has 100x Alice's influence. In QV, Bob has only 10x Alice's influence (100 vs 10). This is because 10,000 = 100 x 100 (linear), but sqrt(10,000) = 100 while sqrt(100) = 10. The marginal cost of each additional unit of influence rises linearly, making it expensive to dominate. QV theory holds that voters will allocate credits proportionally to their genuine preference intensity rather than buying unlimited influence. In practice, QV faces Sybil resistance challenges in pseudonymous environments: a whale can split their tokens across multiple wallets (each with sqrt of partial balance) and achieve higher total influence than holding centrally. Gitcoin Grants uses quadratic funding (a related mechanism) with social identity verification to mitigate Sybil attacks."
+                },
+                {
+                    "id": 11,
+                    "question": "Gitcoin Grants uses quadratic funding to allocate matching funds. How does the quadratic funding formula differ from simple matching, and why does it favor many small donors over few large donors?",
+                    "options": {
+                        "A": "Quadratic funding matches each donation dollar-for-dollar up to a maximum cap; it favors small donors by setting the cap low enough that large donors cannot receive disproportionate matching",
+                        "B": "Quadratic funding divides the matching pool equally among all projects that receive at least one donation; each additional donor increases the project's share of matching by a constant quadratic increment regardless of donation size",
+                        "C": "In quadratic funding, the matching allocation for a project is proportional to (sum of square roots of individual contributions)^2; a project with 100 donors of $1 each receives much more matching than a project with 1 donor of $100, because the former demonstrates broader community support — the formula rewards breadth of support over depth of individual donations",
+                        "D": "Gitcoin's quadratic funding calculates matching as (number_of_donors)^2 x average_donation; it penalizes projects with few large donors by applying a plutocracy discount equal to the Gini coefficient of donations"
+                    },
+                    "correct": "C",
+                    "explanation": "Quadratic Funding (QF) matching formula for a project: matching = (sum_i sqrt(c_i))^2 - sum_i c_i, where c_i is each individual contribution. Example: Project A has 100 donors contributing $1 each. sum sqrt(c_i) = 100 x sqrt(1) = 100. Matching allocation proportional to 100^2 = 10,000. Project B has 1 donor contributing $100. sum sqrt(c_i) = 1 x sqrt(100) = 10. Matching allocation proportional to 10^2 = 100. Project A gets 100x more matching despite equal total contributions ($100 each). Why? QF is designed to fund public goods proportionally to revealed community preference intensity. Many small donors signal wide genuine demand (many people find it valuable enough to contribute). One large donor signals wealth, not community breadth. Gitcoin has distributed $50M+ using this mechanism across multiple rounds. The mechanism faces Sybil attacks (fake accounts making $1 donations to game matching), addressed through Gitcoin Passport identity verification combining social accounts, ENS, on-chain activity, and biometrics."
+                },
+                {
+                    "id": 12,
+                    "question": "What is conviction voting, and how does it differ fundamentally from snapshot voting in terms of how preferences are expressed over time?",
+                    "options": {
+                        "A": "Conviction voting requires voters to lock tokens for a minimum of 30 days before their vote counts; snapshot voting counts all votes simultaneously regardless of lock duration — the difference is purely about lockup requirements",
+                        "B": "Conviction voting is a system where voters stake tokens as conviction bonds that are slashed if they vote for proposals that are subsequently reversed by a community veto — it is a commitment device rather than a measure of time-weighted preference",
+                        "C": "Conviction voting uses historical on-chain activity to calculate each voter's commitment level; participants who have interacted with the protocol for longer receive exponentially higher conviction scores that translate directly into voting power",
+                        "D": "In conviction voting, a voter's influence on a proposal increases the longer they continuously allocate their voting tokens to that proposal — 'conviction' builds up over time following an exponential decay curve; this rewards patient, committed preferences over opportunistic late-stage voting and allows proposals to pass continuously as conviction accumulates rather than requiring a single majority vote at a fixed deadline"
+                    },
+                    "correct": "D",
+                    "explanation": "Conviction voting (developed by Commons Stack / 1Hive) is a continuous governance mechanism that replaces periodic snapshot votes. How it works: each voter allocates their tokens to proposals of their choice. A proposal's 'conviction' grows continuously over time according to an exponential function: C(t) = alpha * C(t-1) + tokens_allocated, where alpha is a decay parameter (e.g., 0.9). As long as tokens remain allocated, conviction grows toward a ceiling. A proposal passes when its conviction reaches a threshold that is a function of the tokens requested relative to total treasury. Key differences from snapshot voting: (1) No voting deadline — proposals can pass any time conviction is sufficient. (2) No quorum manipulation — late vote rushes are ineffective because conviction accumulated over time cannot be suddenly matched. (3) Continuous signaling — token allocation changes are expensive in terms of time value (moving tokens resets conviction). (4) Funds multiple proposals — tokens can be split across proposals. Used in Gardens (1Hive) and Gitcoin's early grant funding experiments. Particularly suited for continuous treasury management in community DAOs."
+                },
+                {
+                    "id": 13,
+                    "question": "What is 'rage quitting' in the context of quadratic voting or conviction voting systems with treasury management, and how does it interact with the voting mechanism?",
+                    "options": {
+                        "A": "Rage quitting in quadratic voting systems means permanently forfeiting all future voting rights as a penalty for voting against the majority in three consecutive proposals — it is a deterrent against persistent contrarianism",
+                        "B": "Rage quitting (as in Moloch DAO) allows members who oppose a passed proposal to exit with their proportional treasury share before the approved action executes; in conviction voting systems, members can withdraw their tokens from the system entirely and redeem their share, though this resets any accumulated conviction and exits them from ongoing governance",
+                        "C": "Rage quitting is the act of publicly announcing one's departure from a DAO on social media; governance systems respond by automatically burning the departing member's tokens to prevent governance manipulation by disgruntled former members",
+                        "D": "Rage quitting in quadratic systems converts a member's remaining tokens into a non-voting stablecoin position; the member retains economic exposure but loses governance rights, preventing exit-motivated governance disruption"
+                    },
+                    "correct": "B",
+                    "explanation": "Rage quitting is a governance exit mechanism pioneered by Moloch DAO (as covered in DG-1) that extends into more sophisticated voting systems. The mechanism addresses a fundamental problem: in any governance system with a locked treasury, minority members can be trapped in decisions they find unacceptable. Rage quitting resolves this by ensuring the right to exit with proportional assets. In conviction voting systems (like 1Hive), a member who disagrees with the direction of a DAO can withdraw their tokens from all proposals (resetting accumulated conviction) and exit the token-weighted system entirely. If the DAO has a redemption mechanism, they can also redeem their tokens for a proportional share of the treasury. The interaction with voting: since rage quitting removes tokens from the voting system, it changes the relative voting weights of remaining participants. A coordinated exit by a minority faction can significantly shift the token distribution, potentially changing governance dynamics for remaining members. DAOs that anticipate this often have exit caps or graduated exit fees to prevent destabilizing mass exits."
+                },
+                {
+                    "id": 14,
+                    "question": "What is vote delegation in DAO governance, and what are the two primary models of delegation implemented in practice?",
+                    "options": {
+                        "A": "Vote delegation is when a DAO hires professional governance consultants who vote on behalf of all token holders; the two models are retainer-based (fixed monthly payment) and performance-based (payment contingent on proposal outcomes)",
+                        "B": "Vote delegation allows token holders to transfer their voting power to another address without transferring token ownership; the two primary models are (1) full delegation (all voting power to a single delegate, used in Compound and Uniswap via ERC20Votes) and (2) split delegation (distributing voting power across multiple delegates proportionally, used in some Snapshot strategies and Gitcoin's delegation system)",
+                        "C": "Vote delegation in DAO governance means delegating execution rights — the delegate can sign and submit transactions on behalf of the delegator but cannot change the vote direction; delegates are strictly executors rather than decision-makers",
+                        "D": "The two delegation models are temporary delegation (expiring after 30 days, requiring renewal) and permanent delegation (transferring governance rights with no expiration, equivalent to a gift of governance power)"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC20Votes (the OpenZeppelin extension used in Compound, Uniswap, and most Governor-based systems) implements full delegation: each token holder designates exactly one delegate who receives ALL their voting power. Key mechanics: voting power is not transferred in terms of token ownership — the delegator retains economic rights (dividends if any, sale rights) while only governance rights are delegated. Delegation is revocable at any time. Delegation must be explicitly set (by default, tokens are not self-delegated, meaning undelgated tokens cannot vote). Compound and Uniswap use this model. Split delegation is available in some systems: Gnosis Safe delegates, Gitcoin's advanced delegation, and some Snapshot strategies allow fractional allocation across multiple delegates. Split delegation is more complex to implement but provides nuanced representation — a token holder could delegate 50% to a technical delegate and 50% to a policy delegate. The Optimism Collective uses a sophisticated delegation system with public delegate platforms where delegates publish their governance philosophies and voting records."
+                },
+                {
+                    "id": 15,
+                    "question": "What is 'liquid democracy' (also called delegative democracy), and how does it differ from both direct democracy and representative democracy as applied to DAO governance?",
+                    "options": {
+                        "A": "Liquid democracy is a governance system where votes are purchased on an open market — liquidity refers to the tradability of governance rights; it combines direct market pricing with democratic outcomes",
+                        "B": "Liquid democracy requires all governance decisions to be approved by a fluid committee whose membership changes randomly each vote, selected by a verifiable random function to prevent committee capture",
+                        "C": "Liquid democracy is a hybrid system where participants can either vote directly on proposals or delegate their vote to a trusted representative — and that representative can further sub-delegate to another representative, creating transitive delegation chains. It differs from direct democracy (everyone votes) by allowing delegation, and from representative democracy (fixed representatives) by allowing delegation to be changed freely at any time and recalled instantly",
+                        "D": "Liquid democracy is a legal framework where DAO decisions are automatically translated into enforceable contracts; it combines the flexibility of off-chain agreements with the enforcement mechanisms of blockchain smart contracts"
+                    },
+                    "correct": "C",
+                    "explanation": "Liquid democracy (term coined by Bryan Ford, 2002; extended by James Green-Armytage) is the theoretical foundation for DAO delegation systems. Key properties: (1) Transitive delegation — Alice delegates to Bob, who delegates to Carol; Carol's vote counts for Alice + Bob + Carol's combined weight. This enables expertise hierarchies: Alice trusts Bob on DeFi security; Bob trusts Carol (a security researcher) specifically. (2) Revocability — delegation can be changed or revoked at any time before a vote, unlike fixed election cycles in representative democracy. (3) Optionality — delegators can choose to vote directly on any specific proposal, overriding their delegation for that vote. DAO implementations: Optimism's Citizen House uses delegation. Gitcoin Grants uses delegation with public delegate profiles. DAOstack's Holographic Consensus has a delegation-adjacent system. The theoretical promise: experts handle domains they understand while casual token holders delegate to specialists. The practical challenge: delegation chains are opaque (who is actually controlling the vote at the end of a chain?) and create new concentration risks if most tokens flow to the same mega-delegates."
+                },
+                {
+                    "id": 16,
+                    "question": "Optimism Collective launched 'Citizens' House' alongside its 'Token House'. What problem does this bicameral governance structure solve, and how does it apply liquid democracy principles?",
+                    "options": {
+                        "A": "Citizens' House controls technical protocol upgrades while Token House controls treasury spending; the bicameral split ensures technical decisions are made by engineers rather than financial speculators",
+                        "B": "Token House voters must first pass a citizenship test demonstrating Optimism protocol knowledge; those who pass become Citizens and gain veto power over Token House decisions, creating checks and balances between educated and uneducated governance participants",
+                        "C": "Citizens' House is an advisory body with no binding governance power; it produces governance recommendations that Token House can choose to implement or ignore, serving as a structured forum for non-financial stakeholders to express preferences",
+                        "D": "Token House (OP token holders) governs protocol upgrades and technical parameters using token-weighted voting. Citizens' House (holders of non-transferable Citizen NFTs allocated by merit) governs retroactive public goods funding — resource allocation based on impact rather than wealth. This separates plutocratic token governance from impact-based governance, with citizens using liquid democracy (delegation among citizens) for their allocation decisions"
+                    },
+                    "correct": "D",
+                    "explanation": "Optimism's bicameral governance is one of the most ambitious governance experiments in crypto. Token House: OP token holders vote (with delegation) on protocol upgrades, technical parameters, and sequencer selection. This is standard token-weighted governance with all its strengths (financial alignment) and weaknesses (plutocracy). Citizens' House: holders of non-transferable 'Citizen' NFTs — earned through recognized contributions to the Optimism ecosystem, not purchasable on the market — govern retroactive public goods funding (RetroPGF). Retroactive funding (Vitalik Buterin's concept) argues it's easier to evaluate past impact than predict future value. Citizens vote on how to allocate RetroPGF rounds (distributing millions in OP to open-source projects, public infrastructure, and protocol contributors). The bicameral innovation: Citizens' House separates impact recognition from financial stake. A developer who has contributed enormously to Ethereum infrastructure but holds few OP tokens has equal say in RetroPGF to a large OP holder. This prevents pure plutocratic control of public goods funding. Citizens can delegate votes among themselves — liquid democracy within the citizen cohort."
+                },
+                {
+                    "id": 17,
+                    "question": "What is 'quorum' in DAO governance, and why can both an excessively high and an excessively low quorum threshold be harmful to governance health?",
+                    "options": {
+                        "A": "Quorum is the minimum voting participation required for a vote to be valid. Too high: most proposals fail to reach quorum, creating governance gridlock — routine parameter changes become impossible, and the protocol stagnates. Too low: a small coordinated minority can always pass proposals without meaningful community representation, enabling capture. The challenge is calibrating quorum to realistic participation rates while maintaining legitimacy",
+                        "B": "Quorum is the maximum number of proposals that can be active simultaneously; high quorum limits governance to urgent matters only, while low quorum allows too many simultaneous proposals that overwhelm voter attention",
+                        "C": "Quorum is a regulatory term requiring DAO governance votes to be witnessed by a licensed attorney; setting quorum too high makes legal compliance expensive, while setting it too low risks regulatory invalidation of governance decisions",
+                        "D": "Quorum in DAO governance refers specifically to the minimum treasury balance required before spending proposals are valid; too high means funds sit unused, too low means the treasury can be depleted below operational minimums"
+                    },
+                    "correct": "A",
+                    "explanation": "Quorum calibration is one of the most practically important governance design decisions. Problems with high quorum: If Compound requires 400,000 COMP (4% of 10M supply) and typical participation is 3%, most proposals fail quorum even with overwhelming support from those who vote. Compound has regularly failed to reach quorum on important proposals, requiring re-submission. This creates governance gridlock. Problems with low quorum: If quorum is 0.5% of supply, and an attacker controls 1% of tokens, they can create a proposal, vote alone, meet quorum, and pass it with 100% 'yes' votes from their own tokens. Best practices: (1) Set quorum relative to actual participation history, not token supply (dynamic quorum). (2) Compound (4%), Uniswap (4%), Aave (2%) represent current calibrations. (3) Dynamic quorum (used in Nouns DAO) adjusts the quorum threshold based on recent voting activity — if participation rises, quorum rises. (4) Separate quorum from victory threshold — a proposal can meet quorum (sufficient participation) but still fail if the For/Against ratio is insufficient."
+                },
+                {
+                    "id": 18,
+                    "question": "What is the difference between 'absolute majority' and 'relative majority' (or 'simple majority') victory conditions, and why does the choice matter in low-participation governance environments?",
+                    "options": {
+                        "A": "Absolute majority requires 100% of all possible votes; relative majority requires only 51% of votes cast. Both are equivalent in environments with high participation rates but diverge significantly when participation falls below 50%",
+                        "B": "Absolute majority requires more than 50% of ALL eligible tokens (total supply or circulating supply) to vote For; relative majority requires only more than 50% of VOTES CAST to be For. In low-participation environments (5-10% of tokens voting), absolute majority is nearly impossible to achieve (5% turnout means 97% of potential votes are abstentions), so most DAO governance uses relative majority combined with a separate quorum requirement",
+                        "C": "Absolute majority and relative majority are identical in DAO contexts because governance smart contracts automatically classify non-voting as abstentions, making total votes cast always equal to total eligible votes",
+                        "D": "Absolute majority is required for constitutional governance changes (modifying the voting system itself); relative majority applies to all operational decisions. The distinction maps directly to the short executor / long executor split found in Aave and Compound governance frameworks"
+                    },
+                    "correct": "B",
+                    "explanation": "The majority definition has profound practical implications. Absolute majority: if a DAO has 10 million tokens and requires an absolute majority, a proposal needs more than 5 million For votes. If only 500,000 tokens participate (5% turnout), it's mathematically impossible to reach absolute majority (500,000 < 5,000,001). This is why almost no functioning DAO uses absolute majority — governance would be permanently deadlocked. Relative majority (simple majority): a proposal passes if For_votes > Against_votes among votes actually cast. If 500,000 tokens vote, and 300,000 vote For and 200,000 Against, the proposal passes (300,000 > 200,000) regardless of the 9.5M non-participating tokens. The quorum requirement serves as a separate check on legitimacy — ensuring relative majority is calculated from a meaningful sample. Most protocols use relative majority + quorum: Compound (>50% of votes cast to win, 4% quorum to validate), Uniswap (similar). The abstain option (in OpenZeppelin Governor v4.5+) counts toward quorum but not toward the For/Against ratio, allowing members to increase legitimacy without taking a position."
+                },
+                {
+                    "id": 19,
+                    "question": "What is the minimum timelock delay that should be considered adequate for a DeFi protocol managing over $1 billion in TVL, and what security properties must the timelock guarantee?",
+                    "options": {
+                        "A": "A minimum of 10 minutes is adequate for any protocol regardless of TVL because modern security tools can identify malicious calldata in seconds; the critical protection is automated monitoring, not timelock duration",
+                        "B": "The minimum adequate timelock is determined by the time required to complete a legal review of the governance action; for $1B+ protocols, this is typically 90 days based on Cayman Islands foundation company governance requirements",
+                        "C": "For protocols with $1B+ TVL, a minimum 24-hour timelock is considered the industry baseline, with 48-72 hours preferred for core contract upgrades; the timelock must guarantee: (1) immutability of queued actions — the calldata cannot be altered after queuing, (2) permissionless cancellation by the governance system if the queued action is found to be malicious, and (3) the timelock contract itself must not have admin bypass functions that could allow immediate execution",
+                        "D": "Timelock duration should equal the protocol's average collateralization ratio expressed in hours — a protocol with 150% collateralization should use a 150-hour timelock; this ensures the timelock duration scales proportionally to the system's safety buffer"
+                    },
+                    "correct": "C",
+                    "explanation": "Timelock duration for large DeFi protocols is a critical security parameter with industry-established norms. Current practice: Compound uses 48 hours. Aave short executor: 24 hours; long executor: 7 days. Uniswap: 48 hours. MakerDAO: 48 hours minimum (executive spell delay). The 24-hour minimum baseline reflects: (1) Security researchers need time to audit queued calldata — many exploits in governance calldata are subtle and require expert review. (2) Users need time to withdraw funds if they disagree with upcoming changes. (3) International coverage requires global community awareness across time zones. Required timelock properties: (a) Immutability of queued calldata — the TimelockController must store the hash of all action parameters, preventing substitution attacks where calldata is altered between queuing and execution. (b) Cancellation capability — the governance system (typically the timelock's admin) can cancel queued proposals if a problem is discovered during the delay. (c) No admin bypass — the timelock itself must not have functions allowing immediate execution that could be accessed if admin keys are compromised. The Nomad bridge exploit and Tornado Cash governance attack demonstrate that even 48-hour timelocks are sometimes insufficient against sophisticated attacks with insider knowledge."
+                },
+                {
+                    "id": 20,
+                    "question": "MakerDAO's governance system uses 'Executive Spells' alongside its standard MKR voting. What is an Executive Spell, and how does the 'GSM Pause Delay' interact with emergency governance situations?",
+                    "options": {
+                        "A": "An Executive Spell is a multi-sig transaction requiring signatures from 7 of 12 MakerDAO Foundation employees; the GSM Pause Delay is a cooling-off period after which the Foundation can override community governance decisions",
+                        "B": "Executive Spells are legally binding resolutions that must be notarized by a Wyoming DAO LLC administrator; the GSM delay is a 30-day regulatory review period mandated for any governance action affecting MakerDAO's real-world asset (RWA) collateral types",
+                        "C": "An Executive Spell is a Snapshot vote that automatically converts to an on-chain transaction after a 24-hour period; the GSM Pause Delay refers to the time it takes the Maker Oracle Security Module to update price feeds after a governance-initiated price change",
+                        "D": "An Executive Spell is a smart contract containing the exact protocol changes to be implemented (rate adjustments, collateral parameters, contract upgrades) that becomes active once it accumulates more MKR support than the previously active spell; the GSM Pause Delay (Governance Security Module) enforces a mandatory waiting period (currently 48 hours) before spells can be cast, allowing MKR holders to trigger the Emergency Shutdown module if a malicious spell is queued"
+                    },
+                    "correct": "D",
+                    "explanation": "MakerDAO's governance architecture is the most mature and battle-tested in DeFi. Executive Spells are special purpose smart contracts (inheriting DSSSpell) encoding specific protocol changes — they can adjust stability fees, debt ceilings, liquidation ratios, add new collateral types, or upgrade core contracts. MKR holders vote to 'hat' the current winning spell by delegating MKR to it; whichever spell has the most MKR behind it becomes the 'hat' and can be cast. The Governance Security Module (GSM, also called the Governance Delay) adds a configurable pause between a spell being 'hatched' (receiving majority support) and being executable. During this window, the Emergency Shutdown Module can be triggered by a large minority of MKR (currently 50,000 MKR threshold) — this initiates an orderly wind-down of the entire system as a last resort defense against governance capture. The 48-hour GSM delay reflects MakerDAO's commitment to allowing community review of all changes while maintaining an emergency exit. During the March 2020 market crash, MakerDAO governance responded rapidly to approve emergency collateral additions and stability fee adjustments, demonstrating the system's crisis capabilities within its security constraints."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

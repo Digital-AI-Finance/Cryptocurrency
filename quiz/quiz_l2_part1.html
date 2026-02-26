@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz L2-1: Scaling Problem &amp; L2 Fundamentals | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz L2-1: Scaling Problem &amp; L2 Fundamentals</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz L2-1: Scaling Problem &amp; L2 Fundamentals</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the blockchain trilemma, and which three properties does it claim cannot all be simultaneously maximized?",
+                    "options": {
+                        "A": "The trilemma claims that blockchains cannot simultaneously achieve decentralization, security, and scalability — optimizing for any two of these properties forces a trade-off with the third",
+                        "B": "The trilemma claims that blockchains cannot simultaneously achieve privacy, speed, and low cost — every design choice sacrifices at least one of these user-facing properties",
+                        "C": "The trilemma claims that blockchains cannot simultaneously be open-source, profitable, and energy-efficient — corporate blockchains sacrifice openness while public chains sacrifice profitability",
+                        "D": "The trilemma claims that blockchains cannot simultaneously support smart contracts, native tokens, and cross-chain interoperability — specializing in one prevents implementation of the others"
+                    },
+                    "correct": "A",
+                    "explanation": "The blockchain trilemma (popularized by Vitalik Buterin) identifies three properties every blockchain strives for: (1) Decentralization — no single entity controls the network; anyone can run a node. (2) Security — the chain resists attacks; corrupting it requires prohibitive cost. (3) Scalability — the chain processes enough transactions to serve global demand quickly and cheaply. The trilemma argues these cannot all be maximized simultaneously. Bitcoin prioritizes security and decentralization but processes only ~7 TPS. Solana prioritizes scalability and security but runs far fewer validators, sacrificing decentralization. Ethereum Mainnet prioritizes security and decentralization but historically processed ~15-30 TPS, leading to congestion and high fees. Layer 2 solutions attempt to escape the trilemma by moving execution off-chain while inheriting Layer 1 security."
+                },
+                {
+                    "id": 2,
+                    "question": "Why does simply increasing block size NOT solve the scalability problem in a truly decentralized network?",
+                    "options": {
+                        "A": "Larger blocks would exceed the EVM's maximum gas limit, causing all transactions in oversized blocks to revert automatically",
+                        "B": "Larger blocks increase bandwidth, storage, and sync requirements for running a full node — pricing out ordinary participants and concentrating node operation among well-resourced entities, thereby reducing decentralization",
+                        "C": "Larger blocks would make the Merkle tree computation too slow for miners, causing block production to fall below the 12-second target even on high-end hardware",
+                        "D": "Larger blocks are rejected by the P2P gossip protocol because the maximum UDP packet size limits block propagation to 1 MB on the internet"
+                    },
+                    "correct": "B",
+                    "explanation": "The block size debate (exemplified by the Bitcoin block size wars of 2015-2017) reveals a key decentralization trade-off. Larger blocks process more transactions per block, but each node must download, validate, and store every block. If blocks are 1 GB instead of 1 MB, running a full node requires gigabit internet bandwidth, terabytes of disk space, and powerful CPUs for rapid validation. This raises the hardware and bandwidth bar to the point where only data centers can participate, centralizing the network. The Bitcoin Cash fork chose larger blocks and accepted this trade-off; Ethereum deliberately kept execution on-chain conservative to preserve decentralization. The fundamental insight: throughput must scale without requiring nodes to do proportionally more work — which is the design goal of sharding and Layer 2 solutions."
+                },
+                {
+                    "id": 3,
+                    "question": "Ethereum Mainnet processes approximately 15-30 TPS for simple ETH transfers. How does this compare to global payments infrastructure, and why does the gap matter?",
+                    "options": {
+                        "A": "Visa processes approximately 24,000 TPS peak and handles 150 million transactions daily; Ethereum at 15-30 TPS would need a ~1,000x improvement to match this — the gap explains why gas fees spike to $50-200 during high demand periods",
+                        "B": "Global payments require only 100 TPS since most transactions are large-value interbank transfers; Ethereum already exceeds this with smart contract batching, so no scaling solution is needed",
+                        "C": "The gap is irrelevant because blockchain transactions are fundamentally different from card payments and serve a niche market of DeFi users who accept high fees as a feature, not a bug",
+                        "D": "Ethereum's 15-30 TPS already exceeds Bitcoin's 7 TPS, making it the de facto global settlement layer; Layer 2 is only needed for microtransactions below $10"
+                    },
+                    "correct": "A",
+                    "explanation": "The throughput gap between Ethereum and global payment systems is enormous. Visa handles ~1,700 average TPS with a peak capacity of ~24,000 TPS. The global payments system processes hundreds of millions of transactions daily. Ethereum at 15-30 TPS means that during DeFi Summer 2020 and the NFT boom of 2021, the mempool backlogged thousands of transactions, driving gas prices above 500 Gwei ($50-200 per simple transfer, $200-500 for complex DeFi interactions). This renders Ethereum unusable for microtransactions, gaming, and emerging-market remittances. The scaling gap is what motivates the entire Layer 2 ecosystem. Ethereum's roadmap targets 100,000+ TPS across L1 + L2, achieved through rollups for execution scaling and danksharding for data scaling."
+                },
+                {
+                    "id": 4,
+                    "question": "What did the EIP-1559 upgrade change about Ethereum's fee mechanism, and did it solve the scalability problem?",
+                    "options": {
+                        "A": "EIP-1559 introduced a fixed gas price of 1 Gwei for all transactions, eliminating fee auctions and making costs perfectly predictable regardless of network congestion",
+                        "B": "EIP-1559 replaced the first-price auction with a protocol-set base fee that adjusts algorithmically based on block fullness — the base fee burns ETH and increases/decreases by up to 12.5% per block; users add a priority tip for faster inclusion, improving fee predictability but not fundamentally increasing throughput",
+                        "C": "EIP-1559 doubled Ethereum's block size from 15M to 30M gas, increasing effective TPS from 15 to 30 and halving average gas costs permanently for all users",
+                        "D": "EIP-1559 created a separate fee market for smart contract calls versus ETH transfers, allowing DeFi users to pay premium fees without pricing out simple transfers"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-1559 (implemented in the London upgrade, August 2021) reformed Ethereum's fee market. Before: users bid arbitrary gas prices in a first-price auction, leading to unpredictable fees and overpaying. After: a protocol-computed base fee adjusts each block — if the previous block was more than 50% full, the base fee rises by up to 12.5%; if less than 50% full, it falls. The base fee is burned (deflationary for ETH supply). Users specify a max fee and a priority tip. The base fee gives wallets a reliable estimate for the next block. However, EIP-1559 did NOT increase throughput — it only doubled the max block size (15M to 30M gas target vs. max) to give the base fee room to adjust. During periods of extreme demand, fees still spike very high. EIP-1559 improved user experience but does not solve scalability; that requires Layer 2 or sharding."
+                },
+                {
+                    "id": 5,
+                    "question": "During the CryptoKitties congestion event of December 2017, Ethereum processed only about 12 TPS while average gas prices rose 600%. What does this event reveal about blockspace economics?",
+                    "options": {
+                        "A": "The event revealed that NFT smart contracts are inherently more dangerous than simple transfers and should be prohibited from using more than 10% of available blockspace",
+                        "B": "The event revealed that blockspace is a scarce resource with inelastic supply — validators cannot quickly increase throughput in response to demand spikes, so price (gas fees) must rise until demand drops to match fixed supply capacity, pricing out lower-value transactions",
+                        "C": "The event revealed that Ethereum's proof-of-work consensus was the bottleneck and that switching to proof-of-stake would have prevented the congestion entirely",
+                        "D": "The event revealed that peer-to-peer protocols are fundamentally unsuited to consumer applications and that Ethereum should implement centralized sequencing to handle demand spikes"
+                    },
+                    "correct": "B",
+                    "explanation": "CryptoKitties (December 2017) was Ethereum's first major congestion event: a popular NFT breeding game flooded the mempool with transactions, causing pending transaction queues to reach 30,000+ and average fees to spike 600%. This revealed fixed-supply blockspace economics: Ethereum produces one block roughly every 12-14 seconds with a fixed gas limit (~15M gas). When demand exceeds this capacity, the fee auction raises prices until marginal users give up and wait. This is analogous to rush-hour highway tolling. Blockspace has near-zero marginal cost to produce but fixed throughput, making it subject to extreme price volatility during demand spikes. Only users who can justify paying high fees (large-value DeFi arbitrage, liquidations) remain active; retail users and low-value transactions get priced out. This fee exclusion effect is a primary motivation for Layer 2."
+                },
+                {
+                    "id": 6,
+                    "question": "Why did the Ethereum merge (transition from proof-of-work to proof-of-stake in September 2022) NOT significantly improve transaction throughput?",
+                    "options": {
+                        "A": "The merge was purely a consensus mechanism change — it replaced energy-intensive mining with validator staking but kept the same block structure, gas limits, and execution engine, leaving throughput essentially unchanged at ~15-30 TPS",
+                        "B": "The merge reduced throughput because proof-of-stake validators sign blocks more slowly than miners compute them, so block times increased from 12 to 15 seconds",
+                        "C": "The merge was designed to increase throughput by 10x, but a bug in the execution layer limited actual improvements to only 5%, and a fix is scheduled for the next hard fork",
+                        "D": "The merge eliminated block rewards paid to miners, but this budget was redirected to fund Layer 2 development grants, indirectly improving ecosystem throughput over 2-3 years"
+                    },
+                    "correct": "A",
+                    "explanation": "The merge is one of the most misunderstood events in Ethereum history. Many believed switching from PoW to PoS would dramatically speed up the network. In reality, the merge was a consensus mechanism substitution only: the execution layer (EVM, transaction processing, gas limits) remained identical. The merge changed how blocks are proposed (validators with staked ETH instead of miners with ASICs), reduced energy consumption by 99.95%, and enabled future upgrades. But it did NOT increase the gas limit, change block structure, or improve EVM execution speed. Ethereum's throughput remained ~15-30 TPS after the merge. The roadmap's scaling improvements come from subsequent upgrades: EIP-4844 (blobs), full Danksharding (data availability for rollups), and the rollup-centric execution model — not the consensus change itself."
+                },
+                {
+                    "id": 7,
+                    "question": "What is 'data availability' and why is it a critical bottleneck for Ethereum's rollup-centric scaling strategy?",
+                    "options": {
+                        "A": "Data availability refers to the uptime of Ethereum nodes — if fewer than 51% of nodes are online simultaneously, transactions cannot be confirmed, creating an availability bottleneck",
+                        "B": "Data availability is the guarantee that the data needed to reconstruct and verify blockchain state is published and accessible to all participants; it is a bottleneck because rollups must post their transaction data to Ethereum to inherit its security, and the cost of this data represents the dominant cost for rollup users",
+                        "C": "Data availability describes the archival of historical blocks — Ethereum nodes prune blocks older than 1 year, creating gaps in transaction history that prevent zero-knowledge proofs from verifying past state transitions",
+                        "D": "Data availability is a measure of how quickly new validators can synchronize the full chain state; slower sync times reduce the number of active validators and therefore decrease the security budget"
+                    },
+                    "correct": "B",
+                    "explanation": "Data availability (DA) is a foundational concept in blockchain scaling. A block has 'data availability' if all nodes can download and verify the full block data — meaning no data is withheld that would be needed to detect fraud or reconstruct state. For rollups, DA is critical: a rollup operator must post compressed transaction data to Ethereum L1 so that anyone can reconstruct rollup state and challenge invalid transitions. Before EIP-4844, rollup calldata cost ~16 gas per byte on Ethereum L1. For a rollup processing 100 TPS, posting this data costs millions of dollars per day. EIP-4844 (Dencun upgrade, March 2024) introduced 'blobs' — dedicated data containers at ~8 Gwei/byte instead of ~16+ Gwei/byte for calldata — reducing rollup data costs by 80-90% and making rollups economically viable for mass adoption. Full Danksharding will extend this to 64 blobs per block."
+                },
+                {
+                    "id": 8,
+                    "question": "What is the correct taxonomy of Layer 2 solutions, and what distinguishes each major category?",
+                    "options": {
+                        "A": "Layer 2 solutions are classified as either 'fast' (instant finality, centralized) or 'slow' (7-day finality, decentralized); the trade-off is purely between withdrawal speed and security",
+                        "B": "The main L2 categories are: rollups (execute off-chain, post data on-chain, inherit L1 security), state channels (bilateral off-chain channels closed to L1), sidechains (independent chains with separate security), and validiums (off-chain execution with off-chain data, using validity proofs) — each with distinct trust assumptions and security models",
+                        "C": "Layer 2 solutions are classified solely by their consensus mechanism: PoW L2s (sidechains), PoS L2s (rollups), and PoA L2s (state channels) — the consensus model determines all security and performance properties",
+                        "D": "L2 classification is based on token economics: fee-sharing L2s return sequencer revenue to L1 validators, non-fee-sharing L2s retain revenue within the L2 ecosystem — this distinction is the primary factor in security model differences"
+                    },
+                    "correct": "B",
+                    "explanation": "The L2 taxonomy is nuanced. Rollups (optimistic and ZK) are the dominant modern category: execution happens off-chain with a sequencer, but all transaction data (or validity proofs) are posted to Ethereum L1, inheriting its security. Anyone can reconstruct rollup state from L1 data alone. State channels (Lightning Network on Bitcoin, Raiden/Connext on Ethereum) require bilateral off-chain communication between specific parties, settling disputes to L1 — suited for repeated interactions between fixed participants. Sidechains (Polygon PoS, BSC) are fully independent blockchains with their own validator sets and consensus — they do NOT inherit Ethereum security; their security depends entirely on their own stakers. Validiums (StarkEx in validium mode, Immutable X) use ZK validity proofs posted to L1 but store data off-chain with a data availability committee — a hybrid with different trust assumptions."
+                },
+                {
+                    "id": 9,
+                    "question": "A sidechain like Polygon PoS uses a bridge to connect to Ethereum. Why does this bridge NOT give users Ethereum-level security for their bridged assets?",
+                    "options": {
+                        "A": "Polygon PoS bridges use optimistic assumptions and require a 7-day challenge period before withdrawals; during this period, assets are exposed to validator fraud and cannot be recovered if stolen",
+                        "B": "The bridge's security depends on the sidechain's own validator set — if a supermajority of Polygon validators collude or are compromised, they can produce a fraudulent finality proof allowing them to drain the bridge escrow on Ethereum Mainnet, regardless of Ethereum's own security",
+                        "C": "Ethereum smart contracts cannot natively verify Polygon block headers, so the bridge relies on a centralized oracle run by the Polygon team to relay state roots — this oracle is the single point of failure",
+                        "D": "Sidechain bridges are inherently insecure because they use multisig wallets controlled by only 3 signers, making them vulnerable to any two signers colluding to steal funds"
+                    },
+                    "correct": "B",
+                    "explanation": "Bridge security for sidechains is the critical distinction from rollups. A rollup bridge inherits Ethereum's security because its state roots are verified by fraud proofs or validity proofs on Ethereum — an attacker must break Ethereum's consensus to steal funds. A sidechain bridge works differently: assets are locked in a smart contract on Ethereum, and the sidechain's validators attest that the corresponding wrapped assets were burned before releasing locked funds. The trust assumption is: the sidechain's validator set is honest. If 2/3 of Polygon PoS validators collude, they can fraudulently attest to a burn that never happened and drain the Ethereum bridge escrow. Polygon PoS has ~100 validators — far fewer than Ethereum's 900,000+ validators — making collusion more feasible. The Ronin bridge hack ($625M, March 2022) exploited exactly this: 5 of 9 multisig signers were compromised. This bridge security distinction drives the L2 security hierarchy."
+                },
+                {
+                    "id": 10,
+                    "question": "What is a 'validium' and how does it differ from a ZK-rollup in terms of security guarantees?",
+                    "options": {
+                        "A": "A validium uses optimistic fraud proofs while a ZK-rollup uses validity proofs — the proof type is the only difference; both store all transaction data on Ethereum Mainnet identically",
+                        "B": "A validium is a ZK-rollup running on a sidechain — it posts validity proofs to the sidechain's L1 rather than Ethereum, making it cheaper but with sidechain-level security rather than Ethereum-level security",
+                        "C": "A validium uses ZK validity proofs (same as a ZK-rollup) to ensure correct execution, but stores transaction data off-chain with a permissioned data availability committee rather than on Ethereum L1 — meaning users cannot reconstruct their state if the committee withholds data, even though computation integrity is guaranteed",
+                        "D": "A validium is a deprecated term for the original Plasma design; modern validiums are identical to optimistic rollups but use a different dispute resolution mechanism called 'validity challenges' instead of fraud proofs"
+                    },
+                    "correct": "C",
+                    "explanation": "Validiums are ZK-rollup variants that sacrifice data availability for lower costs. A ZK-rollup posts both: (1) the validity proof (ZK-SNARK/STARK proving correct execution) to Ethereum, AND (2) compressed transaction data to Ethereum so anyone can reconstruct state. A validium posts only (1) the validity proof — transaction data is stored by a trusted Data Availability Committee (DAC), typically 5-20 known operators. Security implications: validity proofs guarantee that the state transition was computed correctly — you cannot create fraudulent proofs. However, if the DAC withholds data, users cannot prove their balances or exit their funds, even though no funds were stolen. This is the 'data withholding attack'. StarkEx (powering dYdX v3, Immutable X, Sorare) operates in validium mode, choosing throughput (100,000+ TPS) and low cost over full data availability."
+                },
+                {
+                    "id": 11,
+                    "question": "Why is Ethereum's rollup-centric roadmap considered the dominant scaling strategy, and what does it mean for Ethereum's role as a 'settlement layer'?",
+                    "options": {
+                        "A": "The rollup-centric roadmap means Ethereum L1 will shut down eventually and all activity will migrate to rollups; Ethereum becomes purely a historical archive with no active transaction processing",
+                        "B": "Ethereum's rollup-centric roadmap positions L1 as a secure data availability and settlement layer while rollups handle execution — L1 focuses on providing cheap, abundant data space (blobs via Danksharding) and final settlement for rollup state roots, allowing rollups to inherit Ethereum's security while achieving orders-of-magnitude higher throughput",
+                        "C": "The rollup-centric roadmap requires all Ethereum dApps to migrate to rollups by 2025 or face being deprecated; Ethereum L1 will reject all non-rollup transactions after the migration deadline",
+                        "D": "The rollup-centric roadmap is Ethereum's response to Solana competition — by certifying rollup chains as 'Ethereum-branded', the strategy captures market share through branding rather than technical improvement"
+                    },
+                    "correct": "B",
+                    "explanation": "The rollup-centric roadmap (articulated by Vitalik Buterin in 2020) represents Ethereum's strategic pivot from scaling L1 to providing infrastructure for L2s. The vision: Ethereum L1 becomes a 'settlement and data availability layer' — highly secure and decentralized but not optimized for high TPS. Rollups (Arbitrum, Optimism, Base, zkSync, Starknet) handle execution: users transact on rollups at high speed and low cost. Periodically, rollup operators post compressed transaction data and state roots to Ethereum L1. Anyone can verify the rollup state using only Ethereum data. The rollup inherits Ethereum's security: corrupting the rollup requires corrupting Ethereum itself. The roadmap's scaling improvements are all about making L1 a better host for rollups: EIP-4844 (blobs), full Danksharding (64 blobs/block), Verkle trees. The endgame: 100,000+ TPS across the Ethereum ecosystem while L1 remains maximally decentralized."
+                },
+                {
+                    "id": 12,
+                    "question": "What is a payment channel, and how do two parties use it to transact without hitting the blockchain for every payment?",
+                    "options": {
+                        "A": "A payment channel is a smart contract that automatically processes microtransactions by batching them and submitting them to the blockchain every hour; the automation eliminates the need for individual transaction signatures",
+                        "B": "A payment channel opens by both parties depositing funds into a 2-of-2 multisig smart contract; they then exchange signed 'balance update' messages off-chain (no blockchain confirmation needed for each payment); either party can close the channel by submitting the latest mutually signed state to the blockchain, which distributes the final balances",
+                        "C": "A payment channel uses zero-knowledge proofs to batch unlimited payments and submit a single proof to Ethereum; the ZK proof is created by a centralized server after accumulating sufficient transactions",
+                        "D": "Payment channels require a central hub to relay payments between parties; the hub holds temporary custody of funds and is compensated with fees for routing payments between senders and recipients"
+                    },
+                    "correct": "B",
+                    "explanation": "State channels (payment channels are their simplest form) work through cryptographic commitment rather than on-chain transactions. Opening: Alice and Bob each deposit ETH into a 2-of-2 multisig contract (one on-chain transaction). Off-chain operation: Alice sends Bob a signed message: 'New state: Alice has 0.6 ETH, Bob has 0.4 ETH.' Bob counter-signs. No blockchain transaction needed — just cryptographic messages. They can exchange thousands of signed states in milliseconds. Closing (cooperative): both sign the final state and submit it; the contract distributes funds accordingly (one on-chain transaction). Closing (unilateral dispute): either party can submit any valid signed state to the chain; the other party has a challenge period to submit a newer signed state, preventing cheating. The key insight: blockchain is only needed for opening, closing, and disputes — not for intermediate payments."
+                },
+                {
+                    "id": 13,
+                    "question": "What is the Lightning Network, and what limitation prevents it from becoming a fully general-purpose global payments network?",
+                    "options": {
+                        "A": "Lightning is a ZK-rollup built on Bitcoin that processes payments in milliseconds; its limitation is that Bitcoin's scripting language makes it impossible to add new features without a hard fork",
+                        "B": "Lightning is a network of bidirectional payment channels between Bitcoin users; the fundamental limitation is the 'routing problem' — payments must route through a path of channels with sufficient liquidity, and finding reliable paths across a decentralized network without a central routing server is difficult at scale, causing payment failures for larger amounts or less-connected nodes",
+                        "C": "Lightning is a centralized payment processor built by Lightning Labs that uses Bitcoin as collateral; its limitation is regulatory — it is not licensed as a money transmitter in most jurisdictions",
+                        "D": "Lightning can only process payments between nodes that are directly connected by a channel; routing through intermediate nodes is technically impossible without changes to Bitcoin's consensus rules"
+                    },
+                    "correct": "B",
+                    "explanation": "The Lightning Network (launched 2018) is Bitcoin's primary scaling solution, creating a network of payment channels. To pay someone without a direct channel, payments route through intermediate nodes that earn fees for liquidity provision. The routing problem is Lightning's central challenge: (1) Liquidity constraints — a payment path must have channels with sufficient capacity in the correct direction; large payments often fail to find viable paths. (2) Route discovery — in a decentralized network, finding optimal paths without a central server is computationally hard at scale; current solutions use source routing which requires imperfect network topology knowledge. (3) Inbound liquidity — new nodes struggle to receive payments because channels are one-directional in their liquidity. (4) Reliability — Lightning has a payment failure rate that makes it unreliable for time-sensitive or large payments. These limitations explain why Lightning works well for small recurring payments but hasn't become a dominant global payment rail."
+                },
+                {
+                    "id": 14,
+                    "question": "Why are state channels poorly suited for interactions with DeFi smart contracts like Uniswap or Aave?",
+                    "options": {
+                        "A": "State channels are incompatible with Solidity because they require a special bytecode format that the EVM does not support; this technical limitation has prevented integration with any existing DeFi protocols",
+                        "B": "State channels require both parties to be online simultaneously and are designed for repeated interactions between known counterparties; DeFi interactions involve unknown smart contracts (not active counterparties), arbitrary third parties, and non-repeated interactions — the channel model does not fit this use case",
+                        "C": "State channels are limited to ETH transfers and cannot include ERC-20 token transfers; since all major DeFi protocols use ERC-20 tokens, state channels are fundamentally incompatible with DeFi",
+                        "D": "State channels require KYC verification for all participants due to financial regulations; since DeFi is pseudonymous, state channels cannot legally be used for DeFi interactions in most jurisdictions"
+                    },
+                    "correct": "B",
+                    "explanation": "State channels have a fundamental design assumption that limits their applicability: they require a fixed set of pre-identified participants who commit capital into a channel. For DeFi, this breaks down: (1) Unknown counterparties — when you swap on Uniswap, you don't know in advance who the other liquidity provider will be; you cannot open a channel with 'Uniswap' because Uniswap is a smart contract, not an active counterparty. (2) Non-repeating interactions — state channels are valuable when parties transact many times; most DeFi interactions are one-off. (3) Capital lockup — state channels require capital to be locked in the channel; this capital cannot simultaneously be used as Uniswap liquidity or Aave collateral. (4) Counterparty availability — both parties must be online to update state; DeFi protocols are always-online smart contracts but don't 'sign' channel updates. These limitations explain why Raiden (Ethereum's Lightning Network equivalent) failed to gain traction."
+                },
+                {
+                    "id": 15,
+                    "question": "What is Plasma, and what was the key technical problem — the 'mass exit problem' — that caused it to be abandoned in favor of rollups?",
+                    "options": {
+                        "A": "Plasma is a sharding design where Ethereum validators are divided into shards that process transactions independently; the mass exit problem occurs when too many validators want to exit a shard simultaneously, causing consensus failures",
+                        "B": "Plasma is a framework for creating child chains that periodically commit Merkle roots of their state to Ethereum; the mass exit problem occurs when the Plasma operator is fraudulent — all users must simultaneously submit their own Merkle proofs to exit, causing Ethereum L1 to be overwhelmed with exit transactions that it cannot process within the challenge window",
+                        "C": "Plasma is a zero-knowledge proof system where proofs can only be generated for a fixed number of transactions per block; the mass exit problem occurs when demand exceeds this fixed limit, causing proof generation to fail and funds to be locked permanently",
+                        "D": "Plasma is a token issuance standard for L2 chains; the mass exit problem is a regulatory issue where securities regulators require all token holders to simultaneously redeem their Plasma tokens during a regulatory event"
+                    },
+                    "correct": "B",
+                    "explanation": "Plasma (proposed by Vitalik Buterin and Joseph Poon in 2017) was an early L2 scaling approach. Child chains process transactions off-chain and periodically submit Merkle roots of their state to Ethereum. If the operator misbehaves (posts invalid state), users can exit by submitting Merkle proofs of their balance. The mass exit problem: if the Plasma operator turns malicious and withholds data (so users can't verify their balances), all users must exit simultaneously by submitting Merkle proofs to Ethereum L1. With 1,000,000 Plasma users each submitting an exit proof, Ethereum L1 (at 15 TPS) could not process these exits within the challenge window (7 days) — many users would lose funds. This 'data availability problem' is fundamental and cannot be solved within the Plasma framework. Rollups solve it by posting all transaction data to L1 — there's no data that can be withheld, so the mass exit scenario never arises."
+                },
+                {
+                    "id": 16,
+                    "question": "Why did Plasma Cash (an improvement over original Plasma) fail to achieve widespread adoption despite addressing some mass exit limitations?",
+                    "options": {
+                        "A": "Plasma Cash was abandoned because it required users to store the complete transaction history of each 'coin' (UTXO) they own — unlike rollups where only the latest state matters, Plasma Cash requires tracking an unbounded proof history for exits, creating impractical storage requirements for end users",
+                        "B": "Plasma Cash was abandoned because it required a ZK proof for every transaction, but ZK technology was too slow in 2019 to generate proofs fast enough for real-time payments",
+                        "C": "Plasma Cash was abandoned because regulators classified its 'coin' model as a derivative security, making it illegal to operate in the United States and European Union",
+                        "D": "Plasma Cash failed because it was incompatible with ERC-20 tokens — it could only handle ETH transfers, which severely limited its DeFi applicability compared to rollups"
+                    },
+                    "correct": "A",
+                    "explanation": "Plasma Cash (2018) improved on Plasma by assigning unique IDs to each 'coin' (atomic unit of value), eliminating mass exit concerns for individual coins. However, it introduced a new problem: non-fungible history proofs. To exit a Plasma Cash coin, a user must prove: (1) the coin's entire transaction history from its creation, and (2) that no earlier version of the coin has been spent. As coins change hands, each new owner must store all previous transaction data — if you receive a coin after 1,000 previous transactions, you must store 1,000 Merkle proofs. This history grows unboundedly with use. This is fundamentally user-hostile: no practical wallet could manage this storage burden. Later variants (Plasma Debit, Plasma Prime) tried to address this but introduced new complications. The rollup approach — posting all data to L1 — is conceptually simpler and doesn't burden users with proof storage. By 2019-2020, the Ethereum research community largely shifted focus to rollups."
+                },
+                {
+                    "id": 17,
+                    "question": "What is a rollup, and what is the fundamental mechanism that allows it to inherit Ethereum's security?",
+                    "options": {
+                        "A": "A rollup is a special type of Ethereum smart contract that processes transactions internally using the EVM; its security comes from Ethereum's own node validation of every rollup transaction as part of the normal block processing pipeline",
+                        "B": "A rollup executes transactions off-chain (faster and cheaper), compresses the transaction data, and posts both the compressed data AND a commitment to the new state root to Ethereum L1; security comes from the guarantee that all data needed to reconstruct rollup state is available on L1, and any invalid state root can be challenged via fraud proofs (optimistic) or is impossible without a valid proof (ZK)",
+                        "C": "A rollup inherits Ethereum's security by sharing Ethereum's validator set — Ethereum validators also validate rollup transactions as part of their block proposal duties, earning extra fees for this additional validation work",
+                        "D": "A rollup inherits Ethereum's security through a legal agreement between the rollup operator and the Ethereum Foundation, where the operator commits to processing transactions according to the EVM specification under penalty of token forfeiture"
+                    },
+                    "correct": "B",
+                    "explanation": "Rollups are the dominant modern L2 paradigm. The mechanism: (1) A sequencer (operator) collects user transactions and executes them off-chain at high speed. (2) The sequencer compresses the transaction data and posts it to Ethereum L1 (as calldata or blobs). (3) The sequencer posts a state root (hash of the new rollup state) to a rollup bridge contract on Ethereum. Security comes from two guarantees: Data availability — since compressed transaction data is on Ethereum L1, anyone can independently replay transactions and reconstruct the rollup state, detecting any discrepancy with the posted state root. Challenge mechanism — if the state root is wrong, either a fraud proof (optimistic rollup) or the failure to produce a validity proof (ZK rollup) allows the incorrect root to be rejected. These guarantees mean: even if the rollup operator is malicious, they cannot steal funds — the most they can do is temporarily delay transactions."
+                },
+                {
+                    "id": 18,
+                    "question": "How does a rollup compress transaction data to minimize the amount posted to Ethereum?",
+                    "options": {
+                        "A": "Rollups compress data using standard ZIP compression algorithms applied to raw transaction bytes; the compression ratio typically achieves 10x compression compared to uncompressed Ethereum transactions",
+                        "B": "Rollup data compression uses: (1) state differences instead of full transactions — posting only the net balance changes rather than every intermediate step, and (2) efficient encoding — removing redundant fields (nonces are implicit, addresses use indices, signatures are aggregated or omitted in ZK rollups), achieving 10-100x compression vs. posting full transactions on L1",
+                        "C": "Rollups achieve compression by processing only the final state of each account per block and discarding intermediate states; this means the rollup cannot recover historical transactions if the operator's off-chain database is lost",
+                        "D": "Rollup data is compressed by a decentralized network of 'compressor nodes' who bid to compress each batch; the winning compressor earns fees and the compressed data is verified against the original by a committee of validators"
+                    },
+                    "correct": "B",
+                    "explanation": "Data compression is central to rollup economics. Full Ethereum L1 transactions include: nonce, gas price, gas limit, to-address, value, data, and a 65-byte ECDSA signature — roughly 110+ bytes for a simple transfer. Rollup compression techniques: (1) State diffs: instead of posting every transaction, post only net state changes. If Alice sends Bob 1 ETH and Bob sends Carol 0.5 ETH, the state diff is just: Alice -1, Bob +0.5, Carol +0.5. (2) Address compression: instead of 20-byte addresses, use 4-byte indices mapping to an address registry. (3) Signature aggregation/omission: ZK rollups replace individual ECDSA signatures with a single ZK proof for the entire batch; optimistic rollups can also compress signatures. (4) Zero-byte optimization: calldata pricing (0 gas for zero bytes vs. 16 for non-zero) incentivizes serialization that maximizes zero bytes. These techniques achieve ~10-40x compression vs. L1 transactions, making rollup fees 10-100x lower than L1."
+                },
+                {
+                    "id": 19,
+                    "question": "What is the key difference between optimistic rollups and ZK-rollups in how they guarantee that state transitions are valid?",
+                    "options": {
+                        "A": "Optimistic rollups use a committee of validators who re-execute all transactions to confirm validity; ZK-rollups use a single trusted prover who generates validity certificates reviewed by the operator",
+                        "B": "Optimistic rollups assume state transitions are valid unless challenged within a dispute window — a fraud proof can be submitted by any watcher to prove invalidity; ZK-rollups cryptographically prove every state transition is valid using a zero-knowledge proof, so no dispute window is needed and withdrawals can be much faster",
+                        "C": "Optimistic rollups achieve finality in one Ethereum block because the L1 contract trusts the sequencer by default; ZK-rollups require 12 confirmations on Ethereum before finality because ZK proof verification is slow",
+                        "D": "The primary difference is economic: optimistic rollups require fraud provers to stake ETH as insurance, while ZK-rollups require validity provers to stake tokens as insurance; both use the same cryptographic security model but with different collateral structures"
+                    },
+                    "correct": "B",
+                    "explanation": "This is the central distinction in the rollup design space. Optimistic rollups (Arbitrum, Optimism, Base): assume transactions are valid by default (optimistically accept state roots). Maintain a 7-day challenge period during which any honest watcher can submit a fraud proof showing a specific state transition was incorrectly computed. If fraud is proven, the invalid batch is rejected and the sequencer is slashed. Users must wait 7 days for L1 finality (bridge withdrawals). ZK-rollups (zkSync, Starknet, Polygon zkEVM, Scroll): generate a zero-knowledge proof (ZK-SNARK or ZK-STARK) for every batch of transactions that cryptographically proves correct execution. The L1 verifier contract checks the proof — if it passes, the state root is accepted immediately. No challenge period needed. Withdrawals can be near-instant (minutes to hours for proof generation). Trade-offs: optimistic rollups are simpler and EVM-compatible; ZK-rollups offer stronger security guarantees and faster finality but require complex proving systems."
+                },
+                {
+                    "id": 20,
+                    "question": "What is 'calldata' in Ethereum transactions, and why did EIP-4844 introduce 'blobs' as a separate data type specifically for rollups?",
+                    "options": {
+                        "A": "Calldata is the smart contract bytecode stored permanently in Ethereum's state trie; blobs were introduced because rollup contract code was exceeding the state trie size limit, requiring a separate storage mechanism for rollup programs",
+                        "B": "Calldata is arbitrary byte data attached to any Ethereum transaction, stored permanently on-chain; EIP-4844 introduced blobs as a separate data type with lower cost per byte that is stored temporarily (~18 days) since rollup data only needs to be available for the fraud-proof window — not permanently — making rollup data posting 80-90% cheaper",
+                        "C": "Calldata is the encrypted communication channel between Ethereum nodes; blobs replace this with an unencrypted broadcast to improve rollup data availability and reduce the bandwidth requirements for running an Ethereum validator",
+                        "D": "Calldata stores Ethereum's account balances and is shared between L1 and L2; blobs were introduced to give rollups their own separate balance storage that is not mixed with L1 state, preventing accidental overwrites of rollup state by L1 transactions"
+                    },
+                    "correct": "B",
+                    "explanation": "Calldata is arbitrary byte data included in any Ethereum transaction — it's what smart contracts use for function arguments, and what rollups use to post compressed transaction data. Calldata is stored by all full nodes permanently. EIP-4844 (Dencun upgrade, March 2024) introduced blob-carrying transactions (BlobTx) with a separate fee market. Key blob properties: (1) Lower cost — blobs use a separate gas market historically starting much lower than calldata's 16 Gwei/byte (non-zero bytes), making blobs 80-90% cheaper. (2) Temporary storage — blobs are pruned after ~18 days (~4096 epochs); they don't need permanent storage since fraud-proof windows are 7 days and ZK proofs are verified immediately. (3) KZG commitments — blobs use polynomial commitment schemes enabling future data availability sampling. The impact: Arbitrum, Optimism, and Base fees dropped by 80-95% immediately after Dencun. Full Danksharding will expand from 3-6 blobs/block to 64 blobs/block, enabling ~1M TPS across the rollup ecosystem."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz L2-2: Optimistic Rollups | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz L2-2: Optimistic Rollups</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz L2-2: Optimistic Rollups</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the core optimistic assumption that gives optimistic rollups their name, and what consequence does this assumption have for withdrawal timing?",
+                    "options": {
+                        "A": "Optimistic rollups assume that all users are honest and never attempt double-spends; this assumption allows instant withdrawals because fraud is statistically unlikely given rational actors",
+                        "B": "Optimistic rollups assume state transitions submitted by the sequencer are valid unless proven otherwise within a challenge window (typically 7 days); this assumption means L1-finalized withdrawals require waiting out the full challenge period before funds are released on Ethereum Mainnet",
+                        "C": "Optimistic rollups assume Ethereum's consensus is always correct; they optimistically accept any block that Ethereum validators approve, giving them the same 12-second finality as L1 blocks",
+                        "D": "Optimistic rollups assume zero-knowledge proofs will be available in the future; they optimistically process transactions without cryptographic verification, planning to add ZK proofs retroactively when the technology matures"
+                    },
+                    "correct": "B",
+                    "explanation": "The 'optimistic' in optimistic rollups refers to a specific trust assumption: when the sequencer posts a state root to Ethereum L1, the bridge contract accepts it as valid without immediate verification. The system is 'optimistic' that the sequencer is honest. The enforcement mechanism is the challenge period — any honest observer can submit a fraud proof within 7 days if they detect an invalid state transition. If no fraud proof is submitted, the state root is finalized. This creates the fundamental UX trade-off: on the rollup, transactions confirm in seconds (L2 finality). But to withdraw back to Ethereum L1 — which requires proving the L2 state to the bridge contract — users must wait the full 7-day challenge window. After 7 days with no successful fraud challenge, the withdrawal completes. Third-party 'fast withdrawal' services (liquidity providers who front the funds for a fee) can bridge this UX gap."
+                },
+                {
+                    "id": 2,
+                    "question": "What security guarantee does an optimistic rollup provide to users even if the sequencer is completely malicious?",
+                    "options": {
+                        "A": "An optimistic rollup with a malicious sequencer provides no security — the sequencer can steal all user funds by posting fraudulent state roots and executing them after the challenge window",
+                        "B": "Even with a malicious sequencer, users retain the ability to exit their funds directly via L1 using published transaction data — as long as at least one honest validator runs a fraud-proof watcher and the sequencer cannot censor L1 transactions, funds are safe; the worst outcome is transaction delay, not fund loss",
+                        "C": "An optimistic rollup guarantees security only if users themselves run fraud-proof watchers; passive users who don't monitor the chain have no protection against a malicious sequencer",
+                        "D": "Optimistic rollup security depends on the sequencer's bond — if the bond value is less than the total user funds in the rollup, the sequencer can rationally steal funds and forfeit the smaller bond"
+                    },
+                    "correct": "B",
+                    "explanation": "The security model of optimistic rollups is asymmetric in a crucial way. A malicious sequencer can: (1) Delay transactions by censoring the L2 mempool. (2) Extract MEV (maximal extractable value) by reordering transactions. (3) Go offline, temporarily halting the rollup. What a malicious sequencer CANNOT do: steal funds — because all transaction data is posted to Ethereum L1, and anyone can reconstruct the correct state and submit a fraud proof for any invalid state root. The 'honest minority' assumption: security requires only ONE honest, well-capitalized fraud prover who monitors the chain and submits proofs within the challenge window. In practice, Arbitrum and Optimism both have permissioned fraud provers currently (a temporary centralization during their security maturation period). The escape hatch: users can always submit their own exit transactions directly to the L1 bridge contract using their L2 balance proofs, bypassing the sequencer entirely."
+                },
+                {
+                    "id": 3,
+                    "question": "Why is the 7-day challenge period in optimistic rollups not arbitrary, and what would happen if it were reduced to 1 hour?",
+                    "options": {
+                        "A": "The 7-day period is set by international financial regulations that require a cooling-off period for cross-border transfers; reducing it would violate compliance requirements for rollup operators",
+                        "B": "The 7-day period gives honest watchers sufficient time to detect fraud, compute a fraud proof, and get that proof included on Ethereum L1 — even during periods of L1 congestion or temporary censorship by miners/validators; a 1-hour window could be insufficient if L1 is congested or if the fraud prover needs time to generate the proof",
+                        "C": "The 7-day period is the time required for the ZK proof verification algorithm to complete on Ethereum's current hardware; faster hardware would enable shorter challenge windows",
+                        "D": "7 days matches the Ethereum finality period for withdrawals; since Ethereum itself requires 7 days for finality, any L2 built on Ethereum inherits this minimum challenge window by protocol design"
+                    },
+                    "correct": "B",
+                    "explanation": "The 7-day challenge period is calibrated to provide robust security margins against adversarial conditions. Consider the threat model: a sequencer posts a fraudulent state root at time T. An honest watcher must: (1) Detect the fraud (monitor the chain — near-instant). (2) Compute the fraud proof (can take hours for complex EVM re-execution). (3) Submit the fraud proof transaction to Ethereum L1 (near-instant in normal conditions). (4) Get that transaction included in an Ethereum block (fast normally, but could be delayed if the malicious sequencer also controls block builders and censors the fraud proof). The 7-day window provides buffer for worst-case scenarios: extended L1 congestion, validator censorship attempts, or watcher downtime. A 1-hour window would be attackable: a sophisticated attacker could briefly suppress the fraud proof transaction through L1 fee manipulation or MEV coordination. Future improvements (e.g., Cannon's interactive dispute system, proof acceleration) may allow shorter windows."
+                },
+                {
+                    "id": 4,
+                    "question": "What is a fraud proof in an optimistic rollup, and at a high level how does the 'bisection protocol' make fraud proof computation practical?",
+                    "options": {
+                        "A": "A fraud proof is a cryptographic signature from a majority of fraud-prover nodes confirming that a state root is invalid; the bisection protocol divides the signature generation work among multiple provers to parallelize computation",
+                        "B": "A fraud proof is an on-chain demonstration that the sequencer computed a state transition incorrectly; the bisection protocol (interactive dispute game) narrows the disagreement between the asserter and challenger through successive halving of the disputed execution trace, ultimately identifying the single disputed instruction that can be verified cheaply on L1",
+                        "C": "A fraud proof is a zero-knowledge proof of incorrect execution; the bisection protocol allows the prover to generate the ZK proof incrementally without knowing the full transaction history, reducing proof generation time from days to hours",
+                        "D": "A fraud proof is a financial instrument where the challenger bonds ETH against the sequencer's bond; the bisection protocol splits the bond equally between both parties if the dispute cannot be resolved within the challenge window"
+                    },
+                    "correct": "B",
+                    "explanation": "Fraud proofs solve a computational challenge: re-executing an entire batch of transactions on Ethereum L1 to detect one invalid step would be prohibitively expensive (the batch could be thousands of transactions, consuming millions of gas). The bisection (interactive dispute game) solves this: Step 1: The challenger claims the sequencer's state root is wrong and specifies which step is invalid. Step 2: The asserter and challenger alternate committing to the state at the midpoint of the disputed range. Step 3: They identify which half contains the disagreement. Step 4: Repeat — bisect again and again. After O(log N) rounds, the dispute narrows to a single EVM instruction. Step 5: That single instruction (e.g., one SLOAD or one ADD operation) is executed on L1 — cheaply — to determine who is correct. The loser's bond is slashed and awarded to the winner. Arbitrum's BOLD (Bounded Liquidity Delay) implements this with permissionless challengers; Optimism's Cannon interactive fault proof does the same. This makes fraud proofs practically viable without re-executing entire batches."
+                },
+                {
+                    "id": 5,
+                    "question": "What is the 'honest minority' assumption in optimistic rollup security, and why is it stronger than it might initially appear?",
+                    "options": {
+                        "A": "The honest minority assumption requires at least 33% of validators to be honest, mirroring BFT consensus requirements; this is weaker than Ethereum's assumption of 51% honest validators",
+                        "B": "The honest minority assumption means security requires only ONE honest, well-resourced party who monitors the chain and submits fraud proofs when needed; this is strong because the incentive structure (fraud provers earn the sequencer's slashed bond) aligns economic rewards with honest behavior — any single profit-motivated actor will submit valid fraud proofs",
+                        "C": "The honest minority assumption requires at least 10% of token holders to be honest; this is weaker than optimistic rollup security claims and is the primary reason these systems will eventually be replaced by ZK-rollups",
+                        "D": "The honest minority assumption only applies during the 7-day challenge window; after finalization, the assumption is relaxed and even 100% malicious validators cannot affect the security of already-settled transactions"
+                    },
+                    "correct": "B",
+                    "explanation": "The honest minority assumption for optimistic rollups is '1-of-N honest' — the system is secure as long as at least ONE fraud prover is honest and capable. This is powerful for several reasons: (1) Economic incentives — a successful fraud proof earns the challenger a portion of the sequencer's slashed bond (potentially millions of dollars). This creates a profit motive for fraud detection: even a purely self-interested actor will submit fraud proofs to earn the reward. (2) Low cost to monitor — running a fraud-proof watcher only requires replaying transactions locally (standard node operation). The cost is modest relative to the reward for catching fraud. (3) Diversity — with multiple independent entities running watchers (rollup teams, competitors, users, MEV searchers), the probability that ALL of them miss fraud or collude to suppress it approaches zero. Compare to ZK-rollups: they require NO honest watchers — even if every observer is malicious, an invalid ZK proof simply fails to verify on L1. ZK is strictly stronger, but optimistic rollups' 1-of-N assumption is already quite robust."
+                },
+                {
+                    "id": 6,
+                    "question": "What is the difference between 'L2 finality' and 'L1 finality' in an optimistic rollup, and which one matters for most users?",
+                    "options": {
+                        "A": "L2 finality is when the sequencer confirms a transaction (seconds); L1 finality is when the state root is finalized on Ethereum after the challenge window (7 days); most users care about L1 finality because only then are funds provably safe on Ethereum Mainnet",
+                        "B": "L2 finality and L1 finality are identical in optimistic rollups — when the sequencer confirms a transaction, it is simultaneously finalized on Ethereum L1, giving users the same security as Ethereum transactions",
+                        "C": "L2 finality occurs when 2/3 of rollup validators sign the block; L1 finality occurs when Ethereum validators include the rollup's state root in their block; both happen within seconds of each other in production systems",
+                        "D": "L2 finality is irreversible because rollups use proof-of-stake consensus internally; L1 finality is merely a formality needed for bridge withdrawals and has no practical security implications for users staying within the rollup"
+                    },
+                    "correct": "A",
+                    "explanation": "Understanding finality layers is critical for rollup users. L2 finality (soft finality): when the sequencer includes your transaction in an L2 block (typically seconds). At this point, the sequencer has committed to including your transaction and you can see your balance update. But this is only as trustworthy as the sequencer — a malicious sequencer could in theory reorganize L2 blocks. L1 finality (hard finality): when the batch containing your transaction is posted to Ethereum L1 and the 7-day challenge window passes without a successful fraud proof. At this point, your transaction is secured by Ethereum's consensus. For the vast majority of users, L2 finality is sufficient in practice: sequencer reorgs would be economically catastrophic for the operator and destroy the rollup's reputation. L1 finality matters primarily for: (1) Large withdrawals to Ethereum Mainnet. (2) High-value DeFi interactions requiring absolute security guarantees. (3) Cross-chain bridge integrations that require L1-finalized state. Fast withdrawal liquidity providers effectively convert L2 finality into practical L1-equivalent liquidity for smaller amounts."
+                },
+                {
+                    "id": 7,
+                    "question": "What is 'sequencer MEV' (maximal extractable value) in an optimistic rollup, and why is it a centralization concern?",
+                    "options": {
+                        "A": "Sequencer MEV is the profit the sequencer earns by charging users gas fees; it is not a centralization concern because all rollup users pay fees and understand the fee structure",
+                        "B": "Sequencer MEV arises because a centralized sequencer controls transaction ordering within L2 blocks — it can front-run users, sandwich trades, and extract value through ordering, and because there is typically only one sequencer per rollup, there is no competitive pressure limiting this extraction; users have no alternative sequencer to route to",
+                        "C": "Sequencer MEV is profit extracted by Ethereum validators who process the L2 state root submissions; it transfers value from rollup operators to Ethereum validators, not from rollup users to sequencers",
+                        "D": "Sequencer MEV is a theoretical concern that cannot occur in practice because optimistic rollup smart contracts enforce FIFO (first-in-first-out) transaction ordering that prevents any reordering by the sequencer"
+                    },
+                    "correct": "B",
+                    "explanation": "Sequencer MEV is a significant problem for current optimistic rollup deployments. The mechanism: The sequencer sees all pending L2 transactions before including them in blocks. It can: (1) Front-run: insert its own transaction before a large DEX trade to profit from the price impact. (2) Sandwich: insert before and after a victim's trade, profiting from price movement. (3) Reorder: prioritize transactions from parties paying side-channel bribes. The centralization problem: both Arbitrum and Optimism currently operate single, centralized sequencers run by Offchain Labs and OP Labs respectively. This creates a monopolistic MEV extractor — users cannot route transactions to a competitor. Solutions being developed: (1) Fair ordering protocols (first-come-first-served based on arrival time). (2) Encrypted mempools (commit-reveal schemes where sequencer cannot see transaction content). (3) Decentralized sequencer networks (multiple competing sequencers). (4) MEV auctions that redistribute extracted value to users. The transition to decentralized sequencing is a major roadmap item for both Arbitrum and Optimism."
+                },
+                {
+                    "id": 8,
+                    "question": "What role does a sequencer play in an optimistic rollup, and what happens to the rollup if the sequencer goes offline?",
+                    "options": {
+                        "A": "The sequencer is one of many equal nodes in the rollup's validator set; if it goes offline, another node is automatically elected as the new sequencer within one block time through the rollup's consensus mechanism",
+                        "B": "The sequencer collects transactions, orders them, executes them, and posts batches to L1; if the centralized sequencer goes offline, the rollup halts — no new transactions are processed until the sequencer comes back online, though users retain the ability to exit via L1 directly using previously posted state data",
+                        "C": "The sequencer handles only L1 data posting; transaction execution is done by users' own nodes, so a sequencer outage only affects L1 posting and does not halt transaction processing",
+                        "D": "If the sequencer goes offline, a backup sequencer maintained by Ethereum validators automatically takes over within the next Ethereum block, ensuring less than 12 seconds of downtime for rollup users"
+                    },
+                    "correct": "B",
+                    "explanation": "The sequencer is the critical infrastructure component of current optimistic rollups. It performs: (1) Mempool management — receives and queues user transactions. (2) Transaction ordering — determines the sequence of transactions within a batch. (3) Execution — runs the EVM and produces the post-state. (4) Batch posting — compresses transactions and posts them to Ethereum L1 as calldata or blobs. (5) State root commitment — submits the new state root to the L1 bridge contract. If the centralized sequencer goes offline: the rollup halts — no new transactions are processed. This has happened to both Arbitrum and Optimism in production, causing minutes to hours of downtime. The escape hatch: users can still withdraw via L1 using force-inclusion mechanisms (submitting transactions directly to the L1 inbox contract, bypassing the sequencer). This is slower and more expensive but ensures funds are never permanently stuck. The path to resilience: decentralized sequencer networks (multiple operators) with round-robin or auction-based leader selection."
+                },
+                {
+                    "id": 9,
+                    "question": "What is the 'force inclusion' mechanism in optimistic rollups, and why is it critical for censorship resistance?",
+                    "options": {
+                        "A": "Force inclusion allows Ethereum validators to forcibly include any rollup transaction they want, overriding the sequencer's ordering — this is how Ethereum maintains ultimate authority over rollup transaction sequencing",
+                        "B": "Force inclusion allows any user to submit a transaction directly to the rollup's L1 inbox contract, bypassing the sequencer — after a delay (typically 24 hours), the transaction must be included in the rollup regardless of whether the sequencer wants to censor it, preventing indefinite sequencer censorship",
+                        "C": "Force inclusion is a mechanism for rollup operators to override governance decisions they disagree with, forcing the inclusion of protocol upgrades even if the DAO vote was against them",
+                        "D": "Force inclusion allows rollup bridges to forcibly include withdrawal transactions ahead of the 7-day challenge period, effectively providing instant withdrawals for users who submit the correct cryptographic proof"
+                    },
+                    "correct": "B",
+                    "explanation": "Force inclusion (also called the 'delayed inbox' or 'force-inclusion mechanism') is a critical safety property for L1-anchored censorship resistance. The problem it solves: a malicious or compromised sequencer could censor specific users — for example, preventing a user from withdrawing during a crisis. The mechanism: Arbitrum's delayed inbox allows any user to submit a transaction to a special L1 contract. If the sequencer doesn't voluntarily include this transaction within a delay window (24 hours in Arbitrum One, configurable), the transaction is automatically forced into the rollup's canonical chain regardless. This means: (1) The sequencer cannot permanently censor any user. (2) Users retain exit rights even if the sequencer is hostile. (3) The force-inclusion delay is a compromise — zero delay would allow MEV via force-inclusion; too long a delay reduces security. Optimism has a similar mechanism. This property is what distinguishes rollups from permissioned systems where the operator has absolute power to exclude users."
+                },
+                {
+                    "id": 10,
+                    "question": "What is the 'decentralization roadmap' concern with current optimistic rollup deployments, and what specific centralization risks exist today?",
+                    "options": {
+                        "A": "All major optimistic rollups are already fully decentralized with permissionless fraud provers, decentralized sequencers, and immutable smart contracts; the 'decentralization roadmap' is marketing language for features that are already complete",
+                        "B": "Current optimistic rollups have multiple centralization vectors: centralized single sequencers (controlled by the founding team), permissioned fraud provers (only specific entities can submit fraud proofs), and upgradeable smart contracts (the team can modify rollup rules with a multi-sig, potentially changing withdrawal terms); these are temporary while security is proven",
+                        "C": "Optimistic rollups are decentralized at the L1 level since Ethereum validators process their state roots; the only centralized component is the frontend website, which is a minor concern with negligible security implications",
+                        "D": "The decentralization concern is only about token distribution — current rollup tokens are concentrated among VC investors; once tokens are more widely distributed, all other decentralization properties automatically follow"
+                    },
+                    "correct": "B",
+                    "explanation": "The L2Beat 'risk' framework documents centralization risks across rollups. Current optimistic rollup centralization vectors: (1) Centralized sequencer — both Arbitrum One and OP Mainnet use single sequencers operated by Offchain Labs and OP Labs respectively. If the sequencer is compromised, it can censor or reorder transactions. (2) Permissioned fraud provers — as of 2024, fraud provers are whitelisted (only specific, trusted entities can challenge state roots). An invalid state root submitted by the sequencer might not be challenged if all approved provers are also compromised. (3) Upgradeable contracts with short timelocks — both rollups have multi-sig controlled contracts that can upgrade rollup rules. A malicious or compromised multi-sig could modify withdrawal terms or pause the system. (4) Admin emergency powers — ability to pause or upgrade without full governance. The industry uses 'Stage 0, 1, 2' classification: Stage 0 (fully trusted operator), Stage 1 (fraud proofs live, multi-sig still powerful), Stage 2 (fully trustless). Most rollups are at Stage 0-1."
+                },
+                {
+                    "id": 11,
+                    "question": "What is Arbitrum One's core architecture, and what is the 'Nitro' upgrade that transformed Arbitrum's performance?",
+                    "options": {
+                        "A": "Arbitrum One uses a unique consensus mechanism called 'Tendermint-BFT-Extended' with 100 validators; Nitro replaced this with proof-of-stake, reducing block times from 2 seconds to 250ms",
+                        "B": "Arbitrum One is an optimistic rollup using interactive fraud proofs (BOLD); the Nitro upgrade (2022) replaced the original custom AVM virtual machine with a WASM-compiled version of Geth — making Arbitrum natively EVM-equivalent, dramatically improving execution speed (10x), reducing fees, and simplifying developer tooling since existing Ethereum tooling works without modification",
+                        "C": "Arbitrum One is a ZK-rollup that switched to optimistic mode with the Nitro upgrade for cost reasons; Nitro temporarily disabled ZK proofs until prover hardware becomes cheap enough to generate them economically",
+                        "D": "Nitro was a tokenomics upgrade that introduced the ARB governance token and changed Arbitrum's fee structure from ETH-denominated to ARB-denominated fees, enabling community governance of fee parameters"
+                    },
+                    "correct": "B",
+                    "explanation": "Arbitrum's architecture evolution is instructive. Pre-Nitro: Arbitrum ran a custom virtual machine (AVM) that was Ethereum-compatible but not identical to the EVM. This required custom tooling and sometimes behaved differently from Ethereum. The Nitro upgrade (August 2022) was a fundamental architectural change: (1) Replaced the AVM with WASM — the fraud proof and execution engine now compile Geth (the most popular Ethereum client) to WebAssembly. (2) EVM-equivalence — Arbitrum Nitro runs the exact same bytecode as Ethereum, meaning all existing Ethereum tools (Hardhat, Foundry, Ethers.js) work identically with zero modification. (3) 10x lower fees — the new execution environment is more efficient. (4) Brotli compression — Nitro uses Brotli algorithm for transaction data compression (~40% better than previous). (5) Native ETH — ETH is the native token (vs. custom ArbETH previously). (6) Stylus addition (2023) — allows WASM smart contracts alongside EVM, enabling Rust, C, and C++ contracts. Post-Nitro, Arbitrum One became the dominant optimistic rollup by TVL and transaction volume."
+                },
+                {
+                    "id": 12,
+                    "question": "What is Arbitrum's BOLD (Bounded Liquidity Delay) fraud proof protocol, and how does it differ from earlier dispute systems?",
+                    "options": {
+                        "A": "BOLD is Arbitrum's liquidity mining program that bounds the maximum delay users experience when withdrawing to Ethereum — it guarantees withdrawals complete within 7 days by prepaying Ethereum gas for withdrawal transactions",
+                        "B": "BOLD is Arbitrum's permissionless interactive fraud proof system that allows any party to challenge invalid state roots without whitelisting; it bounds the maximum challenge resolution time to a fixed window regardless of the number of parallel disputes, preventing delay attacks where malicious actors create many simultaneous challenges to exhaust honest challengers",
+                        "C": "BOLD is Arbitrum's bridge liquidity protocol that pools ETH from liquidity providers to offer instant withdrawals at a small fee, with the 'bounded' delay referring to the maximum time a liquidity provider can be exposed to withdrawal risk",
+                        "D": "BOLD replaced Arbitrum's original fraud proof with a validity proof system — it generates ZK proofs of correct execution, bounding the computational delay to proof generation time rather than a social challenge window"
+                    },
+                    "correct": "B",
+                    "explanation": "BOLD (Bounded Liquidity Delay, deployed 2024) is Arbitrum's major advancement in fraud proof design. The problem it solves: earlier dispute systems were vulnerable to 'delay attacks' — a malicious actor could create many simultaneous disputes, forcing honest challengers to respond to each, potentially exhausting their ETH bonds. BOLD's key innovations: (1) Permissionless — any party can challenge without whitelisting; honest challengers compete to win the sequencer's slashed bond. (2) Bounded resolution time — regardless of how many malicious disputes are created simultaneously, all disputes resolve within a fixed maximum time window. The number of disputes doesn't multiply the delay. (3) All-vs-all disputes — a single honest challenger can refute an unlimited number of invalid claims by the sequencer. (4) Capital efficiency — honest challengers need only bond ETH proportional to the maximum claim they're disputing, not proportional to all simultaneous disputes. BOLD brings Arbitrum significantly closer to Stage 2 (fully trustless) by making fraud proofs fully permissionless and attack-resistant."
+                },
+                {
+                    "id": 13,
+                    "question": "What is the Arbitrum ecosystem's 'Orbit' framework, and how does it relate to the concept of L3 chains?",
+                    "options": {
+                        "A": "Arbitrum Orbit is Arbitrum's token governance framework where ARB holders vote on protocol upgrades; L3 refers to the third layer of governance (token holders, multisig, and Arbitrum Foundation) rather than a technical blockchain layer",
+                        "B": "Arbitrum Orbit allows anyone to deploy custom rollup or AnyTrust chains that settle to Arbitrum One or Arbitrum Nova (instead of directly to Ethereum), creating 'L3' chains — these chains inherit Arbitrum's security and benefit from Arbitrum's already-compressed data costs, achieving even lower fees than L2s while leveraging the full Arbitrum tech stack",
+                        "C": "Orbit is Arbitrum's name for Ethereum's Danksharding upgrade; L3 refers to the third phase of Ethereum's scaling roadmap after the merge and EIP-4844",
+                        "D": "Arbitrum Orbit is a cross-chain messaging protocol that connects Arbitrum to Optimism, Base, and other L2s; L3 refers to the application-level logic layer that runs on top of multiple L2 chains simultaneously"
+                    },
+                    "correct": "B",
+                    "explanation": "Arbitrum Orbit (launched 2023) enables the creation of L3 (Layer 3) chains. The architecture: Ethereum L1 (settlement + data availability) -> Arbitrum One L2 (execution rollup, settles to L1) -> Orbit L3 chains (settle to Arbitrum L2). Why L3? By settling to Arbitrum instead of Ethereum, Orbit chains: (1) Pay Arbitrum's already-compressed data costs rather than raw Ethereum calldata costs — L3 data fees can be 100x lower than L2 fees. (2) Inherit Arbitrum's security (which inherits Ethereum's security). (3) Access Arbitrum's ecosystem of bridges, liquidity, and infrastructure. Orbit chains are highly customizable: operators choose their own gas token (any ERC-20), their own fee model, their own validator set, and whether to use standard rollup (data on Arbitrum) or AnyTrust mode (data via a DAC). Use cases: XAI (gaming), Treasure Chain (gaming ecosystem), dYdX v4-style app-chains, enterprise private chains. The L3 concept reflects a broader trend toward app-specific rollups ('appchains') that have dedicated throughput for specific applications."
+                },
+                {
+                    "id": 14,
+                    "question": "What is Optimism's OP Stack, and why was it designed as open-source modular software?",
+                    "options": {
+                        "A": "The OP Stack is Optimism's proprietary hardware stack for running sequencer nodes — it specifies the exact server configuration required to operate a high-performance sequencer and is licensed only to approved operators",
+                        "B": "The OP Stack is an open-source, modular framework for building optimistic rollup chains; it was designed to be open-source to enable other teams to deploy their own rollups sharing Optimism's codebase, tooling, and security research — creating a 'Superchain' of OP Stack chains that share standards, bridges, and messaging infrastructure",
+                        "C": "The OP Stack is Optimism's token staking framework that allows OP token holders to stake tokens across multiple chains simultaneously, with rewards distributed proportionally across all OP Stack deployments",
+                        "D": "The OP Stack is an open-source frontend library for building Optimism-compatible dApp interfaces; it replaces Web3.js and Ethers.js with Optimism-specific abstractions optimized for low-latency L2 interaction"
+                    },
+                    "correct": "B",
+                    "explanation": "The OP Stack (launched 2023) represents a strategic pivot from Optimism as a single rollup to Optimism as a platform. The modular architecture: (1) Execution layer — currently uses EVM (go-ethereum fork), designed to be swappable (could add ZK prover later). (2) Sequencing layer — currently centralized, designed for future decentralization. (3) Derivation layer — how L2 chain is derived from L1 data. (4) Settlement layer — how state roots are posted and verified on L1. (5) Governance layer — OP Collective's bicameral governance. Each layer is composable and replaceable. The open-source strategy: by releasing OP Stack under an MIT license and inviting teams to deploy OP Stack chains, Optimism creates: ecosystem network effects (shared tooling, audits, bridges), sequencer revenue sharing back to Optimism Collective treasury, and a collaborative 'law of chains' governance framework. Base (by Coinbase), opBNB, Worldchain, Mode, Zora Network, and Mantle all use OP Stack. This positions Optimism as infrastructure rather than just a product."
+                },
+                {
+                    "id": 15,
+                    "question": "What is the Optimism Superchain, and what shared infrastructure do OP Stack chains inherit?",
+                    "options": {
+                        "A": "The Optimism Superchain is a marketing term for Optimism's high throughput — 'super' refers to the performance improvement over Ethereum L1, not any specific technical property",
+                        "B": "The Superchain is a network of OP Stack chains that share: a common L1 (Ethereum), a cross-chain messaging standard (the Superchain interop protocol), shared sequencing infrastructure, and Optimism Collective governance — enabling low-latency, trust-minimized communication between OP Stack chains without bridging through L1",
+                        "C": "The Superchain is Optimism's name for the combined TVL (total value locked) across all rollups in the Ethereum ecosystem; it represents Ethereum's aggregate scaling capacity rather than a specific technical network",
+                        "D": "The Superchain is a permissioned network where only companies that pay an annual license fee to OP Labs can deploy chains; the revenue funds Optimism's public goods program, with 15% of fees going to the Ethereum Foundation"
+                    },
+                    "correct": "B",
+                    "explanation": "The Superchain vision (articulated in Optimism's Superchain whitepaper) is for OP Stack chains to form a cohesive network rather than isolated silos. Shared infrastructure: (1) L1 settlement — all OP Stack chains settle to Ethereum, sharing Ethereum's security. (2) Shared bridge contract — the Superchain bridge is a standardized interface for all OP Stack chains, enabling trust-minimized bridging between them. (3) Interop protocol — the Superchain interop specification (in development) enables cross-chain messages to be delivered between OP Stack chains within seconds, not the minutes/hours of current L1-bridged messaging. (4) Shared sequencing — future: OP chains could share sequencers, enabling atomic cross-chain transactions. (5) Governance — the Law of Chains sets minimum standards that all OP Stack chains must follow to be considered part of the Superchain. This contrasts with isolated L2s that can only communicate through L1 bridges. A user on Base could atomically swap into Worldchain in a single transaction — the Superchain's interop goal. OP Stack chains as of early 2025 include Base, OP Mainnet, Zora, Mode, and 10+ others."
+                },
+                {
+                    "id": 16,
+                    "question": "What is Optimism's 'Retroactive Public Goods Funding' (RetroPGF), and how does it use sequencer revenue?",
+                    "options": {
+                        "A": "RetroPGF is Optimism's token buyback program where sequencer profits are used to purchase OP tokens from the open market, supporting the token price and providing liquidity for governance participants",
+                        "B": "RetroPGF is a mechanism where the Optimism Collective allocates a portion of sequencer revenue to fund public goods retroactively — projects, tools, and infrastructure that have demonstrably created value for the Ethereum and Optimism ecosystem receive grants voted on by a 'Citizens' House' of badgeholders, rewarding impact after it occurs rather than funding speculative projects",
+                        "C": "RetroPGF is Optimism's validator reward system — validators who process fraud proofs receive retroactive compensation for past security work based on the number of disputes they resolved, paid out annually from the sequencer revenue pool",
+                        "D": "RetroPGF is a regulatory compliance mechanism where Optimism returns 15% of sequencer profits to original token investors who suffered losses during the 2022 bear market, providing partial retroactive compensation for their investment losses"
+                    },
+                    "correct": "B",
+                    "explanation": "Retroactive Public Goods Funding (RetroPGF) is one of Optimism's most innovative governance experiments. The philosophy: 'It's easier to agree that something was useful in retrospect than to predict in advance what will be useful.' Mechanism: (1) Optimism Collective designates a portion of sequencer profits to RetroPGF rounds (hundreds of millions of dollars allocated across multiple rounds). (2) Projects, developers, and content creators submit their contributions to the ecosystem. (3) Badgeholders (Citizens' House) — a curated set of Optimism community members — vote on how to distribute the funds across submissions. (4) Winners receive ETH/OP grants retroactively for past work. RetroPGF recipients have included: Ethereum client teams (Geth, Nethermind), EVM tooling (Hardhat, Foundry, Ethers.js), educational content, and core infrastructure. The model creates a 'build first, get paid if valuable' incentive that differs from traditional grants (pay first for speculative work). This experiment is tracked closely as a potential model for sustainable public goods funding in blockchain ecosystems."
+                },
+                {
+                    "id": 17,
+                    "question": "Base is an optimistic rollup built by Coinbase using the OP Stack. What strategic advantages does Coinbase's involvement bring to Base, and what makes it unique among OP Stack chains?",
+                    "options": {
+                        "A": "Base's strategic advantage is its use of USDC as the native gas token rather than ETH — this removes ETH price volatility from user fee calculations and gives Coinbase's stable asset ecosystem a built-in distribution advantage",
+                        "B": "Coinbase's involvement gives Base access to 100+ million Coinbase users and direct fiat on-ramp integration, making it the first L2 with mainstream consumer distribution; Base also commits 15% of sequencer profits to the Optimism Collective, aligning it with the Superchain vision while benefiting from Coinbase's institutional trust and regulatory compliance work",
+                        "C": "Base is unique because it uses a proprietary proof system developed by Coinbase that is 10x faster than Arbitrum's BOLD; Coinbase's financial resources allowed funding a research team that produced this breakthrough",
+                        "D": "Base's strategic advantage is its exemption from Ethereum L1 gas fees — Coinbase negotiated a special agreement with Ethereum validators where Base transactions are processed at zero cost on L1, making Base permanently cheaper than any other rollup"
+                    },
+                    "correct": "B",
+                    "explanation": "Base (launched August 2023) is the fastest-growing optimistic rollup by a significant margin as of 2024-2025. Coinbase's strategic advantages: (1) User distribution — Coinbase has 100M+ verified users. Base is deeply integrated into the Coinbase app, Coinbase Wallet, and Coinbase's institutional custody. This gives Base unprecedented distribution: users can go from fiat to Base in one step without using MetaMask or bridging. (2) Trust and compliance — Coinbase's regulatory standing as a publicly traded company (NASDAQ: COIN) gives institutional users and regulators confidence in Base. (3) Developer ecosystem — Coinbase's developer tools (OnchainKit, Coinbase wallet SDK) are designed around Base. (4) Revenue model — Base contributes a percentage of sequencer profits to the OP Collective and retains the rest for Coinbase, creating a sustainable business model. Base's rapid growth (largest L2 by transaction count at times, home to major consumer apps like friend.tech, Farcaster ecosystem) demonstrates how distribution advantages can dramatically accelerate L2 adoption beyond pure technical merit."
+                },
+                {
+                    "id": 18,
+                    "question": "What is the 'mass adoption' strategy of Base, and how does Onchain Summer illustrate it?",
+                    "options": {
+                        "A": "Base's mass adoption strategy is institutional — targeting hedge funds, banks, and corporate treasuries with compliance tools and KYC-gated access, with Onchain Summer referring to the summer 2023 institutional adoption wave",
+                        "B": "Base's mass adoption strategy targets mainstream consumers through low-cost transactions, seamless Coinbase integration, and consumer-facing applications (social, gaming, creator tools); Onchain Summer (launched summer 2023) was a campaign bringing mainstream brands and artists onchain with NFT mints, interactive experiences, and brand activations — demonstrating that sub-cent transactions on Base enable consumer use cases impossible on Ethereum L1",
+                        "C": "Base's mass adoption strategy focuses on DeFi protocols — offering zero-fee transactions for DeFi interactions to attract liquidity from other chains, with Onchain Summer being a liquidity mining campaign to bootstrap TVL",
+                        "D": "Onchain Summer was Base's validator incentive program where users who ran validator nodes during the summer of 2023 received retroactive BASE token airdrops; this bootstrapped Base's decentralized security infrastructure before mainnet launch"
+                    },
+                    "correct": "B",
+                    "explanation": "Base's mass adoption strategy is explicitly about bringing 'the next billion users onchain' — Coinbase's stated mission. The approach differs fundamentally from DeFi-focused L2s: (1) Consumer applications — Base has prioritized social (friend.tech, Farcaster/Warpcast), gaming, creator economy (Zora NFT minting), and micropayments where sub-cent fees are essential. (2) Abstracted crypto — Base + Coinbase Smart Wallet enables gasless transactions and fiat-denominated fees, hiding blockchain complexity from end users. (3) Onchain Summer (2023) — a marketing and product campaign where major brands (Coca-Cola, Atari, NARS cosmetics) and artists (DJ Premier, Grimes) launched NFT experiences on Base. The sub-cent transaction costs made mass-market NFT drops viable — millions of free mints without prohibitive gas costs. (4) App store model — Base is building a consumer-facing discovery layer for onchain apps. This strategy positions Base as the 'App Store' layer for blockchain, contrasting with Arbitrum's DeFi and infrastructure focus."
+                },
+                {
+                    "id": 19,
+                    "question": "How does the fee structure of an optimistic rollup work, and what are the two main components a user pays?",
+                    "options": {
+                        "A": "Optimistic rollup users pay a single unified fee denominated in the rollup's native token; this fee is then split by the sequencer between L1 data costs and its own profit margin, with the split ratio disclosed in the rollup's documentation",
+                        "B": "Users pay two components: (1) an L2 execution fee (gas used on L2 * L2 gas price, covering sequencer costs for executing the transaction), and (2) an L1 data fee (the cost of posting compressed transaction data to Ethereum L1, proportional to the transaction's calldata/blob contribution), making total fees = L2 execution + L1 data costs",
+                        "C": "Optimistic rollup fees have three components: L2 execution, L1 data, and a fraud-proof insurance premium that users pay into a pool used to compensate victims of proven fraud events",
+                        "D": "Users on optimistic rollups pay only the L2 execution fee; L1 data costs are subsidized by the rollup operator from sequencer MEV profits, meaning the L1 posting cost is effectively zero for end users"
+                    },
+                    "correct": "B",
+                    "explanation": "Optimistic rollup fee structure has two distinct components: (1) L2 execution fee: gas used * L2 gas price. The L2 gas price is typically much lower than Ethereum's (often 0.01-0.1 Gwei vs. Ethereum's 10-50 Gwei during normal conditions). This covers the sequencer's cost of running the EVM and its profit. (2) L1 data fee: the dominant cost for most transactions. The sequencer batches thousands of transactions together, compresses them, and posts the batch to Ethereum. The L1 data fee is each user's proportional share of that batch's Ethereum posting cost. Before EIP-4844: L1 data was posted as calldata at ~16 Gwei/byte (non-zero). After EIP-4844 (March 2024): L1 data is posted as blobs at a separate, much lower fee market, reducing this component by 80-95%. Post-EIP-4844 total fees on Base/Arbitrum/Optimism dropped to fractions of a cent for simple transfers. The relative importance of components: for a simple ETH transfer, L1 data dominates. For complex DeFi (many SSTORE operations), L2 execution becomes more significant relative to data."
+                },
+                {
+                    "id": 20,
+                    "question": "What was EIP-4844's impact on optimistic rollup fees, and what does the path to full Danksharding mean for their future cost trajectory?",
+                    "options": {
+                        "A": "EIP-4844 had no impact on optimistic rollup fees because rollups were already using a separate off-chain data availability layer; Danksharding will also have no impact for the same reason",
+                        "B": "EIP-4844 (Dencun, March 2024) introduced blobs — temporary, cheaper data containers — reducing rollup L1 data costs by 80-95% and dropping user fees from cents to sub-cent levels; full Danksharding will expand blob capacity from 3-6 to 64 blobs per block and add data availability sampling, allowing the ecosystem to support ~1M TPS across all rollups at similarly low per-transaction costs",
+                        "C": "EIP-4844 reduced optimistic rollup fees by 5-10% by slightly increasing Ethereum block size; full Danksharding will reduce fees by an additional 5-10%, reaching an asymptotic floor due to fundamental economic constraints in proof-of-stake validator economics",
+                        "D": "EIP-4844 increased optimistic rollup fees because blobs introduced a new fee market that competed with regular transactions; Danksharding is designed to reverse this by separating blob fees entirely from the regular Ethereum fee market"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-4844 (Dencun upgrade, March 13 2024) was the most impactful fee reduction event in Ethereum L2 history. Before Dencun: Arbitrum and Optimism fees were $0.10-$1.00 per transaction. After Dencun: fees dropped to $0.001-$0.01 — a 80-95% reduction. The mechanism: blobs (binary large objects) are a new transaction type that uses a separate fee market with much lower base prices. Blobs are stored by nodes for ~18 days then pruned (unlike calldata which is permanent), making them cheaper. Each Ethereum block can currently hold 3-6 blobs of 128 KB each. Path to full Danksharding: Phase 1 (current) — 3-6 blobs/block, ~10x cheaper than calldata. Phase 2 (Danksharding) — 64 blobs/block with data availability sampling (DAS) enabling light clients to verify data availability without downloading full blobs, scaling to ~1.3 MB/block of blob data. At 64 blobs and current L2 compression ratios, the Ethereum ecosystem can support ~1M TPS across all rollups. Combined with L2-level parallelism, this makes sub-cent transactions feasible for global-scale applications."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz L2-4: Sidechains, Alternative Scaling &amp; L2 Future | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz L2-4: Sidechains, Alternative Scaling &amp; L2 Future</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz L2-4: Sidechains, Alternative Scaling &amp; L2 Future</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the fundamental trust model difference between a sidechain like Polygon PoS and a rollup like Arbitrum when connected to Ethereum Mainnet?",
+                    "options": {
+                        "A": "Sidechains and rollups have identical trust models — both rely on Ethereum validators to verify every transaction; the only difference is that rollups batch transactions while sidechains process them one by one",
+                        "B": "A sidechain has its own independent validator set whose honesty users must trust; if a supermajority of sidechain validators collude, they can steal bridged assets. A rollup inherits Ethereum's security because its state roots are verified by fraud proofs or validity proofs on Ethereum L1 — even a malicious rollup operator cannot steal funds without breaking Ethereum",
+                        "C": "Rollups require users to trust the rollup team not to upgrade malicious smart contracts, while sidechains are more trustless because their validator sets are decentralized and cannot be upgraded by any single party",
+                        "D": "The trust model difference is purely economic: rollups require larger security deposits from operators than sidechains, making rollup operators more accountable but also making rollups more expensive to run"
+                    },
+                    "correct": "B",
+                    "explanation": "The trust model distinction between sidechains and rollups is the most important conceptual divide in L2 architecture. Sidechains (Polygon PoS, BNB Chain, Gnosis Chain) are fully independent blockchains with their own validator sets. Their bridges work by: locking assets on Ethereum in a multisig or smart contract, then minting wrapped tokens on the sidechain when validators attest to the lock. The security guarantee is only as strong as the sidechain's validator set — if enough validators collude, they can falsely attest to burns that never happened and drain the Ethereum bridge. Polygon PoS has ~100 validators controlled by MATIC stakers; BNB Chain has 21 validators appointed by Binance. Rollups, by contrast, post all transaction data AND state proofs to Ethereum. An optimistic rollup's state root can be challenged by any honest watcher submitting a fraud proof; a ZK rollup's state root is accepted only with a cryptographic validity proof. In both cases, Ethereum L1 is the arbiter — the security reduces to Ethereum's own security, not to a smaller validator set."
+                },
+                {
+                    "id": 2,
+                    "question": "Why do sidechains offer dramatically higher throughput and lower fees than rollups that inherit Ethereum security, and what is the security cost of this trade-off?",
+                    "options": {
+                        "A": "Sidechains achieve higher throughput by using a different virtual machine (non-EVM) that executes transactions 100x faster; rollups are slower because they must use the EVM, which was never designed for high performance",
+                        "B": "Sidechains achieve higher throughput and lower fees because they do not post transaction data or proofs to Ethereum L1 — no L1 data posting costs exist. The security cost is that sidechain security depends entirely on the sidechain's own (typically smaller and less decentralized) validator set rather than Ethereum's 900,000+ validators",
+                        "C": "Sidechains have higher throughput because their consensus runs every 1 second versus Ethereum's 12-second slots; rollups are constrained to Ethereum's block time, forcing them to batch transactions every 12 seconds maximum",
+                        "D": "Sidechains avoid rollup overhead by not supporting smart contracts — they process only simple token transfers, which are computationally trivial compared to EVM smart contract execution"
+                    },
+                    "correct": "B",
+                    "explanation": "The throughput and cost advantage of sidechains comes from not paying Ethereum L1 costs. Rollup economics: for every batch of transactions, a rollup must pay Ethereum gas for: (a) calldata or blob costs to post compressed transaction data, and (b) gas for proof verification (ZK rollups) or state root updates (optimistic rollups). These L1 costs dominate rollup fees — even after EIP-4844, a large batch amortizes L1 costs over many users, but the cost floor is set by Ethereum. Sidechains pay zero Ethereum costs. Polygon PoS processes 7,000+ TPS with fees under $0.01 because it never touches Ethereum except for periodic checkpoint submissions (and even those are optional for normal operations). The security cost: Polygon PoS's security is protected by MATIC stakers worth far less than Ethereum's staked ETH (~$50B+). A theoretical 51% attack on Polygon PoS requires corrupting validators worth a fraction of Ethereum's security budget. For applications prioritizing low cost and high speed over maximum security (gaming, social media, micropayments), this trade-off may be acceptable."
+                },
+                {
+                    "id": 3,
+                    "question": "Polygon PoS is often described as a 'commit chain' rather than a pure sidechain. What does this mean and how does it differ from a fully independent sidechain?",
+                    "options": {
+                        "A": "A commit chain is a sidechain that uses a proof-of-work consensus mechanism to commit block hashes to Bitcoin; Polygon PoS uses this model with Ethereum instead, making it a hybrid PoW/PoS system",
+                        "B": "Polygon PoS periodically submits Merkle tree checkpoints of its block headers to Ethereum L1, creating a finality anchor. This allows users to reconstruct sidechain state from these checkpoints and exit through an Ethereum smart contract using Merkle proofs — providing a weaker but non-zero connection to Ethereum security, unlike fully independent chains that have no Ethereum anchoring at all",
+                        "C": "A commit chain is a sidechain where validators must commit to a 6-month lock-up period before they can participate in consensus; this long-term commitment deters short-term attacks better than standard PoS with immediate unstaking",
+                        "D": "Polygon PoS qualifies as a commit chain because it commits to processing at least 1,000 TPS at all times; this service level commitment is enforced by smart contracts on Ethereum that can slash validators for downtime"
+                    },
+                    "correct": "B",
+                    "explanation": "Polygon PoS occupies a middle ground in the security spectrum. Every few hundred blocks, Polygon PoS validators submit a Merkle checkpoint of recent block headers to an Ethereum smart contract. This checkpoint anchors Polygon's history to Ethereum at those points in time. In the event of a sidechain failure or validator collusion, users can theoretically prove their balances at the last checkpoint and exit to Ethereum. However, the gap between checkpoints (typically 30-60 minutes) means users are exposed to sidechain-level risk between checkpoints. This is weaker than rollup security (which inherits Ethereum security for every transaction) but stronger than a fully independent chain with no Ethereum connection whatsoever. Polygon's long-term roadmap involves migrating to Polygon zkEVM (a true ZK rollup) which would provide full Ethereum-level security. The 'commit chain' framing emphasizes this incremental improvement over pure sidechains, though it remains distinct from the security guarantees of proper rollups."
+                },
+                {
+                    "id": 4,
+                    "question": "What are Avalanche Subnets, and how do they differ from Ethereum's rollup-based scaling approach?",
+                    "options": {
+                        "A": "Avalanche Subnets are Ethereum Layer 2 networks that use Avalanche's faster consensus algorithm instead of proof-of-stake; they are compatible with Ethereum's rollup ecosystem and can settle directly to Ethereum",
+                        "B": "Avalanche Subnets are application-specific blockchains within the Avalanche ecosystem where developers define their own validator set, gas token, and VM — validators must also validate the Avalanche Primary Network (requiring 2,000 AVAX minimum stake). Subnets are closer to the sidechain model than rollups: they have independent security from their own validators rather than inheriting a parent chain's security through proofs",
+                        "C": "Avalanche Subnets are shards of the Avalanche main chain, similar to Ethereum's planned shards; each subnet processes a subset of Avalanche transactions and shares the full security of the 1,200+ Avalanche validators",
+                        "D": "Avalanche Subnets are cross-chain bridges that allow assets to move between Avalanche and Ethereum; the 'subnet' refers to the network of bridge operators who relay messages between the two ecosystems"
+                    },
+                    "correct": "B",
+                    "explanation": "Avalanche Subnets represent Avalanche's approach to application-specific blockchains. A Subnet is a sovereign network that defines its own rules: custom VM (EVM-compatible or entirely custom), native gas token, validator requirements, and permissioning. Subnet validators must also validate Avalanche's Primary Network (C-Chain, X-Chain, P-Chain), requiring a minimum stake of 2,000 AVAX (~$50,000+ at typical prices), which limits validator decentralization. Security model: each Subnet's security depends on its own validator set — there is no fraud-proof or validity-proof mechanism settling to the Primary Network. A Subnet with few validators has proportionally weaker security. Notable Subnets: DFK Chain (DeFi Kingdoms game), Swimmer Network (gaming), and most notably Beam (Merit Circle gaming). This contrasts sharply with Ethereum rollups where all security derives from Ethereum L1 through cryptographic proofs. The Subnet model offers more customizability and sovereignty (own token for fees, custom execution environments) but sacrifices composability with other Subnets and inherits weaker security guarantees than a rollup settling to a major L1."
+                },
+                {
+                    "id": 5,
+                    "question": "Cosmos's Inter-Blockchain Communication (IBC) protocol enables sovereign blockchains ('zones') to communicate. How does this differ from Ethereum's rollup model in terms of sovereignty and security?",
+                    "options": {
+                        "A": "IBC is technically identical to Ethereum's rollup bridges — both use light client proofs to verify cross-chain messages; the only difference is that IBC uses the Tendermint consensus header format while Ethereum uses RLP encoding",
+                        "B": "Cosmos zones connected via IBC are fully sovereign blockchains with their own validator sets, tokenomics, and governance — they do not inherit security from a shared root chain. IBC uses light client proofs for trustless communication between zones. Ethereum rollups sacrifice sovereignty (they settle to Ethereum, cannot change consensus rules) in exchange for inheriting Ethereum's security — zones sacrifice inherited security for full sovereignty and customizability",
+                        "C": "Cosmos IBC zones share Ethereum's validator set through a cross-chain staking mechanism; they inherit Ethereum security by requiring IBC validators to also stake on Ethereum, creating cryptoeconomic alignment between the two ecosystems",
+                        "D": "The primary difference is legal: Cosmos zones are incorporated as DAOs in Switzerland and operate under Swiss law, giving them a recognized legal status that makes them more trustworthy than Ethereum rollups, which have no formal legal structure"
+                    },
+                    "correct": "B",
+                    "explanation": "The Cosmos Hub/IBC model and Ethereum rollup model represent two competing visions for multi-chain scaling. Cosmos philosophy: application-specific blockchains (appchains) should be fully sovereign — owning their validator set, tokenomics, upgrade path, and governance. IBC enables trustless communication between zones using light client proof verification: Zone A's light client verifies Zone B's block headers, and vice versa, enabling verified cross-chain message passing without a central hub. Security: each zone is only as secure as its own validator set. There is no inheritance of shared security (Cosmos Hub's ATOM stake does not protect individual zones, though the Interchain Security feature partially addresses this). Ethereum rollup model: rollups sacrifice sovereignty (must follow Ethereum's upgrade path, cannot change gas mechanics arbitrarily, constrained to Ethereum's data availability) in exchange for inheriting Ethereum's massive security budget. The trade-off is explicit: appchain sovereignty vs. inherited security. Projects like dYdX migrated from Ethereum (as a rollup) to a Cosmos appchain, gaining full control over block production and fee structures at the cost of Ethereum-level security."
+                },
+                {
+                    "id": 6,
+                    "question": "What is the 'modular blockchain thesis' and how does it decompose the functions of a monolithic blockchain like Ethereum or Solana?",
+                    "options": {
+                        "A": "The modular thesis argues that all blockchain functions should be handled by a single specialized chain optimized for each function: one chain for DeFi, one for NFTs, one for gaming — specialization by use case rather than by technical layer",
+                        "B": "The modular thesis holds that a monolithic blockchain (which handles execution, settlement, consensus, and data availability in one layer) can be decomposed into specialized layers: an execution layer (processes transactions), a settlement layer (verifies proofs and resolves disputes), a consensus layer (orders transactions), and a data availability layer (ensures published data is accessible) — each optimized independently for its specific function",
+                        "C": "The modular thesis is a software engineering approach where blockchain clients are built from interchangeable modules (consensus module, execution module, networking module) that can be upgraded independently — it refers to client architecture, not to separating functions across different networks",
+                        "D": "The modular thesis is the argument that Ethereum should split into multiple independent chains (modules) connected by the beacon chain, with each module handling a fixed subset of Ethereum addresses — effectively a form of address-space sharding"
+                    },
+                    "correct": "B",
+                    "explanation": "The modular blockchain thesis (articulated most clearly by Celestia's team and Ethereum researchers) challenges the assumption that a single chain should do everything. A monolithic blockchain like Solana handles all four functions in one layer: (1) Execution — run EVM/SVM and process transaction state changes; (2) Settlement — final arbitration of disputes and proof verification; (3) Consensus — order transactions so all nodes agree on canonical history; (4) Data availability — ensure all nodes can download and verify block data. The modular thesis argues: these functions have different requirements and trade-offs. Execution needs speed and EVM compatibility. Settlement needs strong security and decentralization. Consensus needs reliability and liveness. Data availability needs cheap, abundant storage with erasure coding. Specialized chains can optimize for one function far better than a monolithic chain optimizing for all four simultaneously. The Ethereum rollup stack embodies this: rollups handle execution, Ethereum L1 handles settlement and consensus, and Celestia/EigenDA/EIP-4844 blobs handle data availability. This decomposition enables each layer to be optimized independently."
+                },
+                {
+                    "id": 7,
+                    "question": "In the modular blockchain stack, what specific role does 'settlement' play, and why is it distinct from execution and consensus?",
+                    "options": {
+                        "A": "Settlement is the process of converting cryptocurrency to fiat currency through licensed exchanges; it is the final step in the blockchain transaction lifecycle and requires government-licensed financial institutions to participate",
+                        "B": "Settlement is the layer that verifies rollup proofs and provides a canonical source of truth for resolving disputes — it receives state roots from execution layers, verifies their correctness (via fraud proofs or validity proofs), and records finalized state. It is distinct from execution (which runs transactions) and consensus (which orders them): a rollup can use one chain for execution and a different chain for settlement",
+                        "C": "Settlement refers to the time delay between transaction broadcast and finality — settlement time is 15 minutes for Bitcoin, 12 minutes for Ethereum, and instant for Solana; faster settlement times are the primary advantage of newer blockchains",
+                        "D": "Settlement is the mechanism by which block rewards are distributed to validators; it is distinct from consensus (which determines who proposes blocks) because settlement handles the economic incentive layer while consensus handles the technical ordering layer"
+                    },
+                    "correct": "B",
+                    "explanation": "Settlement in the modular context has a precise technical meaning: the layer that provides a canonical, trustless resolution mechanism for disputes about execution results. When a rollup posts a state root to Ethereum, Ethereum acts as the settlement layer: the rollup bridge contract accepts the state root as final (after fraud-proof window or validity proof verification). If a dispute arises, Ethereum resolves it authoritatively. This is distinct from: Execution — the rollup EVM runs transactions and produces state transitions; the rollup doesn't need Ethereum for this. Consensus — Ethereum's beacon chain orders its own blocks; the rollup's sequencer separately orders rollup transactions. The settlement layer's key property is finality: once Ethereum accepts a state root, it cannot be reversed without reversing Ethereum itself. This is what 'inheriting Ethereum security' means — the settlement guarantee is backed by Ethereum's security budget ($50B+ staked ETH). Theoretically, different rollups could use different settlement layers. Some projects have explored using Bitcoin as settlement for Ethereum rollups (BitVM), or using Ethereum as settlement for Celestia-based rollups, mixing modular components across ecosystems."
+                },
+                {
+                    "id": 8,
+                    "question": "What did EIP-4844 (implemented in the Dencun upgrade, March 2024) introduce, and what was its measured impact on Layer 2 fees?",
+                    "options": {
+                        "A": "EIP-4844 increased Ethereum's base block gas limit from 15M to 30M, doubling L1 throughput and indirectly reducing L2 costs by making more calldata space available at lower competition prices — fees fell approximately 20% on major rollups",
+                        "B": "EIP-4844 introduced 'blob-carrying transactions' — a new transaction type that carries up to 128 KB of temporary data ('blobs') stored outside the EVM execution environment at a separate, cheaper fee market. Rollups use blobs instead of calldata to post data to Ethereum. The initial target of 3 blobs per block (max 6) made rollup data posting 80-95% cheaper, reducing L2 fees from tens of cents to fractions of a cent on chains like Base and Optimism",
+                        "C": "EIP-4844 introduced a new ZK proof system (SNARK-4844) that allows rollups to verify transaction batches 10x faster on Ethereum L1, reducing the gas cost of ZK proof verification and making ZK rollups competitive with optimistic rollups for the first time",
+                        "D": "EIP-4844 created a dedicated Ethereum sidechain ('the blob chain') that runs at 10,000 TPS and stores rollup data permanently for $0.001 per transaction; rollups connect to this chain via a bridge, and Ethereum L1 validators co-validate the blob chain"
+                    },
+                    "correct": "B",
+                    "explanation": "EIP-4844 (Proto-Danksharding) was the most impactful upgrade for L2 economics since rollups launched. Before EIP-4844: rollups used Ethereum calldata to post transaction data — calldata costs 16 gas per non-zero byte, subject to L1's gas price. During peak periods, a single rollup batch could cost thousands of dollars in L1 data fees, forcing rollups to charge $0.10-$2.00 per transaction. EIP-4844 introduced BlobTx (Type 3 transactions) with a separate blob fee market. Each blob is 128 KB. Initially 3-6 blobs per block, targeting 3 (384 KB/block of rollup data). Blob pricing uses its own exponential adjustment mechanism (EIP-1559-style) separate from normal gas. The blob fee market started essentially empty — blobs were nearly free initially, dropping rollup costs by 80-95%. Measured impact: Base fees dropped from ~$0.20 to ~$0.001. Optimism fees dropped from ~$0.15 to ~$0.002. Arbitrum fees fell similarly. This made rollups viable for micropayments and consumer applications. The upgrade also laid the cryptographic groundwork (KZG commitments) for full Danksharding, which will expand to 64 blobs/block — 8MB/block of rollup data — in future upgrades."
+                },
+                {
+                    "id": 9,
+                    "question": "What are KZG commitments and why are they used for blob data in EIP-4844 rather than simpler Merkle tree commitments?",
+                    "options": {
+                        "A": "KZG commitments are named after the KZG regulatory standard for financial data — they ensure blob data meets SEC reporting requirements for on-chain financial disclosures, which is mandatory for rollups operating in regulated jurisdictions",
+                        "B": "KZG (Kate-Zaverucha-Goldberg) polynomial commitments allow a prover to commit to a polynomial encoding of blob data with a constant-size commitment, and later prove that any specific data point in the blob is correct with a constant-size proof — enabling efficient data availability sampling where light clients can verify blob availability by checking random polynomial evaluations without downloading the full blob",
+                        "C": "KZG commitments are a form of hash function specifically optimized for large data blobs — they compute faster than SHA-256 on data over 128 KB, which is why they are used for blob data while SHA-256 is used for regular Ethereum transactions",
+                        "D": "KZG commitments allow Ethereum validators to compress blobs into 32-byte hashes that are stored permanently in the Ethereum state, while the full blob data is discarded after 18 days — the commitment serves as a permanent receipt proving the blob was once posted"
+                    },
+                    "correct": "B",
+                    "explanation": "KZG (Kate-Zaverucha-Goldberg) polynomial commitments are a cryptographic primitive central to Ethereum's data availability roadmap. The technical details: a blob of data is interpreted as coefficients of a polynomial $p(x)$. A KZG commitment to this polynomial is a single elliptic curve point $C = [p(\tau)]_1$ computed using a structured reference string from a trusted setup ceremony (Ethereum conducted the largest such ceremony with 141,416 participants). Properties that make KZG ideal for data availability: (1) Constant-size proofs — a proof that $p(z) = v$ for any evaluation point $z$ is a single elliptic curve point (48 bytes), regardless of blob size. (2) Data availability sampling — Ethereum's full Danksharding design uses KZG to enable light clients to sample random points from blobs; if a blob is available, they can verify any requested point. If the operator withholds data, they cannot produce valid proofs for the sampled points. (3) 2D erasure coding compatibility — KZG commitments work with the 2D erasure coding scheme that Danksharding uses to ensure data can be reconstructed even if a fraction is withheld. Merkle commitments cannot provide these properties efficiently."
+                },
+                {
+                    "id": 10,
+                    "question": "What is data availability sampling (DAS) and how does it enable light nodes to verify blob availability without downloading full blobs?",
+                    "options": {
+                        "A": "Data availability sampling is a technique where Ethereum validators vote on whether each blob was available — a supermajority vote of 'available' constitutes data availability; light nodes trust this vote without downloading any data",
+                        "B": "Data availability sampling uses erasure coding to expand blob data (e.g., 2x redundancy) so that any 50% of the data is sufficient to reconstruct the whole. Light nodes then randomly sample small chunks of the expanded data — if a malicious proposer withholds more than 50%, they cannot respond to enough random samples, making the withholding attack statistically detectable with high probability using only a small number of samples",
+                        "C": "Data availability sampling is performed by specialized 'data availability nodes' that download all blobs and publish availability certificates; light nodes check these certificates rather than sampling data themselves — the DA nodes are compensated with blob fees for this service",
+                        "D": "Data availability sampling requires light nodes to download at least 1% of each blob — 1.28 KB of a 128 KB blob — which Ethereum's protocol considers sufficient proof of availability because fraudulent withholding of the remaining 99% would be detected by the network"
+                    },
+                    "correct": "B",
+                    "explanation": "Data availability sampling (DAS) is a breakthrough that enables light nodes to verify data availability with high probability while downloading only a tiny fraction of the data. The mechanism: (1) Erasure coding — the blob is encoded using a 2D Reed-Solomon code that expands the data (e.g., 2x redundancy). Any 50% of the extended data is sufficient to reconstruct the original. (2) KZG commitments ensure that the claimed encoding is correct — the validator cannot produce a malformed encoding that passes commitment verification. (3) Sampling — a light node randomly requests, say, 30 small chunks from different positions in the extended data. If the producer withholds more than 50% of chunks (necessary to make reconstruction impossible), the probability of all 30 samples being from the available portion is $(0.5)^{30} \approx 10^{-9}$ — effectively impossible. With 30 samples, a light node achieves 99.9999999% confidence that the data is available while downloading only ~30 × 512 bytes ≈ 15 KB instead of the full 128 KB blob. Full Danksharding will use DAS to allow Ethereum to scale to 64 blobs/block safely — validators collectively sample the full block without any single node downloading everything."
+                },
+                {
+                    "id": 11,
+                    "question": "What is Celestia, and how does its design differ from Ethereum's approach to data availability?",
+                    "options": {
+                        "A": "Celestia is a Layer 2 rollup built on Ethereum that specializes exclusively in data storage — rollups post their data to Celestia rather than Ethereum calldata, with Celestia settling to Ethereum for security",
+                        "B": "Celestia is a modular blockchain that provides ONLY data availability and consensus — it does not execute transactions or smart contracts. Rollups post transaction data to Celestia for ordering and availability, then use a separate settlement layer (e.g., Ethereum) for dispute resolution. Celestia uses data availability sampling natively, making DA cheap and abundant while separating it from execution",
+                        "C": "Celestia is Polygon's rebranded data availability solution — it is a private blockchain run by Polygon validators that stores rollup data off-chain, functioning as a centralized data availability committee for Polygon's ZK rollups",
+                        "D": "Celestia is a peer-to-peer file storage network (similar to IPFS) that rollups use to store large amounts of historical transaction data cheaply; it does not have consensus or validators, relying instead on cryptographic content addressing for data integrity"
+                    },
+                    "correct": "B",
+                    "explanation": "Celestia (launched mainnet October 2023) is the flagship implementation of the modular DA layer concept. Key design principles: (1) No execution — Celestia validators do not run an EVM or any VM. They only ensure data is ordered (consensus via CometBFT/Tendermint) and available (via DAS). This dramatically simplifies the validator's job. (2) Native DAS — Celestia implements data availability sampling from day one. Light nodes can verify blob availability by sampling ~16-32 random shares, achieving 99.9%+ confidence without downloading full blobs. (3) Namespaced Merkle trees — blobs are tagged with namespace IDs, so rollup light clients need only download blob shares relevant to their rollup, not all data on Celestia. (4) Sovereign rollups — rollups on Celestia handle their own execution and can define their own settlement logic; they don't necessarily settle to Ethereum. (5) Cost — Celestia DA is substantially cheaper than Ethereum blob space, making it attractive for rollups with extremely high data requirements. Trade-off: rollups using Celestia for DA cannot inherit Ethereum's settlement security unless they also settle to Ethereum (as 'Ethereum rollups using Celestia DA' do). Pure Celestia rollups rely on Celestia's own security budget."
+                },
+                {
+                    "id": 12,
+                    "question": "What is the data availability problem for rollups specifically, and why can't rollups simply store transaction data off-chain with a trusted database provider?",
+                    "options": {
+                        "A": "Rollups cannot use off-chain databases because GDPR regulations in the EU require all blockchain transaction data to be stored on-chain for user data rights compliance; off-chain storage would create legal liability for rollup operators",
+                        "B": "If rollup transaction data is stored off-chain (e.g., on the operator's private server), the operator can withhold data from users — if the rollup state becomes fraudulent, users cannot construct fraud proofs (optimistic) or exit proofs (ZK) without the transaction history. On-chain data availability ensures anyone can reconstruct rollup state independently of the operator, preserving the ability to challenge fraud or exit funds",
+                        "C": "Rollups cannot use off-chain databases because smart contracts on Ethereum cannot make HTTP requests to external servers — all data referenced by Ethereum smart contracts must be contained within the Ethereum state or calldata",
+                        "D": "Off-chain storage is technically feasible and several rollups use it; the only issue is latency — database queries add 50-200ms of delay per transaction, which is unacceptable for real-time DeFi trading where arbitrage bots require sub-millisecond response times"
+                    },
+                    "correct": "B",
+                    "explanation": "The data availability problem is subtle but fundamental. Consider an optimistic rollup with a malicious operator: the operator posts a fraudulent state root (e.g., crediting themselves 1,000 ETH they don't own) but stores the transaction data proving this fraud only on their private server. To construct a fraud proof, an honest challenger needs the transaction data showing the invalid transition. But the operator has withheld it. The challenger cannot prove fraud without the data — the fraudulent state root becomes final after the challenge window. This attack is called a 'data withholding attack'. To prevent it, rollup designs require that all data necessary to reconstruct state and construct fraud/exit proofs is posted to a location where anyone can access it independently of the operator. Ethereum L1 (calldata or blobs) is the gold standard because Ethereum's decentralized network guarantees availability — if it's included in an Ethereum block, it's accessible to anyone running an Ethereum node. Data Availability Committees (DACs) are a middle ground: a trusted set of known parties who attest to holding the data. If all DAC members collude with the operator to withhold data, the attack succeeds — hence DACs reduce but don't eliminate the trust assumption."
+                },
+                {
+                    "id": 13,
+                    "question": "What is a Validium, and what specific attack becomes possible that is not possible in a full ZK-rollup?",
+                    "options": {
+                        "A": "A Validium is a ZK-rollup with a 7-day withdrawal delay — unlike ZK-rollups which allow immediate withdrawals after proof verification, Validiums impose an optimistic-style waiting period as an extra security measure against proof system vulnerabilities",
+                        "B": "A Validium uses ZK validity proofs posted to Ethereum (guaranteeing correct execution) but stores transaction data off-chain with a Data Availability Committee. The specific attack possible but not in ZK-rollups: the DAC can withhold data, preventing users from proving their balances and constructing exit proofs — users cannot withdraw their funds even though no theft occurred and all computations were valid",
+                        "C": "A Validium is a deprecated scaling approach where each user runs a local ZK prover to validate their own transactions without submitting them to any blockchain — transactions are 'valid' locally but never committed to a shared ledger, making Validiums unsuitable for value transfer",
+                        "D": "A Validium is an optimistic rollup variant that uses a committee of specialized validators to run fraud proofs, rather than allowing any user to submit challenges — the committee's 'validity' guarantee comes from their staked collateral rather than from cryptographic proofs"
+                    },
+                    "correct": "B",
+                    "explanation": "Validiums (pioneered by StarkWare's StarkEx) occupy a specific position in the L2 design space: ZK proofs guarantee execution correctness, but off-chain data storage removes the data availability guarantee. The data withholding attack in a validium context: the operator (or DAC) stops publishing transaction data. ZK proofs continue to be valid — every state transition that was published was correct. But users now cannot reconstruct their current balances or generate the Merkle proofs needed to claim their funds through the exit contract. Their funds are frozen (not stolen), but they cannot access them. The exit mechanism relies on users proving their account state to the Ethereum contract — without the data, this proof is impossible. This is sometimes called 'griefing' rather than 'stealing' — the attack doesn't benefit the attacker economically (unless they can somehow profit from frozen user funds, e.g., if they lend against those assets elsewhere), but it harms users. A 'Volition' design (used by StarkEx's zkPorter) lets users choose per-account: full rollup mode (data on-chain, higher cost) or validium mode (data off-chain, lower cost). Assets in validium mode are subject to the data withholding risk; assets in rollup mode are not."
+                },
+                {
+                    "id": 14,
+                    "question": "What is a 'Volition' architecture and what problem does it solve compared to choosing exclusively between a rollup or validium?",
+                    "options": {
+                        "A": "A Volition architecture is a governance mechanism where token holders vote (their 'volition') on whether to upgrade the rollup's ZK proof system — this democratic upgrade path solves the centralization problem of rollup operators controlling upgrades unilaterally",
+                        "B": "A Volition lets users choose on a per-transaction or per-account basis whether their data is stored on-chain (rollup mode, higher cost, full DA guarantees) or off-chain (validium mode, lower cost, DA committee trust). This hybrid approach lets high-value assets use maximum security while micropayments or gaming assets use cheaper off-chain storage, optimizing cost-security trade-offs for different use cases within the same system",
+                        "C": "A Volition is a Layer 3 network built on top of a validium that posts its data back to the validium rather than to Ethereum — it creates a three-layer stack where execution, data availability, and settlement are each handled by a separate dedicated chain",
+                        "D": "Volition is StarkWare's term for their off-chain order book matching system — it matches user trades without on-chain transactions and settles only net positions to the ZK rollup, reducing on-chain data by 99% for high-frequency trading applications"
+                    },
+                    "correct": "B",
+                    "explanation": "The Volition concept (introduced by StarkWare) solves the binary choice problem. Before Volition: users must choose either rollup mode (everything on-chain, maximum security, higher fees) or validium mode (everything off-chain, lower fees, DA committee risk) — a system-wide choice that doesn't fit diverse use cases. Volition solution: within the same ZK-proof system, each user (or each asset/transaction) independently selects storage mode. An NFT artist might keep high-value artworks in rollup mode while accepting validium mode for the social interaction data (likes, comments). A DeFi protocol might use rollup mode for large positions and validium mode for small trades under $100. Implementation: StarkEx's zkPorter (powering some StarkWare deployments) implements this. The ZK validity proof covers both modes — Ethereum L1 verifies that all state transitions (both on-chain and off-chain data transactions) were correctly computed. The difference is only in where transaction data lives. Users explicitly choose their risk tolerance, and the system enforces it. This creates a practical middle ground between the extreme cost of full rollup data posting and the risk of pure validium operation."
+                },
+                {
+                    "id": 15,
+                    "question": "The Ronin bridge hack (March 2022, $625 million stolen) is the largest bridge hack in history. What was the specific vulnerability that attackers exploited?",
+                    "options": {
+                        "A": "Attackers exploited a reentrancy vulnerability in the Ronin bridge smart contract — by calling the withdrawal function recursively before the balance was updated, they drained the bridge 1,000 times with a single transaction",
+                        "B": "The Ronin bridge used a 5-of-9 multisig to authorize withdrawals. Attackers (later attributed to the Lazarus Group / North Korean state hackers) compromised 5 of the 9 validator private keys — 4 belonging to Sky Mavis employees and 1 belonging to Axie DAO — reaching the threshold needed to authorize fraudulent withdrawals of 173,600 ETH and 25.5M USDC",
+                        "C": "Attackers found a mathematical overflow bug in the Ronin bridge's signature verification code — by submitting a signature with a value of $2^{256}-1$, they caused an integer overflow that made the bridge believe any signature was valid",
+                        "D": "The Ronin bridge relied on a single centralized price oracle operated by Sky Mavis; attackers manipulated this oracle to falsely report that 173,600 ETH had been deposited on Ethereum, triggering the Ronin chain to mint equivalent RON tokens that were immediately sold"
+                    },
+                    "correct": "B",
+                    "explanation": "The Ronin hack is the definitive case study in bridge security failures. Ronin Network was the Ethereum sidechain for Axie Infinity, one of the most popular blockchain games with 2-3 million daily active users at its peak. Bridge architecture: 9 validator nodes, requiring 5 signatures to authorize withdrawals (5-of-9 multisig). The attack vector: attackers (identified as Lazarus Group, North Korea's state-sponsored hacking unit) conducted a sophisticated social engineering operation. They compromised 4 Sky Mavis validator nodes through a fake job offer — an employee opened a PDF with malware. The 5th key belonged to Axie DAO, whose node Sky Mavis was temporarily authorized to sign on behalf of for gas efficiency — this authorization was never revoked. With access to 5 keys, attackers made two fraudulent withdrawal transactions: 173,600 ETH ($594M at time) and 25.5M USDC ($25.5M). The hack was undetected for 6 days because Ronin had no monitoring for large withdrawals. Timeline context: assets frozen for months, Sky Mavis raised $150M to reimburse users, Binance contributed $300M. The hack exposed that bridges with small multisig validator sets (9 nodes vs. Ethereum's 900,000+ validators) have catastrophically weaker security than the chains they connect."
+                },
+                {
+                    "id": 16,
+                    "question": "The Wormhole bridge hack (February 2022, $325 million) and the Nomad bridge hack (August 2022, $190 million) had fundamentally different vulnerability types. What were they?",
+                    "options": {
+                        "A": "Both hacks exploited the same vulnerability — flash loan manipulation of bridge liquidity pools. The difference is that Wormhole used a single transaction while Nomad required multiple transactions over 3 days",
+                        "B": "Wormhole: a signature verification bug allowed an attacker to forge a guardian signature, tricking the Solana bridge into minting 120,000 wETH without a corresponding Ethereum deposit. Nomad: a contract upgrade introduced a bug where the zero value (0x00) was treated as a valid Merkle root, allowing anyone to copy-paste the original attacker's transaction (changing only the recipient address) to drain the bridge — becoming a chaotic 'free-for-all' theft with hundreds of copycats",
+                        "C": "Wormhole was a governance attack where the hacker acquired enough governance tokens to pass a malicious proposal upgrading the bridge contract; Nomad was a private key compromise where an insider leaked the bridge operator's signing key",
+                        "D": "Both were oracle manipulation attacks: Wormhole's ETH price oracle was manipulated to make 1 ETH appear worth $1,000,000, and Nomad's oracle was manipulated to make the bridge believe large deposits had occurred — both exploited the same oracle architecture implemented by the same third-party provider"
+                    },
+                    "correct": "B",
+                    "explanation": "These two hacks illustrate fundamentally different smart contract vulnerability classes. Wormhole ($325M, February 2022): Wormhole is a generalized message-passing bridge. Its Solana program verified guardian signatures to confirm deposits on other chains. The bug: a critical signature verification step used a deprecated Solana syscall (`verify_program_id`) that was a no-op — it didn't actually verify signatures. The attacker forged guardian approval for a fake 120,000 ETH deposit on Ethereum, causing Wormhole's Solana program to mint 120,000 wETH on Solana. Jump Crypto (Wormhole's backer) reimbursed the full amount within 24 hours to maintain bridge solvency. Nomad ($190M, August 2022): A routine contract upgrade introduced a critical bug — the `messages` mapping initialized with a zero root (0x0000...0) which was set as 'proved'. In Nomad's verification logic, any message proven against a zero root was considered valid. This meant any message claiming a token withdrawal was automatically validated. The initial attacker drained $90M. Then Twitter crypto-Twitter noticed — within hours, hundreds of users copied the transaction hex with their own addresses. The bridge became a permissionless free-for-all that emptied in under 3 hours. The Nomad hack is uniquely notable for being the first 'crowd-sourced bridge exploit' in history."
+                },
+                {
+                    "id": 17,
+                    "question": "How does MEV (Maximal Extractable Value) manifest differently on Layer 2 networks compared to Ethereum L1, given that most rollups use a centralized sequencer?",
+                    "options": {
+                        "A": "MEV does not exist on Layer 2 because the centralized sequencer processes transactions strictly in first-in-first-out order — there is no reordering possible, eliminating sandwich attacks, frontrunning, and arbitrage MEV entirely",
+                        "B": "On L2 with a centralized sequencer, MEV is centralized: the sequencer has unilateral power to reorder, insert, or censor transactions within a batch. The sequencer can frontrun users, capture arbitrage, or sell 'priority ordering' to searchers. Unlike L1 where MEV is competed for by many validators, L2 MEV accrues entirely to the single sequencer operator — creating a trust assumption that the sequencer won't exploit users and raising questions about sequencer revenue distribution",
+                        "C": "MEV on L2 is identical to L1 MEV but at lower cost — searchers submit MEV bundles to the L2 sequencer just as they submit to L1 block proposers via Flashbots. The lower gas costs make L2 MEV more profitable per dollar of extracted value than L1 MEV",
+                        "D": "MEV on L2 is a net positive: rollup sequencers use MEV revenue to subsidize user gas fees, creating a flywheel where more user activity generates more MEV, which funds lower fees that attract more users — L2 MEV is thus a feature rather than a bug"
+                    },
+                    "correct": "B",
+                    "explanation": "MEV on Layer 2 is a critical and underappreciated issue. On Ethereum L1, MEV exists but is somewhat democratized — validators are randomly selected, and sophisticated MEV searchers compete to bribe validators via Flashbots/MEV-boost. No single entity controls all MEV. On most L2s (Arbitrum, Optimism, Base, zkSync), a single centralized sequencer determines transaction order. This creates concentrated MEV power: the sequencer can (1) frontrun user transactions by observing them in the mempool and inserting its own transactions first, (2) sandwich user DEX trades, (3) capture arbitrage between L1 and L2 prices (cross-domain MEV), and (4) sell priority inclusion to other searchers. Most major rollup operators claim not to exploit user MEV, but this is a trust assumption rather than a cryptographic guarantee. Measured MEV on Arbitrum: Flashbots estimated $100M+ in annual MEV on Arbitrum alone. Solutions being explored: (1) Decentralized sequencing — multiple competing sequencers in a PoS system, (2) Fair ordering protocols — enforcing FIFO order within a time window, (3) MEV auctions — making MEV revenue explicit and redistributing it to users or stakers. Base (Coinbase's rollup) launched a revenue-sharing arrangement where MEV/sequencer revenue partially flows back to Optimism's collective, setting a precedent for MEV redistribution."
+                },
+                {
+                    "id": 18,
+                    "question": "What are the main revenue sources for a rollup sequencer, and why are L2 economics increasingly important as rollups capture user activity?",
+                    "options": {
+                        "A": "Rollup sequencers earn revenue exclusively by staking the rollup's native token — no transaction fees are collected, as rollups are operated as a public good subsidized by token inflation",
+                        "B": "Rollup sequencer revenue comes from: (1) the spread between fees charged to users and the L1 data posting cost (the 'margin'), (2) MEV extraction or auction proceeds from priority ordering, and (3) potential token issuance. As rollups grow, sequencer revenue becomes significant — Arbitrum and Base each generate tens of millions of dollars annually, raising questions about decentralization, fee distribution, and whether revenue should flow to ETH holders, L2 token holders, or public goods",
+                        "C": "Rollup sequencers have no independent revenue — they are paid entirely by Ethereum validators who receive a share of L2 fees as compensation for storing blob data; this creates an automatic economic alignment between L1 security and L2 activity",
+                        "D": "Rollup revenue is generated exclusively through the issuance and sale of the rollup's governance token — sequencer operations break even on transaction fees, and the entire business model depends on token appreciation rather than fee income"
+                    },
+                    "correct": "B",
+                    "explanation": "L2 economics are increasingly significant as rollups capture substantial user activity. Sequencer revenue breakdown: (1) Fee spread (primary) — users pay a gas fee that covers: L1 data cost (blobs/calldata, increasingly cheap post-EIP-4844) + L2 execution cost (EVM computation on the sequencer) + a margin. The margin is the sequencer's profit. For Arbitrum, this margin has been estimated at $50-100M annually. For Base, which launched in 2023 and grew rapidly, sequencer revenue exceeded $100M in 2024. (2) MEV — sequencers can capture arbitrage and priority ordering fees. (3) Token proceeds — many rollups have native tokens (ARB, OP) whose issuance/grants funded development. Governance questions: who receives sequencer profits? Arbitrum: controlled by ArbitrumDAO (ARB holders). Optimism: 'retroactive public goods funding' redistributes a portion to ecosystem contributors. Base: Coinbase retains revenue, with contributions to the Optimism Collective. Ethereum's share: currently near-zero — rollups pay for blob space (burning ETH), but blob fees are tiny compared to sequencer margins. The 'L1 value capture' question is actively debated: will rollup growth benefit ETH holders proportionally, or will value accrue primarily to L2 tokens?"
+                },
+                {
+                    "id": 19,
+                    "question": "What are Layer 3 networks (L3s) and what specific problems do they aim to solve that L2s cannot?",
+                    "options": {
+                        "A": "Layer 3 networks are Ethereum's planned replacement for Layer 2 — they use a new proof system that is 100x more efficient than current ZK rollups, making L2s obsolete and providing a clear migration path for existing rollup users",
+                        "B": "L3s are rollups that settle to L2s instead of directly to L1 — this recursive structure allows L3s to use the L2 as their data availability and settlement layer, enabling: app-specific customization (own gas token, privacy settings, VM), ultra-low fees (inheriting L2's cheap data costs while adding another layer of compression), and dedicated blockspace for specific applications without competing with other users for L2 capacity",
+                        "C": "Layer 3 networks are centralized application servers that connect to L2 rollups via APIs — they handle user-facing logic (authentication, UI rendering, off-chain computation) while the L2 handles all financial transactions; the '3-layer' architecture mirrors traditional web3 design patterns",
+                        "D": "L3s are cross-chain bridges that connect L2 networks to each other — they form the third layer of infrastructure (above L1 and L2) that enables atomic swaps between Arbitrum and Optimism without routing through Ethereum L1"
+                    },
+                    "correct": "B",
+                    "explanation": "Layer 3 networks (L3s) are an emerging architectural pattern where a rollup settles to another rollup rather than directly to Ethereum L1. The key insight: if an L2 provides cheap data availability and settlement, an L3 can use the L2 as its base layer, achieving another order-of-magnitude cost reduction through recursive compression. Architecture: L3 executes transactions → posts compressed data to L2 → L2 posts further compressed data to Ethereum L1. Fees are compounded: L3 pays L2 rates (already 10-100x cheaper than L1), not L1 rates directly. Customization enabled by L3s: (1) App-specific blockspace — a gaming L3 doesn't compete with DeFi users for sequencer capacity; (2) Custom gas tokens — games can price fees in their game token; (3) Privacy — an L3 could use different cryptography not available on the parent L2; (4) Custom precompiles — compile game-specific logic into precompiled contracts for efficiency. Examples: Xai (gaming L3 on Arbitrum), Degen (social media L3 on Base using the DEGEN token for fees), Hypr (gaming L3). The security concern: L3s inherit L2 security risks, and if the L2's security assumptions have any weakness, L3s are doubly exposed. However, for use cases where Ethereum-level security is less critical (gaming items, social media points), L3 economics may be compelling."
+                },
+                {
+                    "id": 20,
+                    "question": "What is Vitalik Buterin's 'Ethereum endgame' vision, and how does account abstraction on L2 fit into it?",
+                    "options": {
+                        "A": "The Ethereum endgame vision is a plan to gradually wind down Ethereum and migrate all activity to Bitcoin, using rollups as a transition mechanism; account abstraction enables this migration by making Bitcoin wallets compatible with the Ethereum account model",
+                        "B": "Vitalik's endgame envisions Ethereum as the universal settlement and data availability layer for a vast ecosystem of rollups handling most execution — with full Danksharding providing cheap abundant data, ZK-EVMs achieving EVM equivalence, decentralized sequencers removing centralization risks, and account abstraction (ERC-4337 / native AA on L2) enabling smart contract wallets to replace EOAs, allowing gas sponsorship, social recovery, and arbitrary signature schemes that dramatically improve UX for mainstream adoption",
+                        "C": "The Ethereum endgame is Vitalik's proposal to merge Ethereum with Polkadot — Ethereum becomes the relay chain and all existing Ethereum dApps migrate to parachains; account abstraction is required for the migration because parachains use a different account format than Ethereum",
+                        "D": "The Ethereum endgame envisions a single monolithic Ethereum chain processing 1,000,000 TPS through hardware acceleration — account abstraction is a component that allows transactions to be verified by specialized ASICs rather than general-purpose CPUs, enabling the required performance improvements"
+                    },
+                    "correct": "B",
+                    "explanation": "Vitalik Buterin's 'Endgame' blog post (December 2021) describes the long-run equilibrium for Ethereum's scaling. The vision: (1) Many large rollups — Ethereum hosts dozens of rollups, each handling thousands of TPS, together processing 100,000+ TPS across the ecosystem. (2) Danksharding — Ethereum L1 provides 64 blobs/block (~8 MB/block) of cheap data for rollups, with data availability sampling ensuring light nodes can verify availability. (3) ZK-proof everything — eventually, ZK-EVMs produce validity proofs for all rollup state transitions, enabling trustless near-instant withdrawals and cross-rollup verification. (4) Decentralized sequencers — multiple sequencers compete via PoS mechanisms, eliminating the centralization risk of today's single-sequencer rollups. (5) Account abstraction completes the UX picture: ERC-4337 (the 'UserOperation' standard implemented on all major L2s) allows smart contract wallets to become the primary user interface. Benefits: gas sponsorship (dApps pay gas for users), social recovery (recover access via trusted contacts without seed phrases), session keys (authorize a dApp to sign transactions for one gaming session), batching (approve + swap in one click), and arbitrary signature schemes (passkeys, biometrics). On L2s with native AA (zkSync Era, Starknet), every account is already a smart contract — there are no EOA-only limitations. This combination of cheap L2 fees + smart contract wallet UX is the technical foundation for onboarding the next billion users to Ethereum."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

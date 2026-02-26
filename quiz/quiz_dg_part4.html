@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz DG-4: Attacks/Security & Real-World DAOs | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz DG-4: Attacks/Security &amp; Real-World DAOs</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz DG-4: Attacks/Security &amp; Real-World DAOs</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "In April 2022, the Beanstalk stablecoin protocol lost $182 million in a flash loan governance attack. Describe the precise sequence of steps the attacker used, and identify the single design flaw that made the attack possible.",
+                    "options": {
+                        "A": "The attacker exploited a reentrancy bug in Beanstalk's stablecoin minting contract, calling the mint function recursively before balances updated — the design flaw was missing reentrancy guards on the core minting function",
+                        "B": "The attacker took a flash loan to acquire a supermajority of governance tokens within a single transaction, used that voting power to pass a malicious governance proposal that drained the treasury to their address, then repaid the flash loan — all in one atomic transaction; the flaw was that the protocol allowed immediate execution of passed proposals with no timelock delay between vote and execution",
+                        "C": "The attacker bribed existing large token holders (whales) to vote for a proposal to change the oracle price feed, allowing the attacker to mint unbacked stablecoins at an artificially favourable rate",
+                        "D": "The attacker created thousands of fake accounts to achieve quorum on a malicious proposal via Sybil attack; the design flaw was insufficient identity verification for governance participation"
+                    },
+                    "correct": "B",
+                    "explanation": "The Beanstalk attack (April 17, 2022) is the canonical flash loan governance attack. The attacker's sequence: (1) Took flash loans from Aave totalling ~$1B in various assets. (2) Used the borrowed capital to purchase a supermajority of STALK (Beanstalk's governance token) via Uniswap and Curve — temporarily acquiring ~67% of voting power. (3) In the same transaction, submitted and immediately executed BIP-18, a malicious proposal that called `emergencyCommit()` — a function designed for urgent fixes that bypassed the normal timelock delay. (4) The proposal transferred all protocol assets (~$182M) to the attacker's address. (5) Repaid the flash loans and kept the profit, all within a single Ethereum transaction block. The critical flaw: Beanstalk's `emergencyCommit()` required only that a proposal have majority support at time of execution, with zero delay — making same-block governance execution possible via flash-loaned voting power."
+                },
+                {
+                    "id": 2,
+                    "question": "Why is a snapshot-based governance system (where voting power is measured by token balance at a specific block number before voting begins) more resistant to flash loan attacks than Beanstalk's vulnerable design?",
+                    "options": {
+                        "A": "Snapshot-based governance is more resistant because it uses IPFS storage rather than on-chain execution, making it impossible for flash loan transactions to interact with the governance layer during their atomic execution",
+                        "B": "Snapshot governance is more secure because all votes are processed off-chain by the Snapshot.org servers, which have KYC requirements that prevent anonymous flash loan accounts from participating",
+                        "C": "Snapshot-based governance records voting power at a block before the proposal was submitted or voting period opened; a flash loan that exists only within a single transaction cannot affect a snapshot taken in a prior block — the attacker would need to hold tokens across multiple blocks, which requires actual capital purchase rather than a borrowed-and-repaid-in-one-transaction approach",
+                        "D": "Snapshot governance requires voters to stake tokens for 30 days before voting, making it economically prohibitive to accumulate voting power via flash loans since flash loans must be repaid in the same block"
+                    },
+                    "correct": "C",
+                    "explanation": "The snapshot mechanism is the primary defense against flash loan governance attacks. When a proposal is created (or voting begins), the governance contract records each address's voting power based on their token balance at a specific past block number (the 'snapshot block'). Flash loans exist only within a single transaction in a single block — they are borrowed and must be fully repaid within the same transaction; they cannot persist across blocks. Since the snapshot was taken in a previous block, tokens acquired via flash loan in the current block did not exist in the attacker's address at snapshot time. The attacker's voting power is zero, regardless of how many tokens they temporarily hold. Compound, Uniswap, Aave, and virtually all major DAO governance frameworks use historical snapshots for precisely this reason. After Beanstalk, the protocol was reconstructed with snapshot voting and mandatory 48-hour timelocks."
+                },
+                {
+                    "id": 3,
+                    "question": "In October 2022, the Mango Markets protocol on Solana was exploited by Avraham Eisenberg for approximately $114 million through price oracle manipulation tied to governance. What does this case reveal about the intersection of market manipulation and governance attacks?",
+                    "options": {
+                        "A": "The Mango Markets case reveals that Solana's proof-of-history consensus is fundamentally insecure and allows validators to manipulate oracle prices on behalf of attackers",
+                        "B": "The attack was a pure smart contract exploit with no governance component — Eisenberg identified a reentrancy vulnerability in Mango's lending contracts and drained funds through recursive calls before governance could respond",
+                        "C": "Eisenberg purchased a majority of MNGO tokens over several months and then passed a governance proposal redirecting all platform fees to his address — a standard hostile governance takeover with no oracle manipulation component",
+                        "D": "Eisenberg manipulated the price of the MNGO governance token by taking large leveraged long positions on Mango's own perpetual market, creating artificial unrealised profit, then used that collateral to borrow (and withdraw) most of Mango's treasury assets; he then used his MNGO holdings to vote through a governance proposal approving a 'bug bounty' that allowed him to keep $47M — demonstrating that governance mechanisms can be used to legitimise theft after the fact"
+                    },
+                    "correct": "D",
+                    "explanation": "The Mango Markets exploit was uniquely sophisticated. Eisenberg's steps: (1) Opened a very large MNGO perpetual long position on Mango Markets using one account. (2) Used a second account to aggressively buy MNGO spot on Mango and other exchanges, pumping MNGO price from ~$0.03 to ~$0.91 — a 30x increase. (3) The first account's long position now showed massive unrealised profits (since Mango used the inflated oracle price). (4) Used this artificial collateral to borrow ~$114M of real assets (USDC, SOL, ETH) from Mango's treasury and withdrew them. (5) Then held Mango ransom: proposed a governance vote to 'settle' for $47M as a 'bug bounty' in exchange for returning the remaining assets and not being prosecuted. Other token holders (facing total loss) approved the proposal. Eisenberg later argued on Twitter his actions were 'legal'; he was subsequently arrested by the FBI and charged with market manipulation."
+                },
+                {
+                    "id": 4,
+                    "question": "What is 'vote buying' in the context of DAO governance, and how does the existence of platforms like Hidden Hand (formerly Votem) and Votium fundamentally alter the economics of governance token holdings?",
+                    "options": {
+                        "A": "Vote buying (also called governance bribery) involves third parties paying token holders to vote in specific ways — platforms like Votium and Hidden Hand formalise this into markets where protocols can pay veCRV/veBAL holders to direct emission votes toward their liquidity pools, effectively transforming governance votes into a yield-bearing asset where the vote's 'price' reflects the economic value of directing protocol emissions",
+                        "B": "Vote buying refers to exchange listings where governance tokens can be purchased on secondary markets — platforms like Votium provide liquidity for governance token trading with no connection to governance outcomes",
+                        "C": "Vote buying platforms are illegal in all jurisdictions and operate exclusively on dark web forums; major protocols like Curve and Balancer actively blacklist addresses associated with these platforms",
+                        "D": "Vote buying refers to DAO treasury operations where protocols purchase their own governance tokens from the market to increase treasury voting power — a common treasury diversification strategy"
+                    },
+                    "correct": "A",
+                    "explanation": "The 'Curve Wars' created a sophisticated on-chain bribery market. Context: veCRV holders vote to direct CRV emissions to specific liquidity pools. If Protocol X (e.g., Frax, Convex) can direct emissions to their pool, they attract more liquidity providers, improving their protocol's functionality. The economic value of directing emissions can be millions of dollars per week. Platforms like Votium formalise bribery: Protocol X deposits USDC as a bribe; veCRV holders who vote for Protocol X's preferred gauge receive a proportional share of the bribe fund. Hidden Hand extended this to veBAL (Balancer), veFXS (Frax), and others. Economic implications: governance votes now have direct monetary value, transforming governance from a 'civic' activity into a yield strategy. A veCRV holder can earn a risk-adjusted return on their locked position through bribe income. This is not necessarily malicious (it reveals market pricing for governance influence) but raises concerns about governance capture by the highest bidder."
+                },
+                {
+                    "id": 5,
+                    "question": "A coalition of DeFi protocols collectively accumulates 60% of veCRV by depositing CRV into their platforms and locking it perpetually. They then coordinate their governance votes. What governance concern does this raise, and what is the term for this phenomenon?",
+                    "options": {
+                        "A": "This is called 'liquidity concentration' and is beneficial for Curve because it ensures stable, long-term token lock-up that reduces price volatility; there are no governance concerns",
+                        "B": "This is called a 'governance cartel' or 'plutocratic capture' — a small group of protocols controlling a supermajority of voting power can direct all CRV emissions to benefit their pools, effectively setting their own subsidy rates; other protocols without cartel membership cannot access competitive emission allocations regardless of their merit or user demand, centralising power in the hands of capital-rich incumbents",
+                        "C": "This is called 'meta-governance' and is explicitly designed into the Curve tokenomics to reward the largest liquidity providers with proportional governance influence — it is a feature, not a concern",
+                        "D": "This scenario is impossible in practice because Curve's smart contracts include a governance cap that prevents any single address from holding more than 20% of veCRV, ensuring decentralised vote distribution"
+                    },
+                    "correct": "B",
+                    "explanation": "The Convex Finance model illustrates governance cartelisation in practice. Convex accumulated approximately 50%+ of all veCRV by offering enhanced yields to CRV depositors — depositing user CRV, locking it for 4 years, issuing cvxCRV as a liquid receipt, and concentrating veCRV voting power under Convex's governance (vlCVX holders vote how Convex's veCRV is directed). This created a 'meta-governance layer': to influence Curve emission direction, you no longer need veCRV — you need vlCVX. The 'Curve Wars' intensified: protocols now bribe vlCVX holders on Votium. Governance concerns: (1) Convex governance is itself concentrated, creating second-order centralisation. (2) Small protocols without resources to buy/bribe their way to emission allocations are effectively excluded. (3) Emission direction increasingly reflects capital concentration rather than genuine community preferences. This is widely called the primary failure mode of ve-tokenomics: plutocratic capture."
+                },
+                {
+                    "id": 6,
+                    "question": "How does a 'dark proposal attack' work in DAO governance, and what procedural safeguards have major protocols implemented to defend against it?",
+                    "options": {
+                        "A": "A dark proposal attack involves submitting governance proposals in languages other than English to prevent non-native speakers from understanding the contents; safeguards include mandatory multi-language translation requirements",
+                        "B": "A dark proposal attack is a front-running strategy where arbitrageurs observe pending governance votes and trade the governance token before results are announced; safeguards include commit-reveal voting schemes that hide vote tallies until the voting period ends",
+                        "C": "A dark proposal attack involves embedding malicious executable code in a governance proposal whose on-chain calldata differs from or contradicts the human-readable description — token holders read and approve a benign description but unknowingly authorise harmful contract calls; safeguards include mandatory proposal simulation (running the exact calldata in a fork), timelocks that allow scrutiny of queued transactions before execution, and independent security review of all executable proposals",
+                        "D": "A dark proposal attack refers to governance proposals submitted anonymously without a forum discussion; safeguards include mandatory identity verification for all proposal submitters above the proposal threshold"
+                    },
+                    "correct": "C",
+                    "explanation": "Dark proposal attacks exploit the gap between what token holders read and what the proposal's bytecode actually executes. Example scenario: a proposal states 'Upgrade contract X to version 2.0 for gas optimisation' with a plausible forum discussion. The actual calldata, however, calls an additional function that sets a backdoor admin address. Token holders reading the text approve what appears to be a routine upgrade. The queued transaction executes the attack. High-profile near-miss: in May 2023, the Tornado Cash governance was compromised by a malicious proposal that appeared to add additional votes to existing Tornado Cash governance — in reality, it granted the proposer 1.2 million TORN tokens of voting power by calling a hidden logic branch in a verified (but tricky to read) contract. Safeguards: (1) Timelock: 48-72 hours between proposal passing and execution gives security researchers time to analyse the exact calldata. (2) Tenderly simulations: DAOs like Aave and MakerDAO simulate every proposal's exact calldata on a mainnet fork before queuing. (3) Code4rena / Sherlock audits of upgrade proposals."
+                },
+                {
+                    "id": 7,
+                    "question": "What is a Sybil attack in the context of DAO governance, and why are one-token-one-vote systems fundamentally immune to Sybil attacks while systems based on identity or participation are vulnerable?",
+                    "options": {
+                        "A": "A Sybil attack in governance involves a single entity creating multiple wallet addresses to exceed the governance proposal submission threshold, forcing the DAO to process an overwhelming number of proposals; one-token-one-vote is vulnerable because tokens can be split across multiple wallets",
+                        "B": "One-token-one-vote systems are actually more vulnerable to Sybil attacks because an attacker can create thousands of wallets, deposit 1 token each, and overwhelm governance with coordinated votes that exceed quorum through sheer volume of participating addresses",
+                        "C": "Sybil attacks are relevant only to proof-of-work blockchain validation, not to DAO governance; in governance contexts, the analogous attack is called a 'whale attack' and refers to a single large holder dominating votes",
+                        "D": "A Sybil attack involves one entity creating many pseudonymous identities to gain disproportionate influence in systems where voting power is allocated per identity (one-person-one-vote) or per participant; in one-token-one-vote systems, splitting tokens across N wallets gives the same total voting power as holding all tokens in one wallet — the attack provides no benefit. Identity-based systems are vulnerable because blockchain addresses are pseudonymous and creating new addresses is free"
+                    },
+                    "correct": "D",
+                    "explanation": "The Sybil attack (named after the 1973 novel about a woman with multiple personalities) involves creating many fake identities to manipulate systems that grant power per identity. In DAO governance, the relevance depends on the voting model: (1) One-token-one-vote: a Sybil attack is pointless because splitting 1,000 tokens across 100 wallets gives 10 votes per wallet = 1,000 total votes, identical to holding all in one wallet. Token balance is the unit of power, not address count. (2) Quadratic voting (QV): voting power scales with √(tokens) per wallet, capping whale advantage. But an attacker can split tokens across many wallets to game the square root — each wallet gets full √ credit for its smaller holding. QV is highly Sybil-vulnerable without identity verification. (3) One-person-one-vote systems (like Gitcoin Passport, Proof-of-Humanity): rely on unique identity verification to prevent one person from claiming multiple identities. Gitcoin Grants rounds using QF with minimal identity verification have been demonstrably gamed by Sybil rings."
+                },
+                {
+                    "id": 8,
+                    "question": "Gitcoin Passport aggregates 'stamps' from services like Twitter, Google, BrightID, and ENS to compute a 'humanity score' for Sybil resistance. What is the fundamental limitation of this approach, and what does it reveal about the tradeoff between Sybil resistance and privacy in decentralised systems?",
+                    "options": {
+                        "A": "Gitcoin Passport's fundamental limitation is its centralised server infrastructure — since stamps are stored on Gitcoin's servers, a single point of failure exists that could corrupt all identity data simultaneously",
+                        "B": "The fundamental limitation is technical: stamps can only be verified on Ethereum mainnet, making Gitcoin Passport unusable on L2 networks where most DAO governance now occurs, effectively blocking Sybil resistance for L2 governance",
+                        "C": "Linking blockchain addresses to Web2 identities (Twitter, Google) introduces a privacy tradeoff: genuine unique humans gain Sybil resistance but sacrifice pseudonymity — their on-chain activity becomes linkable to real-world identity. Furthermore, the system cannot distinguish between a Sybil farm (one person with 100 Twitter accounts) and 100 genuine users with low social media presence, creating both false negatives (legitimate users fail) and false positives (Sybil operators with multiple established accounts pass)",
+                        "D": "Gitcoin Passport fails because the stamp aggregation algorithm is public, allowing Sybil attackers to read the minimum required stamps and precisely satisfy the threshold across all their fake accounts simultaneously"
+                    },
+                    "correct": "C",
+                    "explanation": "Gitcoin Passport's approach to Sybil resistance via identity aggregation faces a fundamental tension. The privacy tradeoff: each 'stamp' (Twitter verification, Google OAuth, BrightID biometric link) creates a linkage between an on-chain address and an off-chain identity provider. An Ethereum address that previously appeared pseudonymous becomes linkable to a real identity. For whistleblowers, activists in authoritarian states, or privacy-conscious users, this is a significant cost. The security limitation: social media accounts are themselves Sybil-vulnerable — content farms routinely maintain thousands of 'aged' Twitter/Google accounts for hire. A sophisticated Sybil attacker with resources can purchase aged accounts with sufficient social graph to score high on Passport metrics. BrightID attempts biometric-level uniqueness but requires participants to join a video verification web-of-trust, which is both friction-heavy and potentially excludable. No current Sybil resistance mechanism achieves both strong uniqueness guarantees and privacy preservation simultaneously."
+                },
+                {
+                    "id": 9,
+                    "question": "Proof-of-Humanity (PoH) and Worldcoin's World ID both attempt to create on-chain verified unique human identity. How do their technical approaches differ, and what are the respective privacy and centralisation concerns for each?",
+                    "options": {
+                        "A": "Both systems use identical biometric methods (iris scanning) and face identical centralisation concerns — the only difference is that Proof-of-Humanity is Ethereum-native while Worldcoin operates on its own blockchain",
+                        "B": "Proof-of-Humanity is more centralised than Worldcoin because PoH requires Kleros arbitration (a centralised court system) to resolve identity disputes, while Worldcoin's iris proofs are fully trustless and require no intermediary",
+                        "C": "Both systems achieve complete privacy: neither stores any personally identifiable information, and all proofs are generated locally on the user's device with zero data transmitted to any server",
+                        "D": "Proof-of-Humanity uses a video-based social vouching system (submit a video + existing registered humans vouch for you) with a challenge period — decentralised but slow, social-graph dependent, and limited to those with internet access and existing PoH vouchers. Worldcoin uses iris scanning hardware (the 'Orb') to create a zero-knowledge proof of iris uniqueness — faster and scalable but requires trusting Worldcoin to deploy Orbs honestly and destroys iris biometric privacy"
+                    },
+                    "correct": "D",
+                    "explanation": "The two dominant approaches to on-chain unique identity represent different points on the decentralisation-scalability-privacy tradeoff. Proof-of-Humanity (PoH): users submit a video of themselves holding a sign, with their Ethereum address, while speaking. Existing PoH members vouch for them. A challenge period (3.5 days) allows disputes settled by Kleros decentralised arbitration. Pros: community-governed, no corporate biometric database. Cons: slow onboarding, geographic access barriers (need existing PoH vouchers), video permanently on IPFS links face to address. Worldcoin: users visit an Orb operator, iris is scanned, a World ID proof is generated using ZK-SNARKs (the iris hash is used to generate a nullifier that proves uniqueness without revealing the iris data itself). Pros: fast, scalable, ZK approach theoretically privacy-preserving. Cons: Worldcoin Inc. controls Orb hardware manufacturing and deployment, creating centralisation risk; the iris database existence (even if encrypted) is a high-value surveillance target; in practice, data handling privacy guarantees depend on trusting the company."
+                },
+                {
+                    "id": 10,
+                    "question": "The DAO hack of June 2016 resulted in approximately $60 million of ETH being drained from The DAO smart contract. What was the precise technical vulnerability exploited, and what was the controversial decision made by the Ethereum community in response?",
+                    "options": {
+                        "A": "The DAO hack exploited an integer overflow in the token minting function, allowing the attacker to mint unlimited DAO tokens and redeem them for ETH; the Ethereum community responded by patching the integer overflow in a soft fork upgrade",
+                        "B": "The hack exploited a governance attack where the attacker acquired 51% of DAO tokens through flash loans (despite this being 2016 before flash loans existed) and passed a proposal to drain the treasury — the community responded by implementing snapshot voting to prevent future flash loan attacks",
+                        "C": "The attacker exploited a reentrancy vulnerability in The DAO's withdrawal function: calling `splitDAO()` to withdraw ETH triggered a call to the attacker's contract before The DAO updated its internal balance; the attacker's contract recursively called `splitDAO()` in a loop, draining ETH repeatedly before the balance deduction executed. The Ethereum community controversially hard-forked the chain to reverse the theft, creating Ethereum (the fork) and Ethereum Classic (the original unforked chain)",
+                        "D": "The DAO was drained via a private key compromise of the 7-of-12 multisig that controlled the treasury; the Ethereum community responded by hardening multisig security standards and making Gnosis Safe the mandatory treasury standard for all future Ethereum projects"
+                    },
+                    "correct": "C",
+                    "explanation": "The DAO hack (June 17, 2016) is the seminal smart contract security event. Technical detail of the reentrancy attack: The DAO's `splitDAO()` function allowed token holders to withdraw their proportional share of ETH. The code order was: (1) Calculate ETH amount due. (2) Transfer ETH to recipient. (3) Set recipient's token balance to zero. The critical flaw: step 2 (ETH transfer) invoked the recipient's fallback function BEFORE step 3 (balance deduction). The attacker's fallback function called `splitDAO()` again — recursively — each time receiving ETH while their balance still showed the original amount (because step 3 had not executed yet). The attacker drained ~3.6M ETH ($60M at 2016 prices). The Ethereum Foundation proposed a hard fork to return the funds. The community debate was profound: 'code is law' advocates (later Ethereum Classic holders) argued the blockchain should be immutable even to reverse theft; pragmatists (later Ethereum holders) argued protecting users was more important. The fork executed at block 1,920,000, creating ETC and ETH as separate chains."
+                },
+                {
+                    "id": 11,
+                    "question": "A smart contract developer argues: 'The Ethereum hard fork after The DAO hack was the right decision because it protected innocent investors from losing their savings.' A critic responds: 'The fork destroyed blockchain's fundamental value proposition.' Evaluate both arguments and identify what governance principle each represents.",
+                    "options": {
+                        "A": "The developer's argument represents 'consequentialist pragmatism': outcomes for affected users matter more than procedural rules; the critic's argument represents 'rule of law / credible commitment': the value of blockchain immutability comes precisely from it being unconditional — a blockchain that reverses transactions 'when enough people agree' provides weaker guarantees than one that never reverses, because the threshold for future interventions is now known to be negotiable",
+                        "B": "Both arguments are incorrect — the hard fork was purely a technical upgrade with no governance implications; smart contract execution has no relationship to governance philosophy",
+                        "C": "The developer's argument is correct and the critic's argument is simply wrong — user protection always outweighs technical principles, and any rational actor would support reversing theft regardless of philosophical concerns",
+                        "D": "The critic's argument is correct and the developer's is wrong — investor protection is not a valid consideration for decentralised systems, which must prioritise code execution consistency above all user welfare concerns"
+                    },
+                    "correct": "A",
+                    "explanation": "This debate encapsulates one of the deepest tensions in blockchain governance. The developer's consequentialist view: blockchain systems are ultimately tools serving human ends; a community that watches innocent participants lose their savings due to a code bug and takes no action is prioritising abstract principle over human welfare. The critic's rule-of-law view (articulated most clearly by ETC proponents): blockchain's value proposition is 'credible commitment' — the guarantee that executed code cannot be reversed. This guarantee has enormous economic value (it enables trustless smart contracts, censorship-resistant applications, seizure-resistant property). If the community demonstrated willingness to hard fork when losses are large enough, they revealed that immutability is conditional on political consensus, not absolute. Future bad actors now know: cause enough damage, create enough political pressure, and a fork may bail you out. ETC continues to exist as a living testament to the minority view. Vitalik Buterin has acknowledged the fork created lasting reputational damage to the 'immutable ledger' narrative."
+                },
+                {
+                    "id": 12,
+                    "question": "What is the purpose of a governance 'guardian' or 'pause committee' in major DeFi protocols like Aave and Compound, and how does its existence create a tension with decentralisation principles?",
+                    "options": {
+                        "A": "A guardian is typically a multisig controlled by core team members or security council that can pause the protocol or veto dangerous proposals in emergencies without waiting for the full governance cycle (which takes 7-14 days); the tension is that this guardian has centralised override power over a nominally decentralised governance system — necessary for security responsiveness but contradicting the 'no trusted third parties' ideal of DeFi",
+                        "B": "A guardian committee is a group of token holders with 51% of voting power that must approve all governance proposals; it eliminates the need for full community voting and is fully compatible with decentralisation because committee members are elected by the community",
+                        "C": "Guardians are automated bots that monitor on-chain transactions for unusual patterns and automatically pause the protocol when anomaly scores exceed predefined thresholds; they represent no governance tension because they are rule-based rather than human-discretion-based",
+                        "D": "Guardian committees are purely advisory and have no execution authority — they can only submit proposals to full governance and have no ability to unilaterally pause or modify protocol parameters"
+                    },
+                    "correct": "A",
+                    "explanation": "Aave's 'Guardian' is a 5-of-9 multisig that can pause Aave markets in emergencies without a governance vote. Compound has a similar 'Pause Guardian.' The rationale: a governance attack or smart contract exploit can drain a protocol in minutes; full Compound/Aave governance cycles take 7-14 days (proposal, voting, timelock). A human-controlled pause capability allows incident response in seconds rather than weeks. The centralisation tension is real: the Guardian's composition (typically including Aave/Compound founding team members) creates a trusted authority within a supposedly trustless system. This is often called 'security council' governance — the protocol accepts temporary centralisation as a security feature during early maturity. The progressive decentralisation philosophy holds that this emergency override power should be gradually removed as (1) battle-tested smart contracts reduce exploit risk, (2) formal verification matures, and (3) community governance demonstrates rapid response capability. MakerDAO has similarly wrestled with this tension in its transition to 'Endgame' governance."
+                },
+                {
+                    "id": 13,
+                    "question": "Aave V3 introduced 'E-mode' (efficiency mode) and 'isolation mode' as risk management features. From a governance security perspective, why is granular parameter-level risk management preferable to having governance frequently vote on global protocol risk settings?",
+                    "options": {
+                        "A": "Granular parameter controls are preferable purely for gas efficiency — encoding risk parameters in smart contract storage is cheaper than passing them through governance voting transactions",
+                        "B": "Frequent governance votes on global risk settings create attack surfaces: each vote is a governance event that can be targeted by flash loan attacks or whale coordination; embedding risk tiers (E-mode, isolation mode) directly into smart contract logic with governance-approved parameter limits reduces attack frequency, and delegating day-to-day risk adjustments to a specialised Risk Council (Gauntlet, Chaos Labs) with bounded authority reduces exposure of the full governance surface to adversarial manipulation",
+                        "C": "Granular parameters are preferable because they allow the protocol to operate without any governance participation — a fully automated risk system eliminates the need for token holder involvement entirely, which is the ideal end state for DeFi",
+                        "D": "Frequent governance votes are actually preferable for security because each vote revalidates the community's commitment to the protocol's risk framework; infrequent governance participation leads to voter atrophy and reduced security"
+                    },
+                    "correct": "B",
+                    "explanation": "Governance minimisation in risk management reduces the attack surface. Each governance event is an opportunity for manipulation: a proposal to 'adjust collateral factor for WBTC from 70% to 75%' sounds innocuous but each such vote is a potential vector for coordinated whale voting, dark proposals, or bribery. Aave's approach: (1) E-mode encodes high-efficiency borrowing for correlated asset pairs (e.g., stablecoins) directly in contract logic — no individual governance vote required for each user's E-mode use. (2) Isolation mode puts new/risky assets into sandboxed pools where their potential damage is contained. (3) A Risk Council (previously Gauntlet, now also Chaos Labs) with delegated authority to adjust parameters within governance-approved bounds without requiring full governance votes for routine adjustments. This creates a layered governance architecture: full governance approval for structural changes, Risk Council authority for parameter tuning, automated mechanisms for operational adjustments — each with appropriately limited scope to minimise governance attack exposure."
+                },
+                {
+                    "id": 14,
+                    "question": "The 'governance attack tax' concept suggests that the cost of defending against governance attacks must be factored into protocol design. If a protocol's token has a $500M market cap and the treasury holds $1B, what level of attack resistance does a 51%-approval governance system provide, and how can veTokenomics improve this?",
+                    "options": {
+                        "A": "A 51%-approval system provides $255M of attack resistance (51% of $500M market cap); veTokenomics cannot improve this because locking tokens does not change the total market cap available to purchase voting power",
+                        "B": "A 51% governance attack is theoretically impossible because Ethereum's EIP-1559 fee burning mechanism automatically detects and nullifies any transaction associated with a governance attack through its machine learning-based fraud detection layer",
+                        "C": "The attack resistance calculation is irrelevant because all major DAO governance systems use supermajority thresholds of 75% or higher, making 51% attacks computationally impossible",
+                        "D": "A 51%-approval system requires an attacker to acquire at least 51% of circulating voting tokens; if the token's market cap is $500M, acquiring 51% costs roughly $255M+ (due to price impact of buying). However, if the treasury holds $1B, the attack has a positive ROI — spend $255M to steal $1B. veTokenomics reduces this by locking a large percentage of supply for multi-year periods (reducing liquid supply available to attackers) and by requiring time-locked positions (attacker can't flash-purchase votes), raising the effective cost of attack to potentially exceed the treasury value"
+                    },
+                    "correct": "D",
+                    "explanation": "The governance security attack-cost analysis: attacking a DAO with a $500M token market cap requires acquiring ~51% of voting power. Due to price impact (buying 51% of supply moves the price dramatically), actual cost might be $400-600M. If the treasury holds $1B in assets, the attack has an estimated net profit of $400-600M — this is the 'governance attack tax' and represents a fundamental insecurity. veTokenomics partially addresses this: (1) Reduces liquid supply: if 60% of tokens are locked in 4-year veCRV positions, the attacker can only purchase from the 40% liquid supply, reducing maximum attackable votes. (2) Time-lock barrier: acquiring enough veCRV requires locking purchased CRV for 4 years — the attacker's capital is locked and illiquid even after the attack. (3) Higher effective cost: illiquidity premium on locked positions means buying veCRV influence costs more than buying liquid CRV. However, veTokenomics is not a complete solution — a sufficiently well-funded attacker can still accumulate enough locked tokens over time. Ultimately, the maximum safe treasury size is bounded by the cost of governance attack, not just by operational needs."
+                },
+                {
+                    "id": 15,
+                    "question": "Vitalik Buterin has advocated for 'governance minimisation' as a security principle. What does governance minimisation mean in practice, and why might a highly programmable protocol actually be less secure than a more rigid, less flexible one?",
+                    "options": {
+                        "A": "Governance minimisation means reducing the number of token holders who can participate in governance votes, ensuring that only the most sophisticated investors make protocol decisions",
+                        "B": "Governance minimisation is synonymous with full automation — a minimally governed protocol has zero human input and operates entirely via algorithmic rules, which Vitalik argues is achievable for all protocol types within 5 years",
+                        "C": "Governance minimisation refers to reducing voting periods to minimise the time governance proposals are open, thereby reducing the window during which token prices can be manipulated to influence governance outcomes",
+                        "D": "Governance minimisation means designing protocols so that the set of parameters controllable by governance is as narrow as possible — ideally, only truly necessary decisions (emergency responses, critical upgrades) go through governance while everything else is hard-coded or automated. Highly programmable governance creates more attack vectors because each governable parameter is an attack surface; a protocol where governance can change any parameter at any time is one where a governance attack can cause unlimited damage, while a protocol with limited governance scope bounds the worst-case attack outcome"
+                    },
+                    "correct": "D",
+                    "explanation": "Governance minimisation (articulated by Vitalik in 'Against Overuse of Governance') is a security philosophy. The principle: the fewer decisions that go through governance, the smaller the attack surface. Consider two protocols: Protocol A has governance with the ability to change every parameter (collateral factors, interest rate curves, treasury allocation, contract upgrades, oracle sources). Protocol B's governance can only approve emergency pauses and major upgrades, with all other parameters fixed at deployment. In Protocol A, a successful governance attack can cause unlimited harm by changing any parameter. In Protocol B, a governance attack can only activate emergency features (bounded harm). Real-world application: Uniswap V3's core AMM logic has minimal governance (fee tiers are fixed at deployment, LP parameters are immutable); only the fee switch and grant treasury are governable. Contrast with MakerDAO, where governance controls hundreds of parameters for dozens of collateral types — an enormously powerful governance system that requires correspondingly robust governance attack defenses."
+                },
+                {
+                    "id": 16,
+                    "question": "MakerDAO (now Sky) governs the DAI stablecoin through a system that includes MKR governance token holders, the Maker Protocol, and a sophisticated risk parameter framework. What is the 'stability fee' in MakerDAO, and how does its governance illustrate the challenge of managing monetary policy through decentralised voting?",
+                    "options": {
+                        "A": "The stability fee is a penalty charged to MKR holders who vote incorrectly on governance proposals; it reduces MKR supply when governance decisions lead to DAI depegging, automatically correcting misaligned incentives",
+                        "B": "The stability fee is the annual interest rate charged to DAI borrowers who create CDPs (Collateralised Debt Positions) by depositing collateral; MKR holders vote to raise or lower this rate to manage DAI's supply and maintain the $1 peg — when DAI trades below $1, raising the stability fee makes borrowing DAI more expensive (reducing supply, pushing price up); this illustrates that decentralised monetary policy requires MKR holders to have economic sophistication comparable to central bankers while operating under slow governance timelines",
+                        "C": "The stability fee is charged to DAI holders (not borrowers) proportional to their balance; it functions as a demurrage mechanism that incentivises DAI circulation rather than hoarding, keeping the stablecoin's velocity high",
+                        "D": "The stability fee is a fixed 0.5% annual fee hardcoded at MakerDAO's genesis that cannot be changed by governance; it represents the immutable cost basis for DAI minting that ensures the protocol's long-term solvency"
+                    },
+                    "correct": "B",
+                    "explanation": "MakerDAO's stability fee (SF) is the primary monetary policy lever for DAI peg management. Mechanism: when a user deposits 150 ETH (or other collateral) to borrow 1,000 DAI, they pay the SF annually on their outstanding DAI debt. If SF = 5%, borrowing 1,000 DAI costs 50 DAI/year. SF adjustments affect DAI supply: high SF → expensive to borrow DAI → less DAI minted → reduced supply → DAI price rises toward $1. Low SF → cheap to borrow → more DAI minted → increased supply → DAI price falls toward $1. Governance challenge: MKR voters (thousands of individuals globally) must collectively act as a central bank, responding to market conditions faster than governance cycles permit. Pre-2020, MakerDAO held frequent governance votes to adjust SF in 0.5% increments — a slow, reactive process. Post-Black Thursday (March 2020), MakerDAO created the 'Maker Open Market Committee' (MOMC) — a delegated committee with authority to adjust certain parameters weekly without full governance votes — an early example of delegated monetary authority in DAOs."
+                },
+                {
+                    "id": 17,
+                    "question": "Uniswap's governance has been criticised for 'governance theatre' — high token concentration (top 10 holders controlling >50% of voting power), extremely low voter participation (<5% in many proposals), and decisions dominated by VCs and insiders. What structural reforms have been proposed or implemented to address this participation crisis?",
+                    "options": {
+                        "A": "Uniswap has solved the participation crisis by implementing mandatory voting requirements — all UNI holders must vote in at least 3 proposals per quarter or their tokens are automatically sent to the community treasury as a penalty",
+                        "B": "Proposed/implemented reforms include: delegation UX improvements (encouraging passive holders to delegate to active representatives rather than simply not voting), temperature checks on Snapshot (lower-stakes signalling that builds momentum before on-chain proposals), a tiered proposal system (smaller decisions handled by a Foundation committee, large decisions requiring full UNI vote), and economic experiments like allowing delegated voters to earn a small UNI reward for active participation — though no single reform has solved the fundamental problem that most token holders are investors, not governance participants",
+                        "C": "Uniswap resolved the participation crisis by converting to a quadratic voting system where each UNI held gives the square root of voting power, reducing whale dominance and incentivising broader participation among smaller holders",
+                        "D": "Participation reforms are not needed because low voter turnout is actually optimal — Condorcet's jury theorem demonstrates that having fewer but more informed voters produces better governance outcomes than having many uninformed participants"
+                    },
+                    "correct": "B",
+                    "explanation": "The Uniswap governance participation crisis is well-documented. In the controversial Uniswap Foundation grant proposal (2022), voter turnout was approximately 45M UNI (~5% of supply), dominated by a16z's 15M+ UNI block. Structural reforms implemented or debated: (1) Delegate system improvements: Uniswap's delegate infrastructure allows passive UNI holders to delegate to elected representatives (Blockchain at Michigan, GFX Labs, Penn Blockchain) who actively participate. Tally and Boardroom provide delegate discovery UIs. (2) Temperature checks: Snapshot off-chain polls allow soft consensus building before expensive on-chain proposals. (3) Governance forum participation: Uniswap Governance Forum discussions precede all major proposals. (4) Foundation role: Uniswap Foundation (a legal entity approved by governance in 2022) handles operational decisions without burdening UNI governance with routine matters. The fundamental problem remains: most UNI holders are passive investors with no interest in reading 20-page governance forum threads. This is the 'rational ignorance' problem — the cost of informed participation exceeds the expected benefit for small holders."
+                },
+                {
+                    "id": 18,
+                    "question": "Aave's governance framework includes 'Aave Improvement Proposals' (AIPs), a Guardian multisig, a Risk Council, and multiple governance forums. How has Aave addressed the challenge of scaling governance to handle both high-frequency risk adjustments and low-frequency structural changes without compromising decentralisation?",
+                    "options": {
+                        "A": "Aave has fully centralised its governance by delegating all decisions to the Aave Companies (previously BGD Labs), which operates as a benevolent dictatorship that makes all protocol decisions autonomously while maintaining an illusion of decentralised governance for regulatory purposes",
+                        "B": "Aave's governance is entirely off-chain using cryptographic signatures collected via Snapshot, with on-chain execution only for transactions above $10M — this hybrid approach eliminates gas costs for 95% of governance activity while maintaining on-chain finality for high-value decisions",
+                        "C": "Aave uses a tiered authority architecture: AAVE token holders control structural decisions (major upgrades, treasury allocation, governance changes) via full on-chain governance with 10-day cycles; a Risk Council (experts delegated by governance) handles frequent risk parameter adjustments within pre-approved bounds without full votes; a Guardian multisig can pause markets in emergencies; and Protocol service providers (BGD Labs, Tokenlogic) handle implementation work — separating strategic governance from operational execution",
+                        "D": "Aave resolves the frequency problem by running two completely separate governance systems in parallel: Aave V2 governance handles risk parameters via weekly votes while Aave V3 governance handles strategic decisions via monthly votes, with no coordination required between the two systems"
+                    },
+                    "correct": "C",
+                    "explanation": "Aave's governance architecture exemplifies mature DAO design. The layered structure: (1) Full AAVE governance (on-chain, 10-day cycle): for major changes — V3 deployments on new networks, new collateral types, governance structure changes, treasury grants. High legitimacy, slow speed. (2) Risk Council: a committee of risk management experts (currently Gauntlet and Chaos Labs) approved by governance with authority to adjust collateral ratios, borrow caps, supply caps, liquidation thresholds within bounds pre-approved by governance. Meets weekly, executes adjustments in 24-48 hours. Medium legitimacy, fast speed. (3) Guardian multisig: can pause specific Aave markets immediately in emergencies. Fastest response, but bounded to pause actions only. (4) Protocol service providers: BGD Labs (core development), Tokenlogic (treasury management), Aave-Chan Initiative (governance facilitation) — specialist teams funded by governance but operating with delegated operational autonomy. This architecture solved Aave's 2021-era problem of needing governance votes to make routine risk adjustments as new assets launched — a process that could take 2 weeks while market conditions changed daily."
+                },
+                {
+                    "id": 19,
+                    "question": "The 'participation crisis' in DAO governance (typically <5-10% of token holders actively voting) has been called the fundamental failure mode of decentralised governance. What are the three main theories explaining why participation is systematically low, and what do they suggest about the limits of token-based democratic governance?",
+                    "options": {
+                        "A": "Three theories: (1) Rational ignorance — the cost of becoming informed enough to vote wisely exceeds the expected impact of one small vote, so individually rational actors abstain; (2) Rational apathy — token holders are primarily investors, not protocol citizens, and governance participation is not why they bought the token; (3) Concentrated interests vs. dispersed costs — large stakeholders (VC funds, foundations) have strong economic incentives to participate while average holders bear diffuse small costs from any single proposal, creating systematic underrepresentation of small holders. Together these suggest that token-based democracy systematically produces outcomes dominated by concentrated interests rather than genuine community preferences",
+                        "B": "Low participation is caused entirely by poor UX design — once governance interfaces become as intuitive as social media apps, participation rates will naturally reach 80%+ without any structural changes",
+                        "C": "The participation crisis is a temporary phenomenon unique to the 2021-2023 bear market period — historical data shows that participation rates above 50% are normal during bull markets when token prices are rising and holders are engaged",
+                        "D": "Low participation is caused exclusively by the technical barrier of on-chain transactions — the $5-50 gas cost to submit a vote on Ethereum mainnet makes voting economically irrational for holders with less than $10,000 in tokens, explaining all observed participation patterns"
+                    },
+                    "correct": "A",
+                    "explanation": "The DAO participation crisis is multi-causal and theoretically deep. (1) Rational ignorance (from public choice theory): a voter with 0.01% of tokens who spends 4 hours understanding a complex governance proposal to cast a correct vote has a near-zero expected impact on the outcome. The rational response is to abstain and free-ride on others' research — but if everyone does this, the 'others' reduce to zero. (2) Rational apathy (from investor psychology): most governance token holders purchased tokens for capital appreciation, not governance participation. Governance is an externality for them. Without financial incentives for participation, they rationally abstain. (3) Concentrated interests (from public choice economics): a VC holding 5% of a $1B token has $50M at stake per proposal — worth hundreds of hours of research. A retail holder with $1,000 at stake rationally spends 0.1% of that time on governance. This produces a structural bias toward institutional preferences. Solutions explored: liquid democracy (delegate to experts), governance incentives (pay voters), and binding quorum requirements — all with significant implementation challenges and their own tradeoffs."
+                },
+                {
+                    "id": 20,
+                    "question": "The Marshall Islands became the first sovereign nation to legally recognise a DAO (MIDAO) in 2022. Wyoming, Vermont, and Colorado have also passed DAO LLC legislation. What legal problem does DAO legal recognition solve, and what aspects of decentralised governance remain legally unresolved even after legal recognition?",
+                    "options": {
+                        "A": "DAO legal recognition solves all governance problems by bringing DAOs under existing corporate law frameworks — once legally recognised, DAOs operate exactly like LLCs with the same rights and responsibilities, resolving all unresolved governance questions",
+                        "B": "Legal recognition is purely ceremonial with no substantive legal effect — DAOs operate the same before and after recognition, and no court has ever applied DAO LLC law to a real dispute",
+                        "C": "DAO legal recognition solves regulatory uncertainty by classifying all governance tokens as utility tokens exempt from securities regulation, permanently resolving the SEC's ability to bring enforcement actions against DAO protocols",
+                        "D": "Legal recognition solves the 'unlimited liability' problem: without a legal wrapper, DAO token holders can be treated as general partners with personal liability for DAO debts and legal violations; a DAO LLC limits member liability. Unresolved issues include: tax treatment of governance token distributions and treasury yields, securities law classification of governance tokens (when does a DAO token become a security?), KYC/AML obligations for decentralised protocols, liability for DAO-approved code that causes user losses, and enforcement jurisdiction (which state/nation's law applies when DAO members span 50 countries?)"
+                    },
+                    "correct": "D",
+                    "explanation": "The primary problem legal recognition solves is unlimited liability. In the absence of a legal wrapper, a DAO functions like a general partnership: every token holder could theoretically be jointly and severally liable for the DAO's legal obligations. The CFTC lawsuit against Ooki DAO (2022) attempted to serve legal process on DAO token holders directly, arguing they were collectively responsible for the protocol's regulatory violations. Wyoming DAO LLC (2021), Marshall Islands MIDAO (2022), and Vermont series LLC structures allow DAOs to register as legal entities, limiting member liability to contributed capital. Remaining unresolved issues are substantial: (1) Securities: the SEC has been aggressive — Uniswap received a Wells Notice in 2024 suggesting UNI may be a security. How governance token distributions interact with Howey test analysis remains unresolved. (2) Tax: DAO contributors earning tokens face complex tax treatment across jurisdictions. (3) Legal personhood across multiple jurisdictions: a Marshall Islands DAO operating primarily in the US via US-based contributors may still face US regulatory jurisdiction. (4) Smart contract liability: if a governance-approved contract update causes $100M in user losses, can harmed users sue DAO members? These questions will likely require years of litigation to resolve."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>
