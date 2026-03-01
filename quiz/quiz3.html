@@ -307,7 +307,7 @@
         <div class="quiz-header">
             <div class="quiz-title">Quiz 3: Ethereum & Smart Contracts</div>
             <div class="quiz-stats">
-                <span class="stat-badge stat-progress" id="progressBadge">0/17</span>
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
                 <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
             </div>
         </div>
@@ -540,6 +540,42 @@
                     },
                     "correct": "B",
                     "explanation": "require() is used for validating inputs and conditions, and refunds remaining gas on failure. assert() is for catching internal errors and invariants that should never be false; it consumes all remaining gas on failure (pre-0.8.0). Use revert() for custom error handling."
+                },
+                {
+                    "id": 18,
+                    "question": "What is a reentrancy attack in smart contracts?",
+                    "options": {
+                        "A": "When a user sends too many transactions at once",
+                        "B": "When an external contract calls back into the calling contract before the first execution completes",
+                        "C": "When a contract runs out of gas during execution",
+                        "D": "When two contracts deploy at the same address"
+                    },
+                    "correct": "B",
+                    "explanation": "A reentrancy attack occurs when an external contract calls back into the calling contract before the first invocation finishes. This can exploit inconsistent state, allowing repeated withdrawals. The DAO hack (2016) exploited this. Prevention: use the Checks-Effects-Interactions pattern or OpenZeppelin's ReentrancyGuard."
+                },
+                {
+                    "id": 19,
+                    "question": "What is the purpose of a 'modifier' in Solidity?",
+                    "options": {
+                        "A": "To change the return type of a function",
+                        "B": "To add reusable precondition checks that execute before or around a function body",
+                        "C": "To modify the bytecode of a deployed contract",
+                        "D": "To convert data types automatically"
+                    },
+                    "correct": "B",
+                    "explanation": "Modifiers in Solidity are reusable code snippets that can be attached to functions to add precondition or postcondition checks. The underscore (_) in a modifier indicates where the function body executes. Common examples include 'onlyOwner' for access control and 'nonReentrant' for reentrancy protection."
+                },
+                {
+                    "id": 20,
+                    "question": "How does inheritance work in Solidity?",
+                    "options": {
+                        "A": "Contracts cannot inherit from other contracts",
+                        "B": "A contract can inherit from only one parent contract",
+                        "C": "Solidity supports multiple inheritance using the 'is' keyword with C3 linearization",
+                        "D": "Inheritance requires deploying parent and child contracts separately"
+                    },
+                    "correct": "C",
+                    "explanation": "Solidity supports multiple inheritance using the 'is' keyword (e.g., 'contract Child is Parent1, Parent2'). It uses C3 linearization to resolve the order of inheritance when multiple parents define the same function. The 'super' keyword calls the next contract in the linearization chain."
                 }
             ]
         };
