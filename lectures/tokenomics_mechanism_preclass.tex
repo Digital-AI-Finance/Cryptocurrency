@@ -1,0 +1,189 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Tokenomics \& Mechanism Design} \textcolor{mlgray}{|} Lesson 12 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{Tokenomics \& Mechanism Design}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 12 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% -- Activity 1 ----------------------------------------------------------------
+\activitybox{Activity 1: Token Supply Explorer}{10 min}{%
+Visit \textbf{CoinGecko} (\texttt{coingecko.com}) and the individual project sites to research how token supply is designed and managed. Answer:
+\begin{enumerate}
+\item Compare the supply models of \textbf{Bitcoin (BTC)}, \textbf{Ethereum (ETH)}, and \textbf{Dogecoin (DOGE)}. What is each token's max supply, circulating supply, and current inflation rate? Where do these numbers come from?
+\item What is \textbf{token burning}? Find 3 protocols that burn tokens (e.g., ETH post-EIP-1559, BNB, SHIB) and explain \emph{why} each burns tokens and what effect it is intended to have on price.
+\item Explain Bitcoin's \textbf{halving schedule}. When is the next halving? How does the block reward change, and how does this affect the stock-to-flow ratio and supply economics over time?
+\item What is \textbf{token velocity}? Why might high velocity --- tokens changing hands rapidly --- be a problem for long-term token value? Which design mechanisms can reduce velocity?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}p{2.4cm}p{2.8cm}p{2.8cm}p{2.4cm}p{3.2cm}@{}}
+\toprule
+\textbf{Token} & \textbf{Max Supply} & \textbf{Circulating Supply} & \textbf{Inflation Rate} & \textbf{Burn Mechanism} \\
+\midrule
+BTC & \fillcell & \fillcell & \fillcell & \fillcell \\
+ETH & \fillcell & \fillcell & \fillcell & \fillcell \\
+DOGE & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 2 ----------------------------------------------------------------
+\activitybox{Activity 2: Bonding Curve Exploration}{10 min}{%
+Research automated market makers and bonding curves --- the mathematical pricing mechanisms that power decentralised exchanges. Answer:
+\begin{enumerate}
+\item What is a \textbf{bonding curve}? Explain in your own words how the token price changes as tokens are bought and as tokens are sold. Sketch the shape of a linear and an exponential bonding curve.
+\item Look up \textbf{Uniswap's constant product formula} $x \times y = k$. Suppose a pool holds $100$ ETH and $200{,}000$ USDC. Using the formula, what is the effective price for buying \textbf{1 ETH}? What about buying \textbf{10 ETH}? Show your working.
+\item What is \textbf{slippage}? Why does it occur in AMMs? How does increasing pool depth (total liquidity) affect the slippage a trader experiences?
+\item Compare three AMM designs: \textbf{Uniswap v2} ($x \cdot y = k$), \textbf{Uniswap v3} (concentrated liquidity), and \textbf{Curve} (StableSwap invariant). What is each design optimised for, and what trade-offs does each make?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}p{3.0cm}p{3.2cm}p{3.0cm}p{3.4cm}@{}}
+\toprule
+\textbf{AMM Type} & \textbf{Formula} & \textbf{Best For} & \textbf{Slippage Profile} \\
+\midrule
+Uniswap v2       & \fillcell & \fillcell & \fillcell \\
+Uniswap v3       & \fillcell & \fillcell & \fillcell \\
+Curve StableSwap & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 3 ----------------------------------------------------------------
+\activitybox{Activity 3: Incentive Design Analysis}{5 min}{%
+Explore how game theory and mechanism design shape token holder behaviour in real protocols. Answer:
+\begin{enumerate}
+\item What is \textbf{staking}? Compare the staking rewards for \textbf{ETH 2.0}, \textbf{Solana (SOL)}, and \textbf{Cosmos (ATOM)}. What are the approximate annual yields, lock-up periods, and slashing risks for each?
+\item What is \textbf{vote-escrowed (ve) tokenomics}? Look up \textbf{Curve's veCRV} model. Why would a rational token holder lock their CRV tokens for up to 4 years? What rewards does the lock-up unlock?
+\item What is the \textbf{tragedy of the commons} in the context of on-chain governance? Find one real example of a \textbf{governance attack} on a DeFi protocol (e.g., Beanstalk, Compound) and describe how it was executed.
+\item What happened with the \textbf{LUNA/UST death spiral} in May 2022? Which specific incentive mechanism was exploited, and why did the reflexive mint/burn relationship between LUNA and UST fail catastrophically?
+\end{enumerate}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 4 ----------------------------------------------------------------
+\activitybox{Activity 4: Token Design Case Studies}{5 min}{%
+Investigate real governance and utility token designs to understand how tokenomics choices reflect project values and economic goals. Answer:
+\begin{enumerate}
+\item Compare \textbf{UNI} (Uniswap), \textbf{MKR} (MakerDAO), and \textbf{CRV} (Curve) governance tokens. What utility does each provide \emph{beyond} voting? Does holding each token entitle you to protocol revenue, and if so, how?
+\item Look up the token vesting schedules for any 2 recent token launches (IDO/TGE in 2023--2024). What is the cliff period? What percentage of total supply goes to the team, investors, and community/ecosystem respectively?
+\item What is a \textbf{fair launch}? Compare the launch mechanics of Bitcoin (no premine, no ICO) with a typical modern ICO or IDO launch. Which model distributes tokens more equitably, and what are the trade-offs?
+\item List \textbf{3 common tokenomics red flags} that might indicate a project is poorly designed, extractive, or a potential scam. For each, explain why it is a warning sign.
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{4pt}%
+\begin{tabular}{@{}p{1.6cm}p{2.0cm}p{2.4cm}p{2.2cm}p{3.0cm}p{1.8cm}@{}}
+\toprule
+\textbf{Token} & \textbf{Type} & \textbf{Key Utility} & \textbf{Supply Model} & \textbf{Vesting Schedule} & \textbf{Market Cap} \\
+\midrule
+UNI  & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+MKR  & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+CRV  & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{4pt}
+
+% -- Glossary ------------------------------------------------------------------
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.8cm}p{10.8cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{Tokenomics}               & The study of the economic design of a token system: supply schedule, distribution, incentive mechanisms, and how these factors influence token value and protocol behaviour over time. \\
+\textbf{Bonding Curve}            & A mathematical function that defines the price of a token as a function of its supply. Buying tokens moves up the curve (higher price); selling moves down. Used in automated token issuance and AMMs. \\
+\textbf{Token Velocity}           & The rate at which a token changes hands over a given period. High velocity implies tokens are not held as a store of value, which can suppress price even when transaction volume is high. \\
+\textbf{Halving}                  & A pre-programmed reduction (typically by 50\%) in the block reward paid to miners. Bitcoin halves approximately every 210,000 blocks (${\approx}4$ years), enforcing its 21 million coin cap via exponentially declining issuance. \\
+\textbf{Token Burn}               & The permanent removal of tokens from circulation by sending them to an unspendable address. Burns reduce supply and, if demand holds, apply upward price pressure. EIP-1559 introduced base-fee burning for ETH. \\
+\textbf{Staking}                  & Locking tokens in a protocol to participate in consensus (Proof-of-Stake) or to earn yield. Stakers typically earn inflationary rewards and may face slashing penalties for misbehaviour. \\
+\textbf{Vote-Escrow (ve)}         & A tokenomics model (pioneered by Curve's veCRV) where users lock governance tokens for a fixed period to receive boosted voting power and fee sharing. Longer locks yield proportionally greater influence. \\
+\textbf{Nash Equilibrium}         & A game-theoretic state where no participant can improve their outcome by unilaterally changing their strategy, given the strategies of all others. Mechanism designers aim to make honest behaviour the Nash equilibrium. \\
+\textbf{Mechanism Design}         & The ``inverse'' of game theory: engineering rules and incentive structures so that rational, self-interested participants produce a collectively desirable outcome (e.g., truthful auctions, fair token distributions). \\
+\textbf{Vesting Schedule}         & A time-based release plan for tokens allocated to founders, investors, or employees. Prevents immediate sell pressure by releasing tokens gradually after an initial cliff period. \\
+\textbf{Cliff Period}             & The initial lock-up duration in a vesting schedule during which no tokens are released. After the cliff, tokens begin to vest (often linearly). Common cliffs are 6--12 months for team allocations. \\
+\textbf{Token-Curated Registry (TCR)} & A mechanism where token holders stake tokens to vote on which entries belong in a curated list. Correct curators earn rewards; incorrect ones are penalised, aligning incentives with list quality. \\
+\textbf{Fair Launch}              & A token distribution where no tokens are pre-mined or pre-allocated to insiders; all participants gain access simultaneously and on equal terms. Bitcoin is the canonical example. \\
+\textbf{Impermanent Loss}         & The temporary loss in dollar value experienced by AMM liquidity providers when the price ratio of pooled assets changes relative to simply holding them. Loss is ``impermanent'' because it reverses if prices return to the original ratio. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Tokenomics \& Mechanism Design --- Lesson 12 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz RW-1: Tokenization Fundamentals | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz RW-1: Tokenization Fundamentals</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz RW-1: Tokenization Fundamentals</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is real-world asset (RWA) tokenization and what does the process fundamentally involve?",
+                    "options": {
+                        "A": "Tokenization is the process of encrypting asset ownership records using blockchain hashing algorithms, replacing paper deeds with cryptographic signatures stored on an immutable ledger",
+                        "B": "Tokenization is the process of creating a blockchain-based digital representation of ownership rights in a real-world asset — converting the legal claim to an asset into a digital token that can be issued, transferred, and settled on a distributed ledger",
+                        "C": "Tokenization is a DeFi protocol that automatically converts physical assets into collateral for crypto loans by connecting to IoT sensors that verify asset condition and value in real time",
+                        "D": "Tokenization is the process of creating synthetic derivatives that track the price of real-world assets without any legal ownership transfer, functioning like a decentralized CFD (contract for difference)"
+                    },
+                    "correct": "B",
+                    "explanation": "RWA tokenization creates digital representations of ownership rights in real-world assets on a blockchain. The key distinction: the token represents a genuine legal claim to the underlying asset — it is not merely a price-tracking synthetic instrument. The process involves: (1) Identifying the asset and establishing clear legal ownership. (2) Creating a legal wrapper (SPV, trust, or fund structure) that holds the asset and defines token holder rights. (3) Issuing tokens on a blockchain where each token represents a fractional or whole ownership claim. (4) Establishing mechanisms for dividends, proceeds, or voting rights to flow to token holders. The 'digital twin' concept — a token that mirrors the economic and legal characteristics of the physical asset — is central to understanding why tokenization is more than just digitization of records."
+                },
+                {
+                    "id": 2,
+                    "question": "What is the 'digital twin' concept in RWA tokenization, and how does it differ from simply digitizing an asset's records?",
+                    "options": {
+                        "A": "A digital twin is an NFT that contains a 3D scan of the physical asset, allowing buyers to inspect it virtually; it differs from record digitization by including multimedia data rather than just text ownership records",
+                        "B": "A digital twin is a blockchain token whose economic and legal properties mirror those of the underlying asset — holders receive proportional economic benefits (income, appreciation, voting rights) that the physical asset generates; mere record digitization only converts paper to digital format without creating transferable ownership or economic rights on-chain",
+                        "C": "A digital twin is a smart contract that automatically replicates the asset's market price using oracle feeds, creating a synthetic that tracks the asset without requiring legal ownership transfer or custodial arrangements",
+                        "D": "A digital twin is a concept from IoT manufacturing applied to finance where physical assets broadcast their status data to a blockchain; it differs from record digitization by including real-time sensor data alongside ownership records"
+                    },
+                    "correct": "B",
+                    "explanation": "The digital twin concept is foundational to understanding what makes tokenization valuable beyond mere digitization. Digitizing records means converting a paper title deed into a PDF — the ownership is still transferred through traditional legal channels, and the digital file has no intrinsic transferability or programmability. A digital twin goes further: the blockchain token IS the ownership instrument. When Alice sells her token to Bob, she is legally transferring the economic rights to the underlying asset's cash flows and appreciation. Key properties a true digital twin should mirror: (1) Economic rights — rental income, dividends, and proceeds flow to token holders proportionally. (2) Legal ownership — the token legally represents the claim (via SPV or legal wrapper). (3) Governance rights — token holders can vote on asset management decisions. (4) Transferability — the token can be sold on secondary markets 24/7 without paperwork. This distinction explains why tokenization requires both technical infrastructure (smart contracts) and legal engineering (SPV structures)."
+                },
+                {
+                    "id": 3,
+                    "question": "What are the core steps in the tokenization process from physical asset to tradeable token?",
+                    "options": {
+                        "A": "The process is: (1) photograph the asset, (2) upload images to IPFS, (3) mint an NFT with the IPFS hash, (4) list on OpenSea — the NFT metadata constitutes the legal ownership transfer",
+                        "B": "The core steps are: (1) asset identification and legal due diligence, (2) creation of a legal wrapper (SPV/trust) that holds the asset, (3) token issuance on a blockchain with smart contracts encoding rights, (4) investor onboarding with KYC/AML compliance, (5) ongoing management including oracle price feeds and dividend distribution",
+                        "C": "The process requires: (1) government approval from all jurisdictions where token holders reside, (2) central bank registration of the token as an electronic money instrument, (3) mandatory insurance from a licensed underwriter, (4) annual physical audits by a Big Four accounting firm",
+                        "D": "The tokenization process is identical to an IPO: (1) hire underwriters, (2) file a prospectus with the SEC, (3) conduct a roadshow, (4) set an offering price, (5) list on a regulated exchange — the only difference is that tokens settle in T+0 instead of T+2"
+                    },
+                    "correct": "B",
+                    "explanation": "The tokenization pipeline combines legal, technical, and compliance components. Step 1 — Asset identification and due diligence: appraise the asset, verify legal ownership, identify encumbrances (mortgages, liens), and determine regulatory classification of the resulting tokens. Step 2 — Legal wrapper creation: establish an SPV (Special Purpose Vehicle), trust, or fund that legally holds the asset. This entity issues the tokens and defines token holder rights in legally enforceable documents. Step 3 — Token issuance: deploy smart contracts on a blockchain (often using ERC-3643 or similar for compliant security tokens) that represent fractional ownership. Smart contracts automate distributions and enforce transfer restrictions. Step 4 — Investor onboarding: conduct KYC/AML checks; if tokens are securities, only accredited or qualified investors may participate in many jurisdictions. Step 5 — Ongoing operations: maintain oracle price feeds, distribute income to token holders, handle corporate actions, and manage redemptions. The legal and compliance aspects are often more complex than the technical implementation."
+                },
+                {
+                    "id": 4,
+                    "question": "Which of the following best describes the scale of tokenizable real-world assets and why traditional asset classes are prime candidates?",
+                    "options": {
+                        "A": "The tokenizable market is approximately $500 billion, consisting primarily of digital art and collectibles; traditional assets like real estate are excluded because they cannot be transferred without government registry updates",
+                        "B": "The tokenizable opportunity spans tens of trillions across real estate (~$330T global value), bonds and fixed income (~$130T), private equity (~$13T), commodities, and fine art/collectibles — these asset classes are prime candidates because they combine large value with poor liquidity, high minimum investment barriers, and expensive intermediation",
+                        "C": "The tokenizable market is limited to publicly traded securities ($100T+ globally) because only assets with established market prices can be fairly tokenized; private assets cannot be tokenized without a reliable price oracle",
+                        "D": "Tokenizable assets are exclusively government bonds and sovereign debt because these are the only instruments with clear legal ownership, standardized terms, and sovereign guarantee — private assets carry too much counterparty risk for blockchain settlement"
+                    },
+                    "correct": "B",
+                    "explanation": "The tokenization opportunity is measured in tens of trillions, not billions. Key figures: Global real estate: ~$330 trillion in total value — the world's largest asset class. Most is completely illiquid (you cannot sell 0.01% of a skyscraper). Global bonds/fixed income: ~$130 trillion — significant portions are thinly traded, especially corporate and emerging market bonds. Private equity and venture capital: ~$13 trillion — extremely illiquid, requiring 7-10 year lockups with minimum investments of $250,000+. Commodities: gold alone represents ~$13 trillion in above-ground stock; other metals, agricultural products, and energy add trillions more. Fine art and collectibles: ~$1.7 trillion — highly illiquid, requires physical custody and specialized expertise. These asset classes are prime candidates precisely because of their pain points: (1) High minimum investments exclude retail investors. (2) Poor secondary market liquidity traps capital. (3) High transaction costs from intermediaries (brokers, lawyers, custodians). (4) Settlement delays (real estate closes in 30-90 days). Tokenization directly addresses each of these friction points."
+                },
+                {
+                    "id": 5,
+                    "question": "Why is real estate often cited as the most compelling RWA tokenization use case, given that it is the world's largest asset class?",
+                    "options": {
+                        "A": "Real estate is compelling because property values are highly stable and predictable, making price oracle design trivial — smart contracts can automatically value properties using satellite imagery and machine learning",
+                        "B": "Real estate ($330T globally) is compelling because it combines massive value with severe illiquidity and access barriers: a $10M commercial building requires $10M to invest in, takes 30-90 days to transfer, requires lawyers and brokers, and cannot be sold at 2am — tokenization enables fractional ownership from $50, 24/7 secondary market trading, and programmable rent distribution",
+                        "C": "Real estate is primarily compelling for its tax advantages: tokenized property can be structured to pass through depreciation deductions to token holders in any jurisdiction, creating a globally accessible tax shelter unavailable to traditional property funds",
+                        "D": "Real estate is compelling because blockchain titling will replace government land registries within 5 years, eliminating title insurance and making all property transactions self-executing through smart contracts without any legal intermediaries"
+                    },
+                    "correct": "B",
+                    "explanation": "Real estate exemplifies the inefficiencies tokenization addresses most forcefully. The problem space: (1) Access barrier — a $10M office building requires $10M to own. Even a $500K apartment is out of reach for most retail investors globally. REITs provide partial access but are limited to publicly listed funds with management fees. (2) Illiquidity — selling real estate takes 30-90 days minimum, involves lawyers, title searches, and title insurance, and costs 5-10% of value in transaction costs. (3) Operating hours — transactions happen during business hours in the property's jurisdiction only. (4) Geographic friction — a US investor buying Japanese real estate faces currency risk, language barriers, legal complexity, and requires local brokers. Tokenization solutions: Fractionalization enables $50 minimum investment. Smart contracts automate rent distribution on a block-by-block basis. Secondary markets on DEXes or security token exchanges enable 24/7 trading. Cross-border investment becomes as simple as buying any other token. Pilot examples include tokenized real estate funds from RealT (US residential), Propy (international), and major institutions (JPMorgan's Onyx for commercial real estate)."
+                },
+                {
+                    "id": 6,
+                    "question": "Beyond real estate, what other major asset classes are being actively tokenized, and what specific problem does tokenization solve for each?",
+                    "options": {
+                        "A": "Only artworks and luxury goods are being tokenized because they lack standardized contracts; bonds and equities are already fully liquid and digital, making tokenization redundant for these categories",
+                        "B": "Active tokenization extends to: bonds (government and corporate — automating coupon payments and reducing settlement from T+2 to T+0, with examples like the World Bank's bond-i), commodities (gold tokens like PAXG enabling fractional gold ownership and eliminating vault custody friction), private equity (fractionalizing $250K minimum LP interests to $1K minimums), and fine art (enabling retail access to blue-chip art appreciation)",
+                        "C": "The only successfully tokenized assets beyond real estate are stablecoins backed by US dollars; all other RWA tokenization projects have failed due to regulatory rejection by the SEC and EU financial regulators",
+                        "D": "Tokenization is exclusively applied to synthetic assets that reference real-world prices without actual custody of underlying assets; true physical asset tokenization remains technically impossible because blockchains cannot enforce physical delivery"
+                    },
+                    "correct": "B",
+                    "explanation": "Tokenization is active across multiple asset classes, each with distinct value propositions. Bonds and fixed income (~$130T): Traditional bond settlement takes T+2 days. Tokenized bonds can settle in seconds, automatically distribute coupons via smart contracts, and enable fractional ownership (the World Bank's bond-i, issued on Ethereum via the Commonwealth Bank of Australia, raised $110M). Siemens issued a $65M digital bond in 2023. Commodities: Gold is the leading example. PAXG (Paxos Gold) represents 1 troy ounce of gold per token, stored in LBMA-approved vaults. Holders can trade fractions, use gold as DeFi collateral, or redeem for physical delivery. Eliminates $1,500+ minimum investment for one full ounce. Private equity/credit: Tokenized private credit funds (Ondo Finance, Franklin Templeton's BENJI token) offer accredited investors access to private credit yields with lower minimums. Fine art: Platforms like Masterworks tokenize paintings, enabling retail investors to buy shares in blue-chip artworks from Basquiat or Warhol. Each category requires different technical and legal infrastructure."
+                },
+                {
+                    "id": 7,
+                    "question": "What is ERC-20 and why is it the standard for fungible tokenized assets but NOT appropriate for unique assets like individual properties?",
+                    "options": {
+                        "A": "ERC-20 is Ethereum's native currency standard; it is inappropriate for properties because smart contracts cannot hold ETH and ERC-20 tokens simultaneously, requiring a separate wallet for each asset type",
+                        "B": "ERC-20 is the fungible token standard where every token is identical and interchangeable — one USDT is equivalent to any other USDT, one share in a tokenized fund equals any other share; this fungibility makes it ideal for fractional ownership of standardized asset pools but inappropriate for representing unique individual assets (like a specific property at 123 Main St.) where each unit has distinct characteristics",
+                        "C": "ERC-20 is limited to 18 decimal places of precision, making it inappropriate for high-value assets like real estate where prices require 20+ decimal places for accurate fractional representation",
+                        "D": "ERC-20 tokens cannot be restricted to accredited investors only, making them legally prohibited for use in any security token offering under US securities law; all RWA tokens must use ERC-721 or newer standards"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-20 (Ethereum Request for Comments 20, finalized 2017) defines the standard interface for fungible tokens on Ethereum. Fungibility means every unit is identical: 1 USDC is worth exactly the same as any other 1 USDC; 1 share in a tokenized US Treasury fund equals any other share. This makes ERC-20 perfect for: tokenized fund shares (where each token represents an identical fractional claim), stablecoins, commodity tokens (each ounce-token of PAXG is equivalent), and fractionalized real estate pools (a diversified real estate fund where each token = identical economic interest). Where ERC-20 fails: unique assets. A specific apartment at 123 Main St., NYC, has unique characteristics (floor, view, condition, tenant) that make it non-fungible. Tokenizing it as ERC-20 would falsely imply all similar tokens are equivalent across different properties. Unique asset tokens require ERC-721 (NFTs) where each token has a unique ID and distinct metadata. The choice between ERC-20 and ERC-721 depends on whether the tokens within a collection are meant to be treated as equivalent."
+                },
+                {
+                    "id": 8,
+                    "question": "What is ERC-721 (the NFT standard) and how does it enable tokenization of unique individual assets?",
+                    "options": {
+                        "A": "ERC-721 is a standard for creating tokens that can only be transferred once — after the first sale, the token is locked to the buyer's address permanently, making it ideal for proving provenance of collectibles",
+                        "B": "ERC-721 creates non-fungible tokens where each token has a unique identifier (tokenId) and can carry distinct metadata — enabling representation of individual unique assets where each token is distinct: a specific piece of real estate, a unique artwork, a specific bond with its own maturity and coupon, or a single wine bottle with its own vintage and provenance",
+                        "C": "ERC-721 is identical to ERC-20 but adds a royalty mechanism that automatically pays the original creator a percentage of every secondary market sale, making it legally required for all RWA tokens classified as securities",
+                        "D": "ERC-721 creates tokens that require two-of-two multisig approval for every transfer, making transactions more secure by preventing unauthorized sales without the asset owner's explicit cryptographic confirmation"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-721 (proposed by William Entriken et al., finalized 2018) introduced the non-fungible token standard. Key properties: (1) Unique token IDs — each token in an ERC-721 contract has a distinct uint256 tokenId; token #1 and token #2 are explicitly different assets. (2) Metadata — each tokenId can reference off-chain metadata (via tokenURI()) containing images, documents, and attributes specific to that token. (3) Non-fungibility — there is no equivalent() function; you cannot substitute one token for another. RWA applications: Individual property deed — a specific condo at 456 Oak Ave can be represented as ERC-721 token #47, with its title deed, floor plan, and inspection records stored in metadata. Art authentication — a Picasso painting tokenized as ERC-721 #1 where the metadata includes provenance documentation, certificates of authenticity, and high-resolution images. Individual bond — a specific bond with CUSIP 123456789, $1M face value, 5% coupon, maturing 2027-01-15 represented as a unique token. The ERC-721 standard enabled the $41B NFT market (2021 peak) and is increasingly used for RWA tokenization of unique assets."
+                },
+                {
+                    "id": 9,
+                    "question": "What is ERC-1155 and what advantage does it offer over using separate ERC-20 and ERC-721 contracts for complex tokenization projects?",
+                    "options": {
+                        "A": "ERC-1155 is a combined governance and token standard that allows token holders to vote on smart contract upgrades without deploying a separate governance contract, reducing gas costs for DAO-governed asset management",
+                        "B": "ERC-1155 is a multi-token standard that allows a single smart contract to manage multiple token types simultaneously — both fungible (like ERC-20) and non-fungible (like ERC-721) — enabling batch transfers and reducing deployment costs; a real estate platform could use one contract to manage both unique property deeds and fungible fractional shares",
+                        "C": "ERC-1155 introduces semi-fungible tokens that start as fungible during a primary offering period and automatically convert to non-fungible after the offering closes, solving the lifecycle transition problem for tokenized securities",
+                        "D": "ERC-1155 is a Layer 2 token standard that automatically bridges tokens between Ethereum and all major L2 networks, enabling tokenized assets to be traded across Arbitrum, Optimism, and Polygon without manual bridging transactions"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-1155 (proposed by Witek Radomski of Enjin, finalized 2019) is the multi-token standard. Core innovation: one contract, multiple token types. Each token type has a unique ID, but within a type, tokens can be fungible or non-fungible. Practical advantages: (1) Gas efficiency — deploying one contract instead of dozens saves 70%+ on deployment costs. (2) Batch transfers — send 10 different token types to multiple addresses in a single transaction (impossible with ERC-20/721). (3) Mixed types in one contract — a gaming platform manages weapons (fungible by type), characters (non-fungible unique individuals), and currency (fungible) in one ERC-1155 contract. RWA use cases: A real estate tokenization platform could use one ERC-1155 contract where: ID 1-100 are unique property deed tokens (non-fungible), ID 101 represents fungible shares in a diversified real estate fund, ID 102 represents fungible USD income tokens distributed as rent. This simplifies integration for exchanges and wallets that only need to support one standard. The gaming industry pioneered ERC-1155, but it has strong RWA applications for platforms with multiple asset types."
+                },
+                {
+                    "id": 10,
+                    "question": "What is ERC-3643 and why was a specialized standard needed for security token offerings rather than repurposing ERC-20?",
+                    "options": {
+                        "A": "ERC-3643 is a standard for tokenized carbon credits that automatically retires credits when transferred, preventing double-counting — the specialized standard was needed because ERC-20 has no mechanism for permanent token destruction on transfer",
+                        "B": "ERC-3643 (the T-REX standard) is a compliance-ready security token standard that integrates on-chain identity verification and transfer restriction logic — it enforces that only KYC-verified, accredited investors in permitted jurisdictions can hold tokens, and automatically blocks non-compliant transfers that ERC-20 would allow freely",
+                        "C": "ERC-3643 adds mandatory lock-up periods to ERC-20 tokens, preventing token sales for 12 months after issuance — a requirement of EU prospectus regulations for all security token offerings regardless of investor qualification",
+                        "D": "ERC-3643 is a cross-chain security standard that verifies token ownership across multiple blockchains simultaneously, preventing the same security token from being double-spent on Ethereum and Polygon"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-3643 (T-REX: Token for Regulated EXchanges, developed by Tokeny Solutions) addresses the compliance gap in standard token standards. Why ERC-20 is insufficient for securities: A plain ERC-20 token transfers freely between any Ethereum addresses. Securities laws prohibit this — you cannot sell unregistered securities to non-accredited investors, residents of certain jurisdictions, or sanctioned entities. ERC-3643's architecture: (1) Identity Registry — a smart contract that stores on-chain identity claims for verified investors (linked to off-chain KYC/AML databases like Tokeny's ONCHAINID). (2) Compliance Module — a smart contract that checks every token transfer against rules: Is the recipient verified? Is the recipient's country permitted? Does the transfer violate lock-up periods? Does it exceed ownership concentration limits? (3) Transfer restriction — if compliance checks fail, the transfer reverts automatically. This architecture satisfies regulatory requirements across jurisdictions. Real-world adoption: Abu Dhabi Global Market (ADGM) uses ERC-3643 for regulated token offerings. Major European security token platforms (Euroclear Digital Securities, SIX Digital Exchange) implement ERC-3643 logic. It represents the convergence of blockchain programmability and securities law compliance."
+                },
+                {
+                    "id": 11,
+                    "question": "How does fractionalization work mechanically for a $10 million commercial building, and what does this enable for investors?",
+                    "options": {
+                        "A": "Fractionalization physically divides the building into 10,000 sections, and each investor receives a deed to their specific section; a blockchain registry tracks which section belongs to which investor and automatically routes rental income from each section's tenants",
+                        "B": "The building is placed into an SPV; 10,000 ERC-20 tokens are minted where each token represents 0.01% economic interest ($1,000 face value); smart contracts distribute net rental income proportionally each month; investors can buy tokens for as little as $50 on a secondary marketplace, selling any time without waiting for the whole building to be sold",
+                        "C": "Fractionalization creates a derivative linked to the building's appraised value; investors purchase call options on the derivative and receive synthetic exposure to price movements; the building itself is never actually transferred to any blockchain-controlled entity",
+                        "D": "The building is fractionalized by creating a traditional REIT that files with the SEC; blockchain tokens represent shares in the REIT and trade on a special exchange; the only blockchain innovation is using Ethereum for share registry rather than DTCC"
+                    },
+                    "correct": "B",
+                    "explanation": "Fractionalization mechanics for a $10M building: Legal structure — an SPV (e.g., '123 Main St LLC') is created to hold the building title. The SPV's operating agreement defines token holder rights. Token issuance — 10,000 ERC-20 (or ERC-3643) tokens are minted, each representing 0.01% (1/10,000) ownership of the SPV. At $1,000/token, the total raises $10M. Fractional access — investors can purchase as few tokens as the platform allows (often $50-$100 minimum). Someone with $500 gets 0.05% exposure to a $10M commercial building — previously impossible. Income distribution — the building generates $600,000/year in net rental income ($50/token/year = 5% yield). Smart contracts distribute $50 per token monthly to holders' wallets automatically, without checks or wire transfers. Liquidity — token holders can sell on secondary markets during normal business hours AND at 3am. No lawyer needed. Transaction completes in seconds on-chain. Exit — the SPV can eventually sell the building, distributing sale proceeds proportionally to token holders. Real-world examples: RealT tokenizes US residential properties with 24-hour income distribution; Harbor tokenized student housing complexes."
+                },
+                {
+                    "id": 12,
+                    "question": "What is the 'minimum investment threshold' problem that fractionalization solves, and what are realistic minimum investment figures for tokenized real estate platforms?",
+                    "options": {
+                        "A": "The minimum investment threshold problem refers to gas fees on Ethereum being too high for small investments; fractionalization platforms use Layer 2 networks like Polygon to reduce minimum gas fees to under $0.01 per transaction",
+                        "B": "Traditional real estate investment requires $500K-$10M+ to directly purchase property, or $2,500+ minimum for REITs; leading tokenization platforms like RealT allow investments from $50-$100, democratizing access to real estate yields for investors globally with any income level",
+                        "C": "Minimum investment thresholds are set by token standards: ERC-20 requires minimum 1 full token ($1,000), ERC-721 requires full asset ownership, and only ERC-1155 supports sub-$1 fractional investments through its decimal precision architecture",
+                        "D": "The minimum investment problem is solved by real estate tokenization platforms charging negative fees (subsidized by venture capital), making all investments free; the business model relies exclusively on appreciation rather than transaction fees"
+                    },
+                    "correct": "B",
+                    "explanation": "The minimum investment problem is fundamental to why traditional real estate is inaccessible to most global investors. Traditional barriers: (1) Direct ownership — even a modest single-family home in many markets requires $200K-$500K down payment. Commercial real estate starts at $1M+. (2) REITs — publicly traded REITs require purchasing whole shares (typically $20-$200/share, no fractions on most brokerages). Non-traded REITs often require $2,500-$25,000 minimums. (3) Private real estate funds — typically require $250,000-$1,000,000 minimum and accredited investor status. Tokenization minimums in practice: RealT (Detroit/US residential) — minimums of $50-$200 per token with daily rental income distribution. Lofty.ai — $50 minimums, daily distributions on Algorand. Ondo Finance (tokenized Treasuries) — $100,000 minimum (institutional focus). Harbor (commercial) — $10,000 minimum. The democratization impact: A teacher earning $50,000/year in Kenya can now hold $500 in US commercial real estate and receive rental income in USDC weekly. This represents a fundamental restructuring of who can participate in wealth-building through real asset investment."
+                },
+                {
+                    "id": 13,
+                    "question": "How do smart contracts automate income distribution in tokenized real estate, and what are the advantages over traditional property income distribution?",
+                    "options": {
+                        "A": "Smart contracts automatically send physical checks to token holders' mailing addresses monthly; the blockchain stores the mailing addresses encrypted, and a legal entity processes the check printing and postal service",
+                        "B": "Smart contracts hold rental income as it arrives (in stablecoins from tenants), calculate each holder's proportional share based on token balances at a snapshot block, and automatically distribute USDC/USDT to all holders' wallets — eliminating property management overhead, banking delays, currency conversion, and enabling near-real-time (daily or per-block) distributions impossible with traditional structures",
+                        "C": "Smart contracts distribute income by creating new tokens proportional to each holder's share; these new tokens accumulate and can be redeemed for USDC at any time through the issuer's redemption portal, but cannot be traded or used in DeFi protocols",
+                        "D": "Income distribution in tokenized real estate requires tenant rent payments in cryptocurrency directly to the smart contract; tenants who pay in fiat currency are excluded from tokenized properties because there is no way to convert fiat to on-chain income without centralized custody"
+                    },
+                    "correct": "B",
+                    "explanation": "Smart contract income distribution transforms the mechanics of property income. Traditional distribution process: Tenant pays rent by check or bank transfer. Property manager collects, deducts fees (8-12% of rent), and sends owner wire. Owner (a fund) receives wire, accrues income, and distributes quarterly after deducting fund management fees. Individual investors receive quarterly distributions via ACH, with 3-5 business day delays. International investors face currency conversion and SWIFT fees. Total process: 30-90 days from tenant payment to investor receipt. Tokenized distribution process: Tenant pays rent in USDC (or rent is converted to USDC on arrival). USDC enters the property SPV's smart contract. At each distribution trigger (daily, weekly, or per-block), the contract reads all token balances, calculates proportional shares, and distributes USDC in a single multi-send transaction. Each holder receives income in seconds to minutes. Gas cost for 1,000 holders: ~$5-50 on L2. Per-holder cost: fractions of a cent. This enables: daily income distributions (instead of quarterly), global instant settlement, DeFi integration (income-bearing tokens can serve as collateral), and complete transparency (all distributions visible on-chain)."
+                },
+                {
+                    "id": 14,
+                    "question": "What does '24/7 markets' mean as a benefit of tokenization, and how does continuous trading differ from traditional asset market hours?",
+                    "options": {
+                        "A": "24/7 markets means blockchain nodes process transactions continuously, but actual token trades still settle during NYSE trading hours (9:30am-4pm ET) because security token exchanges are required by FINRA to follow stock market hours",
+                        "B": "Tokenized assets trade on blockchain-based exchanges or DEXes that operate continuously without market open/close cycles — an investor in Tokyo can sell their tokenized Manhattan office building stake at 3am local time on a Saturday, receiving settlement in seconds, whereas traditional real estate requires finding a buyer during business hours and waiting 30-90 days to close",
+                        "C": "24/7 markets refers to the 24/7 availability of price information via blockchain oracles; actual trading still requires human market makers who work in shifts, but the price data feeds never go offline",
+                        "D": "24/7 markets is primarily beneficial for algorithmic traders using bots; human investors are protected by mandatory 8-hour cooling-off periods between consecutive trades to prevent impulsive decisions"
+                    },
+                    "correct": "B",
+                    "explanation": "24/7 markets represent one of tokenization's most transformative benefits. Traditional asset market hours: US equities — NYSE/NASDAQ operate 9:30am-4pm ET, Monday-Friday. Real estate — transactions happen during business hours with 30-90 day closing timelines. Private equity — no secondary market; you wait for the fund's 7-10 year term. Bonds — institutional OTC trading during business hours; retail access limited. What 24/7 blockchain markets enable: Continuous price discovery — token prices reflect new information immediately, not just during business hours. Instant liquidity — sell at 2am on Christmas if needed (assuming a buyer exists). Global participation without timezone barriers — an investor in Singapore doesn't need to wake at 4am to trade US assets. Automated strategies — smart contracts can execute portfolio rebalancing based on market conditions at any hour. Real settlement, not just trading — blockchain settlement completes in seconds (T+0); no counterparty risk during T+2 waiting periods. Caveats: 24/7 trading doesn't guarantee liquidity — thin markets can have wide bid-ask spreads. Some security token exchanges do impose trading hour restrictions for regulatory compliance. But the infrastructure supports continuous operation."
+                },
+                {
+                    "id": 15,
+                    "question": "What is T+0 settlement and how does it compare to traditional financial market settlement cycles, and why does settlement delay matter?",
+                    "options": {
+                        "A": "T+0 means trades settle at midnight (time zero) every day; traditional markets settle at T+2 meaning trades from Monday settle Wednesday, creating a 48-hour window during which neither party has the asset or the cash",
+                        "B": "T+0 settlement means trades finalize immediately when executed — cash and asset transfer simultaneously and atomically on-chain (delivery vs. payment in a single transaction); traditional equity markets require T+2 (trade day plus 2 business days), during which counterparty risk exists and capital is frozen, creating billions in daily settlement exposure across global markets",
+                        "C": "T+0 settlement is a blockchain marketing term that overstates actual finality; EVM transactions take 12 seconds per block and require 32 confirmations (approximately 6.4 minutes) for full finality, which is effectively T+7 minutes rather than T+0",
+                        "D": "T+0 refers to zero transaction fees in tokenized markets because blockchain removes intermediaries entirely; the 'T' stands for 'Transaction cost' not 'Trade date', making the name a reference to zero-fee DeFi trading"
+                    },
+                    "correct": "B",
+                    "explanation": "Settlement cycles are a core inefficiency tokenization addresses. Definitions: T+0 — trade and settlement occur simultaneously (atomic swap). T+2 — settlement occurs 2 business days after the trade. T+2 in practice for US equities: A trade on Monday settles Wednesday. During those 2 days, the seller does not have the cash and the buyer does not have the shares. This creates counterparty risk (what if the counterparty defaults before settlement?) and capital inefficiency (capital is encumbered). Settlement failures cost the global financial system ~$50B annually in fails, penalties, and operational overhead. The systemic risk: In 2008, the fear that Lehman Brothers counterparties would fail to settle T+2 obligations created systemic panic. Blockchain atomic swaps eliminate this: the asset token and payment token transfer simultaneously in a single transaction. If either leg fails, the entire transaction reverts. No counterparty risk exists during settlement because there is no settlement period — it's instantaneous. Impact: The SEC moved US equities from T+3 to T+2 in 2017. There are active discussions about T+1. Tokenized assets achieve T+0 today. The ECB's Project Meridian and T2S upgrades explore blockchain settlement for traditional securities. DTCC processes $2.5T in daily settlements — even small efficiency gains represent billions in saved capital."
+                },
+                {
+                    "id": 16,
+                    "question": "How does global investor access via tokenization differ from traditional cross-border investment, and what friction does it eliminate?",
+                    "options": {
+                        "A": "Tokenization eliminates cross-border investment friction by automatically converting all returns into the investor's local currency using a built-in Chainlink oracle that monitors 150 currency pairs and executes swaps below 0.01% slippage",
+                        "B": "A US investor buying tokenized Japanese real estate faces the same barriers as buying a Japanese stock token — wallet connection and KYC verification — rather than traditional friction: Japanese brokerage account, wire transfer in JPY, local legal counsel, Japanese property registration, tenant management in Japanese, and Japanese tax filings; tokenization reduces cross-border investment to wallet + compliant onboarding",
+                        "C": "Tokenization achieves global access by creating tokens that are legally exempt from all local securities laws; the 'blockchain exemption' in 47 countries means tokenized assets do not require registration or investor accreditation regardless of investment amount",
+                        "D": "Global access via tokenization is limited to investors in FATF-compliant jurisdictions; investors from the United States, EU, and UK can tokenize assets for each other but are legally prohibited from onboarding investors from Asia, Africa, or Latin America due to AML concerns"
+                    },
+                    "correct": "B",
+                    "explanation": "Cross-border investment friction is severe under traditional infrastructure. Consider a US retail investor wanting Japanese real estate exposure: Traditional process: (1) Open account with Japanese brokerage (requires Japanese residency or complex international account). (2) Convert USD to JPY via bank wire ($25-$50 fee, 0.5-1.5% spread, 1-3 business day delay). (3) Wire JPY to Japan brokerage. (4) Purchase J-REIT shares during Tokyo trading hours. (5) Receive dividends in JPY, reconvert to USD. (6) File US taxes with foreign tax credit calculation. (7) Navigate Japanese tax withholding rules. Total friction: 2-3 weeks, $100-500 in fees, significant tax complexity. Tokenization process: (1) Create wallet. (2) Complete KYC on tokenization platform (15 minutes). (3) Purchase USDC with USD. (4) Buy tokenized Japanese real estate tokens. (5) Receive USDC rental income weekly. (6) Sell tokens any time. Reduced friction: No foreign brokerage account, no currency conversion delays, no minimum investment, 24/7 trading, stablecoin denominated returns. Remaining friction: KYC/AML (jurisdictional compliance still required), tax obligations in home country (unchanged), oracle price risk, legal risk if token rights are disputed."
+                },
+                {
+                    "id": 17,
+                    "question": "What is the 'oracle problem' in RWA tokenization and why is it a fundamental challenge that blockchain technology cannot solve internally?",
+                    "options": {
+                        "A": "The oracle problem refers to regulatory authorities (financial oracles) requiring blockchain platforms to predict future asset prices before approving token issuances, creating a Catch-22 where approval requires information that only exists after the fact",
+                        "B": "The oracle problem is the challenge of reliably connecting off-chain real-world data (property valuations, rental income, legal ownership changes, commodity prices) to on-chain smart contracts — blockchains are deterministic closed systems that cannot independently verify external facts, so they must trust external data feeds which become centralized points of failure and manipulation risk",
+                        "C": "The oracle problem refers to the mathematical impossibility of computing fair token prices for illiquid assets like real estate; since no continuous market price exists, all token valuations are inherently subjective and cannot be encoded in deterministic smart contracts",
+                        "D": "Oracle problems occur only when tokenizing physical commodities; tokenized financial instruments like bonds and equities are not subject to oracle problems because their values are already computed on regulated exchanges and automatically transmitted to blockchains via the Consolidated Tape"
+                    },
+                    "correct": "B",
+                    "explanation": "The oracle problem is perhaps the most fundamental challenge in RWA tokenization and is unsolved in a fully trustless sense. Why it arises: Blockchains are deterministic, closed systems. A smart contract can compute 2+2=4 without any external information. But it cannot independently determine the current value of a building at 123 Main St., whether a specific title deed has been updated at a government registry, whether a tenant has paid rent, or whether a commodity in a warehouse still exists. All these facts exist in the physical world and must be reported to the blockchain by external oracles. Oracle failure modes: (1) Price manipulation — a malicious oracle reports a false property value, triggering incorrect liquidations or distributions. (2) Data staleness — quarterly appraisals mean on-chain prices lag market reality by months. (3) Single point of failure — if one oracle provider goes offline, smart contracts cannot function. (4) Data quality — oracles report what sources say, not ground truth (an appraiser might be bribed). Solutions: Chainlink's decentralized oracle networks aggregate multiple sources. Provable.com uses TEEs (Trusted Execution Environments). For real estate specifically: multiple independent appraisers, government registry integration, IoT sensors for occupancy. But no solution eliminates trust — it only distributes it."
+                },
+                {
+                    "id": 18,
+                    "question": "Why is legal recognition a critical challenge for tokenized assets, and what happens when token holder rights conflict with traditional property law?",
+                    "options": {
+                        "A": "Legal recognition is only a challenge in developing countries; all G20 nations have passed comprehensive legislation explicitly recognizing blockchain token ownership as equivalent to traditional property rights with the same enforceability",
+                        "B": "Most jurisdictions do not yet recognize blockchain token ownership as equivalent to traditional property title — if an SPV becomes insolvent, a bankruptcy court applying traditional law might not recognize token holders as secured creditors; legal gaps mean token rights may be unenforceable in courts, making the underlying legal structure (not the smart contract) the actual enforceability mechanism",
+                        "C": "Legal recognition challenges are theoretical only; no tokenized RWA project has ever faced a legal dispute because the smart contract code automatically resolves all ownership conflicts without judicial intervention",
+                        "D": "Legal recognition is solved by the UNIDROIT Principles which in 2022 established that any blockchain token automatically confers the legal rights specified in its smart contract metadata under international commercial law, superseding national property laws"
+                    },
+                    "correct": "B",
+                    "explanation": "Legal recognition is a foundational challenge that determines whether tokenization is meaningful or merely theatrical. The core gap: Most legal systems define property ownership through physical registration (land registries, share registries, title deeds) — not blockchain state. If there is a conflict between what the blockchain says and what the government registry says, courts typically recognize the government registry. Practical risks: (1) Insolvency scenario — if the SPV holding a tokenized building goes bankrupt, a bankruptcy court applies traditional law. Are ERC-20 token holders secured creditors with priority over the building proceeds? In most jurisdictions: unclear. Token holders may be treated as unsecured creditors receiving pennies on the dollar. (2) Jurisdiction conflicts — a building in Germany held by a Cayman SPV with tokens sold to Singapore investors involves German property law, Cayman corporate law, Singapore securities law, and undefined blockchain law. Which governs? (3) Regulatory changes — if a country bans crypto transactions, can token holders be prevented from accessing their rights? Positive developments: Wyoming (UCC Article 12 recognizing digital assets), Liechtenstein (Token Act), Singapore (MAS framework), UAE (ADGM framework) have enacted explicit legal recognition. The EU's DLT Pilot Regime enables regulated tokenized securities. But global legal harmonization remains years away."
+                },
+                {
+                    "id": 19,
+                    "question": "What are the interoperability challenges for tokenized assets across different blockchains, and why does blockchain fragmentation create problems for RWA markets?",
+                    "options": {
+                        "A": "Interoperability challenges are non-existent because all major tokenization platforms use Ethereum, and the ERC standard automatically makes all tokens compatible with every Ethereum wallet, exchange, and DeFi protocol globally",
+                        "B": "Tokenized assets on different blockchains (Ethereum, Polygon, Solana, Stellar, Avalanche) are incompatible by default — an investor holding a tokenized bond on Ethereum cannot use it as collateral in a Solana DeFi protocol; bridges exist but introduce additional smart contract risk and complexity; fragmentation reduces liquidity as different market participants trade on different chains with no unified order book",
+                        "C": "Blockchain interoperability is a solved problem through the ISO 20022 financial messaging standard, which all major blockchain platforms have implemented to enable automatic cross-chain settlement of tokenized assets using the same infrastructure as SWIFT",
+                        "D": "Interoperability only matters for retail investors; institutional investors use private permissioned blockchains (Hyperledger Fabric, R3 Corda) that are fully interoperable with each other through consortium agreements, making fragmentation irrelevant for the institutional RWA market"
+                    },
+                    "correct": "B",
+                    "explanation": "Blockchain fragmentation is a significant structural challenge for RWA markets. The ecosystem reality: Different tokenization platforms have chosen different blockchains. Real estate platforms: Ethereum (RealT, Harbor), Polygon (RealT also), Stellar (Franklin Templeton's BENJI). Fixed income: Ethereum (Ondo Finance), Avalanche (Securitize), Canton Network (Goldman Sachs Digital Assets, JPMorgan Onyx). Private equity: Ethereum, Avalanche, Polygon. Each chain has incompatible token standards, different finality times, different security models, and different DeFi ecosystems. Problems caused by fragmentation: (1) Liquidity splitting — instead of one deep market, liquidity is spread across 10 chains with thin markets on each. (2) DeFi composability loss — a bond token on Stellar cannot be used as collateral in Aave on Ethereum without a bridge. (3) Bridge risk — cross-chain bridges have been hacked for $2B+ (Ronin $625M, Wormhole $320M, Nomad $190M). (4) User complexity — investors must manage multiple wallets, gas tokens, and interfaces. Solutions being developed: LayerZero (cross-chain messaging), Wormhole (rebuilt post-hack), Chainlink CCIP (Cross-Chain Interoperability Protocol for institutional), and industry consortia working on common standards (SWIFT experiments with tokenized asset transfers)."
+                },
+                {
+                    "id": 20,
+                    "question": "What is a Special Purpose Vehicle (SPV) and why is it the predominant legal wrapper structure used in RWA tokenization?",
+                    "options": {
+                        "A": "An SPV is a blockchain smart contract that automatically manages asset custody, income distribution, and investor communications without any human intervention; it is preferred because it eliminates legal costs entirely compared to traditional fund structures",
+                        "B": "An SPV is a separate legal entity (LLC, Ltd., or trust) created solely to hold a specific asset — it provides bankruptcy remoteness (the SPV's assets are legally isolated from the parent company's creditors), a clean legal structure for token rights, liability limitation for investors, and a recognized framework that courts can interpret; token holders own interests in the SPV which owns the asset, creating an enforceable legal claim",
+                        "C": "An SPV is a regulatory exemption that allows token issuers to sell to unlimited retail investors without SEC registration, provided the total offering is under $75 million and uses Regulation Crowdfunding provisions for the token sale",
+                        "D": "An SPV in tokenization refers to a Special Proof Validator — a designated node operator responsible for verifying that the tokenized asset actually exists by conducting quarterly physical inspections and submitting proof-of-existence attestations to the blockchain"
+                    },
+                    "correct": "B",
+                    "explanation": "The SPV (Special Purpose Vehicle) is the legal cornerstone of RWA tokenization and deserves careful understanding. What an SPV is: A newly created legal entity (LLC, GmbH, Ltd., Cayman Islands exempted company, or trust) with a single purpose — to hold one specific asset or asset class. It has its own bank accounts, legal identity, and asset ownership. How it works in tokenization: Parent company creates SPV. SPV acquires the building via purchase. SPV issues 10,000 tokens representing pro-rata ownership. Token holders become SPV members/unit holders per the operating agreement. Why SPVs are preferred: (1) Bankruptcy remoteness — if the token issuer (parent company) goes bankrupt, creditors cannot seize the SPV's building because it is legally separate. Token holders' interests are protected. (2) Clean legal structure — the SPV operating agreement is a recognized legal document. Courts can enforce token holder rights via this document. (3) Tax efficiency — SPVs can be structured as pass-through entities (LLCs) where income passes directly to token holders without double taxation. (4) Regulatory clarity — regulators recognize SPVs as fund structures and know how to classify them. (5) Separation of assets — multiple properties each in their own SPV means a problem with Property A doesn't affect Property B investors. The SPV is the bridge between blockchain token rights and real-world legal enforceability."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Real-World Assets \& Tokenization} \textcolor{mlgray}{|} Lesson 11 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{Real-World Assets \& Tokenization}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 11 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% -- Activity 1 ----------------------------------------------------------------
+\activitybox{Activity 1: Explore the RWA Landscape}{10 min}{%
+Visit \textbf{RWA.xyz} (the canonical RWA data aggregator) and the \textbf{DeFi Llama RWA} dashboard, and explore the current tokenized asset ecosystem. Answer:
+\begin{enumerate}
+\item What is the total value of tokenized real-world assets (excluding stablecoins)? How has it grown over the past year?
+\item List the top 3 RWA protocols by total value locked. For each, note: name, TVL, asset type (treasuries / credit / real estate), and blockchain.
+\item Pick one protocol and explore what assets it tokenizes. How does a user invest? What is the minimum investment?
+\item Compare the yield on a tokenized US Treasury product (e.g., Ondo USDY or Franklin BENJI) vs.\ a traditional brokerage Treasury purchase. What are the differences in access, minimum investment, and settlement time?
+\end{enumerate}
+\textbf{Bonus:} Find the total stablecoin market cap on CoinGecko. What percentage of the total crypto market cap do stablecoins represent?
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Protocol Name} & \textbf{TVL (\$)} & \textbf{Asset Type} & \textbf{Chain} & \textbf{Min.\ Investment} \\
+\midrule
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 2 ----------------------------------------------------------------
+\activitybox{Activity 2: Stablecoin Comparison}{10 min}{%
+Compare the three main stablecoin models and one failed algorithmic experiment across key dimensions. Answer:
+\begin{enumerate}
+\item How does \textbf{USDT} (Tether) maintain its \$1 peg? What backs it? Look up the latest Tether attestation report --- what assets are in the reserves?
+\item How does \textbf{USDC} (Circle) maintain its \$1 peg? How does its reserve transparency differ from USDT?
+\item How does \textbf{DAI} (MakerDAO) maintain its \$1 peg without holding dollars in a bank? What is ``overcollateralization'' and why is it needed?
+\item What happened to \textbf{UST/Terra} in May 2022? Why did the algorithmic peg fail?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}p{3.8cm}p{2.4cm}p{2.4cm}p{2.0cm}p{2.4cm}@{}}
+\toprule
+\textbf{Dimension} & \textbf{USDT} & \textbf{USDC} & \textbf{DAI} & \textbf{UST (Collapsed)} \\
+\midrule
+Backing Model         & \fillcell & \fillcell & \fillcell & \fillcell \\
+Market Cap            & \fillcell & \fillcell & \fillcell & \fillcell \\
+Reserve Transparency  & \fillcell & \fillcell & \fillcell & \fillcell \\
+Depeg History         & \fillcell & \fillcell & \fillcell & \fillcell \\
+Regulatory Status     & \fillcell & \fillcell & \fillcell & \fillcell \\
+Issuer                & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 3 ----------------------------------------------------------------
+\activitybox{Activity 3: Security Token Analysis}{5 min}{%
+Research the regulatory landscape for tokenized securities. Answer:
+\begin{enumerate}
+\item What is the \textbf{Howey Test}? List its four prongs. Look up one SEC enforcement action against a token and explain which Howey prong was violated.
+\item What is \textbf{ERC-3643} (T-REX)? How does it differ from a regular ERC-20 token? What compliance features does it add?
+\item Find \textbf{Securitize.io} or \textbf{tZERO}. What types of assets can you trade on these platforms? Do they require KYC?
+\item Compare: if you buy a tokenized share of a REIT on Securitize vs.\ a traditional REIT share on a stock exchange, what are the differences in settlement, trading hours, and minimum investment?
+\end{enumerate}
+\vspace{4pt}
+\noindent\textbf{Howey Test Prongs:}
+\begin{enumerate}
+\item \rule{9.0cm}{0.3pt}
+\item \rule{9.0cm}{0.3pt}
+\item \rule{9.0cm}{0.3pt}
+\item \rule{9.0cm}{0.3pt}
+\end{enumerate}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 4 ----------------------------------------------------------------
+\activitybox{Activity 4: Institutional RWA Products}{5 min}{%
+Explore real institutional RWA products and their on-chain deployments. Answer:
+\begin{enumerate}
+\item Look up \textbf{BlackRock's BUIDL} fund. What asset does it tokenize? On which blockchain? What is its current AUM? What is the minimum investment?
+\item Look up \textbf{Ondo Finance}. What products does it offer? What blockchain(s) does it operate on? What yields are available?
+\item Research \textbf{MakerDAO's} (now Sky) RWA vaults. How much of DAI's backing comes from real-world assets? What types of RWA collateral does it accept?
+\item Why are institutions like BlackRock and JPMorgan interested in tokenization? List 3 specific efficiency gains tokenization provides over traditional finance.
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}llllll@{}}
+\toprule
+\textbf{Product} & \textbf{Issuer} & \textbf{Asset} & \textbf{Chain} & \textbf{AUM} & \textbf{Yield} \\
+\midrule
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{4pt}
+
+% -- Glossary ------------------------------------------------------------------
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.6cm}p{11.0cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{Tokenization}              & The process of representing ownership rights to a real-world asset (real estate, bonds, commodities) as a digital token on a blockchain, enabling fractional ownership, 24/7 trading, and programmable compliance. \\
+\textbf{Real-World Asset (RWA)}    & Any tangible or financial asset that exists outside the blockchain (real estate, bonds, commodities, art, intellectual property) that can be represented on-chain through tokenization. \\
+\textbf{Stablecoin}                & A cryptocurrency designed to maintain a stable value relative to a reference asset (usually USD). Types include fiat-backed (USDT, USDC), crypto-backed (DAI), and algorithmic (UST --- collapsed). \\
+\textbf{Fiat-Backed Stablecoin}    & A stablecoin backed 1:1 by reserves of fiat currency or equivalent assets (Treasury bills, commercial paper) held by a centralized issuer. USDT and USDC are the largest examples. \\
+\textbf{Overcollateralization}     & A mechanism where the collateral locked to mint a stablecoin exceeds the value of the stablecoin issued (e.g., \$150 of ETH to mint \$100 of DAI), providing a safety buffer against price drops. \\
+\textbf{Security Token}            & A digital token that represents an investment contract in a real-world asset, subject to securities regulations (SEC in US, MiCA in EU). Must comply with KYC/AML and transfer restrictions. \\
+\textbf{Howey Test}                & A US Supreme Court test to determine if a transaction is an ``investment contract'' (security): (1)~investment of money, (2)~in a common enterprise, (3)~with expectation of profits, (4)~derived from efforts of others. \\
+\textbf{ERC-3643 (T-REX)}          & An Ethereum token standard for compliant security tokens that adds identity verification (on-chain KYC), transfer restrictions (whitelisting), and compliance rules on top of the ERC-20 interface. \\
+\textbf{Fractionalization}         & The process of dividing a high-value asset into many smaller, affordable units (tokens), enabling investors to own a fraction of an asset they could not afford to buy whole. \\
+\textbf{SPV (Special Purpose Vehicle)} & A legal entity (usually an LLC) created to hold a specific real-world asset, whose ownership shares are then tokenized. The SPV provides the legal link between the token and the underlying asset. \\
+\textbf{Reserve Attestation}       & A periodic audit or report verifying that a stablecoin issuer holds sufficient reserves to back all outstanding tokens. USDC publishes monthly attestations; USDT provides quarterly reports. \\
+\textbf{Yield-Bearing Token}       & A token that generates returns for holders by representing ownership of yield-producing assets (e.g., tokenized Treasury bills paying $\sim$5\% APY). Examples: Ondo USDY, Franklin BENJI, Mountain USDM. \\
+\textbf{MiCA}                      & The European Union's comprehensive regulatory framework for crypto-assets, including specific rules for stablecoin issuers (reserve requirements, redemption rights, ban on interest for e-money tokens). \\
+\textbf{Tokenized Treasury}        & A blockchain-based representation of US Treasury bills or bonds, allowing crypto-native investors to access government bond yields without traditional brokerage accounts. Example: BlackRock BUIDL fund. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Real-World Assets \& Tokenization --- Lesson 11 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

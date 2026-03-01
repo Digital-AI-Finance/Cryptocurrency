@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz RW-3: Security Tokens &amp; Compliance | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz RW-3: Security Tokens &amp; Compliance</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz RW-3: Security Tokens &amp; Compliance</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the fundamental distinction between a security token and a utility token, and why does this classification matter legally?",
+                    "options": {
+                        "A": "Security tokens are issued on Ethereum while utility tokens are issued on other blockchains; the chain determines regulatory treatment regardless of token economics",
+                        "B": "Security tokens represent ownership stakes or economic rights in an underlying asset or enterprise (entitling holders to profits, dividends, or appreciation), while utility tokens grant access to a product or service; securities are subject to registration, disclosure, and investor-protection regulations while utility tokens generally are not",
+                        "C": "Security tokens are always backed 1:1 by fiat currency in bank accounts, while utility tokens have no fiat backing; the backing requirement is what triggers securities regulation",
+                        "D": "Security tokens can only be traded on registered stock exchanges, while utility tokens can trade freely on any platform; the trading venue determines the classification, not the token's economic characteristics"
+                    },
+                    "correct": "B",
+                    "explanation": "The security vs. utility distinction is the central regulatory question in token classification. A security token derives value from an external enterprise or asset and typically confers rights similar to traditional securities: profit sharing, dividends, governance rights, or claim on assets. Examples: tokenized equity in a company, revenue-share tokens, tokenized real estate. A utility token grants access to a specific product or service within a network — it is a digital coupon, not an investment. Examples: file storage tokens, gaming tokens, API access tokens. The distinction matters enormously: securities must be registered with regulators (SEC in the US), issuers must file prospectuses, trading requires licensed exchanges, and only accredited investors may participate in many offerings. Non-compliance results in enforcement actions, disgorgement of proceeds, and criminal liability. Many projects deliberately structured tokens as 'utility' to avoid securities regulation — the SEC has challenged this when tokens had investment characteristics despite the utility label."
+                },
+                {
+                    "id": 2,
+                    "question": "A startup issues tokens that grant holders 10% of the company's annual revenue. The founder claims these are 'utility tokens' because holders can also use them to access premium features. How would a regulator likely classify these?",
+                    "options": {
+                        "A": "As utility tokens, because the founder's stated intent determines classification; if the whitepaper calls them utility tokens and they have access features, regulators must accept that designation",
+                        "B": "As securities, because economic substance controls over legal labels — the revenue-sharing feature means token value depends primarily on the company's profits, satisfying investment contract criteria regardless of any attached access rights",
+                        "C": "As a hybrid instrument exempt from securities law, because tokens with both utility and investment features fall into a regulatory gap that Congress has not addressed",
+                        "D": "As commodities regulated by the CFTC rather than the SEC, because revenue-sharing tokens are derivatives on company performance metrics rather than ownership interests"
+                    },
+                    "correct": "B",
+                    "explanation": "Regulators apply substance-over-form analysis to token classification. The SEC's position (articulated in numerous enforcement actions and the DAO Report) is that calling something a 'utility token' does not make it one if its economic characteristics resemble an investment. The dual-use token in this question has a dominant investment characteristic: 10% of annual revenue sharing. Token value rises and falls with company performance. Holders purchase expecting profits from the company's efforts. The access feature is incidental and does not transform the investment nature. The SEC's Reves test (for notes) and the Howey test (for investment contracts) both look at the economic reality of the instrument. SEC v. Telegram ($1.7B TON offering), SEC v. Kik ($5M penalty), and SEC v. Ripple all demonstrate that token labels carry little weight when economic substance indicates a security. This hybrid token would almost certainly be classified as a security."
+                },
+                {
+                    "id": 3,
+                    "question": "What are the four prongs of the Howey test, and how do courts apply them to determine whether a token is an investment contract (security)?",
+                    "options": {
+                        "A": "The Howey test requires: (1) a written contract between issuer and investor, (2) a fixed return promise, (3) government registration of the asset, and (4) trading on a licensed exchange — all four must be present for securities classification",
+                        "B": "The Howey test finds an investment contract when there is: (1) an investment of money, (2) in a common enterprise, (3) with an expectation of profits, (4) to come predominantly from the efforts of others — all four prongs must be satisfied, and courts apply the test to the economic reality of the arrangement regardless of its label",
+                        "C": "The Howey test applies only to agricultural commodity contracts and was extended to securities by subsequent legislation; for digital assets, Congress has not formally adopted Howey and the SEC applies it by administrative interpretation only",
+                        "D": "The Howey test has three prongs: investment of value, expectation of gain, and reliance on a third party — the 'common enterprise' requirement was removed by the Supreme Court in 2019 as unworkable for digital assets"
+                    },
+                    "correct": "B",
+                    "explanation": "SEC v. W.J. Howey Co. (1946) established the test that remains the definitive US framework for investment contract classification. The four prongs: (1) Investment of money — the investor commits capital (cash, crypto, or other value). (2) Common enterprise — investor fortunes are tied to the issuer or other investors (horizontal commonality: pooled funds; vertical commonality: investor linked to promoter). (3) Expectation of profits — investors expect to gain financially (appreciation, dividends, revenue share). (4) From the efforts of others — profits depend primarily on the promoter's or third party's managerial efforts, not the investor's own work. For tokens: (1) ICO participants invest ETH/USD. (2) Common enterprise: token value tied to project success. (3) Whitepaper promises/implies appreciation. (4) Project team builds the platform. All four prongs satisfied = investment contract = security. Courts apply the test flexibly to the economic substance, not the label."
+                },
+                {
+                    "id": 4,
+                    "question": "How does the 'efforts of others' prong of the Howey test apply to a decentralized protocol like Bitcoin where no central team drives value?",
+                    "options": {
+                        "A": "Bitcoin fails the Howey test because it is not an investment of money — Bitcoin is exchanged for Bitcoin, not for cash, so the first prong is not satisfied regardless of decentralization",
+                        "B": "Bitcoin satisfies all Howey prongs and is therefore a security; the SEC has explicitly classified Bitcoin as a security in enforcement actions against major exchanges",
+                        "C": "Bitcoin fails the 'efforts of others' prong because no identifiable third party's managerial efforts drive Bitcoin's value — no company controls Bitcoin development, no team can be held accountable, and value derives from decentralized network effects and market forces rather than a promoter's work; sufficiently decentralized networks are not securities under Howey",
+                        "D": "Bitcoin is exempt from Howey analysis under the commodities exclusion — the CFTC has exclusive jurisdiction over all proof-of-work assets regardless of decentralization"
+                    },
+                    "correct": "C",
+                    "explanation": "The 'efforts of others' prong is where decentralization matters most. Former SEC Director William Hinman's 2018 speech (while not official SEC policy) articulated the 'sufficiently decentralized' concept: if a network is so decentralized that no identifiable person or group's efforts are the key driver of value, the investment contract analysis may not apply. For Bitcoin: no central team, no controlling company, no CEO, development is open-source with many contributors, no tokens reserved for founders. Value comes from network adoption, miner security, and market dynamics — not a promoter's execution of a business plan. The SEC and CFTC have both indicated Bitcoin is not a security. Ethereum is more ambiguous given the Ethereum Foundation's role, though the SEC has not formally classified post-Merge ETH as a security. The analysis is a spectrum: projects with active development teams and concentrated token holdings are more likely to satisfy 'efforts of others' than mature, decentralized protocols."
+                },
+                {
+                    "id": 5,
+                    "question": "A token was issued when the project was highly centralized (satisfying all Howey prongs) but has since become fully decentralized. Can it 'graduate' out of securities classification?",
+                    "options": {
+                        "A": "No — once a token is issued as a security, it remains a security permanently under US law regardless of subsequent decentralization; the issuer must maintain securities compliance indefinitely",
+                        "B": "Yes — SEC guidance and enforcement practice suggest that as a network becomes sufficiently decentralized (no controlling party, value from network effects rather than promoter efforts), the investment contract analysis may no longer apply; however, the transition point is legally unclear and requires careful analysis",
+                        "C": "Yes — any token can cease being a security simply by adding utility features to the protocol, regardless of decentralization; utility usage automatically removes securities classification",
+                        "D": "No — decentralization is irrelevant to securities classification; what matters is the initial sale conditions and whether the original token purchase agreement included an investment return clause"
+                    },
+                    "correct": "B",
+                    "explanation": "The 'graduation' concept is one of the most contested areas of crypto securities law. Former SEC Director Hinman's framework suggested that tokens could evolve from securities to non-securities as their networks decentralize. The theory: if the promoter's efforts are no longer the key driver of value, the 'efforts of others' prong may no longer be satisfied, and the Howey test fails. The Ethereum narrative: ETH may have been a security during the 2014 presale (Vitalik and the Ethereum Foundation's efforts were critical) but gradually became sufficiently decentralized. However, this theory has complications: (1) How do you measure 'sufficient' decentralization? (2) Does the initial unlawful offering create ongoing liability? (3) Secondary market sales may still involve investment contracts. The SEC has not formally endorsed this framework in rulemaking, creating legal uncertainty. Ripple used the decentralization argument partially successfully — the court found institutional XRP sales were securities but programmatic exchange sales were not."
+                },
+                {
+                    "id": 6,
+                    "question": "What was the significance of the SEC's 2017 DAO Report, and how did it change the regulatory landscape for token offerings?",
+                    "options": {
+                        "A": "The DAO Report formally exempted decentralized autonomous organizations from securities law, establishing that code-based governance structures operate outside SEC jurisdiction",
+                        "B": "The DAO Report was the first SEC guidance applying Howey to tokens — it concluded that DAO tokens were securities (investment of ETH, common enterprise, expectation of profits from curators' efforts), establishing that 'the federal securities laws apply to those who offer and sell securities in the United States, regardless whether the issuing entity is a traditional company or a decentralized autonomous organization'",
+                        "C": "The DAO Report established that utility tokens are categorically exempt from securities regulation, providing issuers a safe harbor if tokens could be used in a product within 12 months of issuance",
+                        "D": "The DAO Report created a new regulatory category called 'digital asset securities' with reduced disclosure requirements, allowing token sales to proceed without full prospectus registration"
+                    },
+                    "correct": "B",
+                    "explanation": "The SEC's 2017 DAO Report (Report of Investigation Pursuant to Section 21(a) of the Securities Exchange Act of 1934) was the first definitive SEC guidance on token offerings. Background: The DAO (Decentralized Autonomous Organization) raised $150M in ETH in 2016 before being hacked. The SEC investigated but chose not to bring enforcement action. Instead, it issued the Report as guidance. Key findings: (1) DAO tokens were investment contracts under Howey — investors contributed ETH (investment of money) to a common enterprise (DAO treasury), expecting profits from token appreciation and dividend-like returns, through curators' efforts in selecting investments. (2) The DAO's decentralized structure did not exempt it from securities law. (3) The form of investment (crypto rather than dollars) does not change the analysis. (4) Blockchain-based tokens are subject to the same laws as traditional securities. Impact: put the entire ICO market on notice that unregistered token sales may violate securities laws. Led to numerous subsequent enforcement actions."
+                },
+                {
+                    "id": 7,
+                    "question": "In SEC v. Ripple Labs, what was the court's key distinction between institutional XRP sales and programmatic exchange sales, and why did this matter?",
+                    "options": {
+                        "A": "The court found all XRP sales were securities; the institutional vs. programmatic distinction was rejected as economically irrelevant because both involve the same token",
+                        "B": "The court found institutional XRP sales (direct contracts with sophisticated investors who knew they were buying from Ripple) were unregistered securities offerings, but programmatic exchange sales (where buyers on exchanges did not know they were buying from Ripple and had no expectation specific to Ripple's efforts) did not satisfy all Howey prongs — the 'efforts of others' and 'expectation of profits' prongs required reasonable expectation linked to the specific seller's efforts",
+                        "C": "The court found all XRP sales were not securities because XRP is a currency used for international payments; the currency exemption under the Securities Act eliminates Howey analysis for all payment tokens",
+                        "D": "The court found programmatic sales were securities but institutional sales were exempt under the Section 4(a)(2) private placement exemption, which applies to all direct token sales to accredited investors"
+                    },
+                    "correct": "B",
+                    "explanation": "Judge Analisa Torres's July 2023 ruling in SEC v. Ripple was a landmark that created a nuanced framework. Institutional sales: Ripple sold XRP directly to hedge funds and institutional investors via written contracts at discounted prices, with the investors understanding they were buying from Ripple and expecting profits from Ripple's efforts to develop XRP's ecosystem. These satisfied all Howey prongs — investment of money, common enterprise, expectation of profits from Ripple's efforts. Court found these were unregistered securities offerings. Programmatic sales: XRP sold on exchanges to anonymous buyers who did not know if they were buying from Ripple (Ripple sold into the order book). These buyers lacked 'reasonable expectation of profits from Ripple's efforts specifically' because they didn't know Ripple was the counterparty. Court found these did not satisfy the Howey test. This distinction was controversial — the SEC argued the token itself is the security, not the transaction. The ruling has been criticized as creating an anomaly where the same asset is simultaneously a security and not, depending on the sale method."
+                },
+                {
+                    "id": 8,
+                    "question": "The SEC filed suits against Coinbase (2023) and Binance (2023) alleging they operated unregistered securities exchanges. What specific tokens were alleged to be securities in these suits, and what was the legal theory?",
+                    "options": {
+                        "A": "The suits alleged only Bitcoin and Ethereum were securities, arguing that all proof-of-work tokens are investment contracts because miners' efforts drive value",
+                        "B": "The suits named multiple tokens (including SOL, ADA, MATIC, BNB, BUSD, and others) as unregistered securities and alleged that by listing and trading these tokens, Coinbase and Binance operated as unregistered national securities exchanges, broker-dealers, and clearing agencies — violating the Securities Exchange Act of 1934",
+                        "C": "The suits did not identify specific securities but argued that any token with a market capitalization above $1 billion is automatically a security under the large-cap securities rule",
+                        "D": "The suits alleged only stablecoins were securities, arguing that fiat-backed tokens are investment contracts because holders expect the issuer to maintain the peg through active portfolio management"
+                    },
+                    "correct": "B",
+                    "explanation": "The 2023 SEC enforcement actions against Coinbase and Binance were the most significant crypto regulatory events of the year. SEC v. Coinbase (June 2023): Named SOL, ADA, MATIC, FIL, SAND, AXS, CHZ, FLOW, ICP, NEAR, VGX, DASH, and NEXO as securities. Alleged Coinbase operated as unregistered securities exchange (Section 5 of Securities Exchange Act), unregistered broker-dealer, and unregistered clearing agency. Also targeted Coinbase's staking program as an unregistered securities offering. SEC v. Binance (June 2023): Named BNB, BUSD, SOL, ADA, MATIC, ATOM, ALGO, COTI as securities. Also named BNB and BUSD as securities sold directly by Binance. Additional allegations: wash trading, commingling customer funds, and operating without registration. The legal theory for each token: applying Howey — investors bought these tokens expecting profits from the issuing teams' efforts to develop the ecosystem. These enforcement actions created massive market uncertainty and prompted legislative pressure for clearer crypto regulation."
+                },
+                {
+                    "id": 9,
+                    "question": "What is ERC-3643 (T-REX), and how does it enable compliant security token transfers on Ethereum?",
+                    "options": {
+                        "A": "ERC-3643 is a token standard that replaces the ERC-20 transfer function with a government-approved API that routes all transfers through a licensed broker-dealer before execution",
+                        "B": "ERC-3643 (Token for Regulated EXchanges) is an on-chain compliance framework that embeds KYC/AML verification into the transfer mechanism — transfers are blocked by the smart contract unless both sender and receiver are in an on-chain identity registry as verified, eligible investors; the token contract checks investor eligibility at transfer time without revealing personal data on-chain",
+                        "C": "ERC-3643 is a Polygon-specific standard for tokenizing real estate that uses NFTs to represent property titles and requires notarial attestation before minting",
+                        "D": "ERC-3643 extends ERC-20 by adding a blacklist function controlled by regulators who can freeze any token balance; it requires government approval for each transfer above $10,000"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-3643 (Token for Regulated EXchanges, also called T-REX) was developed by Tokeny Solutions and became an Ethereum standard for compliant security tokens. The core innovation: compliance checks embedded in the transfer function. Architecture: (1) Identity Registry — an on-chain registry mapping wallet addresses to verified investor identities (KYC status, country, accreditation). The actual personal data (name, passport) is stored off-chain; only attestations (claims) are on-chain. (2) Compliance Module — a smart contract defining transfer rules: allowed countries, maximum investor count, lockup periods, eligible investor types. (3) Modified transfer function — before executing any ERC-3643 transfer, the contract calls isVerified(sender) and isVerified(receiver) on the Identity Registry and checks compliance rules. If either fails, the transfer reverts automatically. (4) Privacy-preserving — the registry stores cryptographic proofs (claims from trusted identity providers) rather than personal data. Tokeny has used T-REX for $25B+ in tokenized assets."
+                },
+                {
+                    "id": 10,
+                    "question": "How does an on-chain identity registry in a system like ERC-3643 verify investor eligibility without storing personal data on the public blockchain?",
+                    "options": {
+                        "A": "The registry stores encrypted versions of passport scans and proof-of-income documents on-chain; the encryption key is held by the token issuer who decrypts documents during compliance checks",
+                        "B": "The registry uses a claim-based system: trusted identity providers (KYC verifiers) issue signed attestations ('claims') about investors — e.g., 'this address belongs to a US accredited investor' — stored on-chain as ECDSA signatures; the token contract verifies these signatures without seeing the underlying personal data, which remains with the KYC provider",
+                        "C": "The registry relies on government-issued blockchain IDs stored in a national identity database; the token contract sends an API request to the government database during each transfer to verify the investor",
+                        "D": "Personal data is stored in IPFS and the CID hash is stored on-chain; the hash allows the contract to verify data integrity but the actual data can only be retrieved by authorized parties with the IPFS gateway credentials"
+                    },
+                    "correct": "B",
+                    "explanation": "The ERC-3643 identity system uses a verifiable claims architecture inspired by W3C Decentralized Identifiers (DIDs) and Verifiable Credentials. The flow: (1) Investor completes KYC with an authorized identity provider (e.g., Onfido, Sum&Substance). (2) Identity provider issues a signed claim: 'Address 0x1234... belongs to an accredited investor in the UK, verified on date X, claim expires Y' — signed with the identity provider's private key. (3) This claim is stored on-chain in the Identity Registry as a bytes array (the claim data) plus the claim issuer's signature. (4) At transfer time, the contract calls isVerified(address) which checks: does this address have valid, non-expired claims from trusted issuers meeting the required claim topics (e.g., KYC verification, accreditation, country eligibility)? (5) The contract verifies the issuer's signature cryptographically but never decodes the personal data — only the claim type (e.g., 'is accredited investor') is checked, not the underlying identity documents. This design preserves privacy while enabling compliance."
+                },
+                {
+                    "id": 11,
+                    "question": "What functions does the ERC-3643 compliance module expose, and how do they implement regulatory transfer restrictions?",
+                    "options": {
+                        "A": "The compliance module has a single pauseAll() function that freezes all transfers when activated by regulators; it has no granular controls because securities regulations require all-or-nothing transfer restrictions",
+                        "B": "The compliance module implements functions like getCountry(address), isAccredited(address), isVerified(address), and canTransfer(from, to, amount) that check investor eligibility against rules configured at deployment — restricting by jurisdiction, investor type, transfer amount, and holding period — returning boolean results that gate the transfer function",
+                        "C": "The compliance module only implements anti-money laundering rules; KYC verification is handled by a separate legal entity that approves transactions off-chain before the on-chain transfer can proceed",
+                        "D": "The compliance module uses machine learning to score each transfer for fraud risk; transfers above a certain risk score are routed to a human compliance officer for manual approval before execution"
+                    },
+                    "correct": "B",
+                    "explanation": "The ERC-3643 compliance module is a configurable smart contract that encodes regulatory rules as on-chain logic. Key functions: isVerified(address): checks the Identity Registry for valid claims meeting required topics. getCountry(address): retrieves the investor's registered jurisdiction (stored as a country code claim). isAccredited(address): returns whether the investor has an accreditation claim from a trusted issuer. canTransfer(from, to, amount): the master compliance check called by the transfer function, combining: country restrictions (e.g., no US investors), investor count limits (e.g., max 2,000 holders for Reg A+), lockup periods (e.g., no transfers within 12 months of issuance for Reg D), transfer amount limits, and any custom rules. If canTransfer returns false, the transfer reverts with a descriptive error. The compliance module is modular — issuers can deploy custom compliance contracts implementing the ICompliance interface, enabling jurisdiction-specific rules without changing the token contract. Multiple compliance modules can be chained for complex multi-jurisdictional requirements."
+                },
+                {
+                    "id": 12,
+                    "question": "A security token issuer needs to implement a forced transfer to comply with a court order confiscating tokens from a convicted fraudster's wallet. How does ERC-3643 support this, and why is it controversial?",
+                    "options": {
+                        "A": "ERC-3643 does not support forced transfers; once tokens are in a wallet, only the private key holder can initiate transfers, making court-ordered confiscation technically impossible",
+                        "B": "ERC-3643 implements a forcedTransfer(from, to, amount) function callable only by the token issuer or agent — allowing compelled transfer of tokens for court orders, estate transfers, or regulatory compliance; this is controversial because it contradicts blockchain's self-sovereignty principles, requiring trust in the issuer not to misuse admin powers",
+                        "C": "ERC-3643 supports forced transfers through a decentralized governance vote — token holders vote to approve court-ordered confiscations, requiring 67% supermajority; this preserves decentralization while enabling legal compliance",
+                        "D": "ERC-3643 handles forced transfers by burning tokens from the fraudster's wallet and minting new tokens to the court-designated address, maintaining total supply while transferring economic value"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-3643 explicitly includes a forcedTransfer function for legal compliance scenarios, which represents a fundamental design tension. The function: forcedTransfer(address _from, address _to, uint256 _amount) — callable by the token agent (authorized by the issuer), bypasses normal compliance checks including the sender's verification status. Use cases: court-ordered asset confiscation, probate/inheritance transfers when a holder dies, regulatory seizure, correcting erroneous distributions. Why controversial: (1) Contradicts self-custody — blockchain's promise that 'not your keys, not your coins' is violated; the issuer can override private key control. (2) Abuse potential — a malicious issuer could forcibly transfer tokens from legitimate holders. (3) Philosophical conflict with cypherpunk/Bitcoin principles. Why necessary: (1) Legal systems require asset confiscation capabilities. (2) Inherited assets must be accessible without private keys. (3) Issuers have fiduciary duties that require correction mechanisms. The T-REX approach makes this an explicit, auditable function rather than a hidden backdoor, with the argument that traditional securities already have similar custodial control mechanisms."
+                },
+                {
+                    "id": 13,
+                    "question": "A US-regulated security token must comply with Regulation D Rule 506(b). What transfer restrictions must the smart contract enforce?",
+                    "options": {
+                        "A": "Reg D 506(b) requires tokens to be locked for 5 years from issuance, with no transfers permitted to any party regardless of accreditation status during this period",
+                        "B": "Reg D 506(b) requires: (1) tokens sold only to accredited investors (or up to 35 sophisticated non-accredited investors), (2) a 12-month lockup period before resale to non-issuers (Rule 144 holding period for restricted securities), and (3) no general solicitation or advertising — the compliance module must verify accredited investor status on both sender and receiver, and block transfers during the lockup period",
+                        "C": "Reg D 506(b) has no transfer restrictions; it is an exemption from registration only for the initial sale, after which tokens trade freely as securities on any platform",
+                        "D": "Reg D 506(b) requires tokens to be sold only to non-US investors, with US investors prohibited from any participation including secondary market purchases"
+                    },
+                    "correct": "B",
+                    "explanation": "Regulation D provides exemptions from SEC registration for private securities offerings, but imposes strict conditions that security token compliance modules must encode. Rule 506(b): Permitted investors: up to 35 non-accredited (but sophisticated) investors and unlimited accredited investors. No general solicitation — tokens cannot be advertised publicly. Transfer restrictions: Securities sold under Reg D are 'restricted securities' under Rule 144. Resale to non-issuers requires holding for 12 months minimum (for reporting companies) or 6-12 months. After the holding period, resale to other accredited investors via platforms like tZERO or Securitize is permitted. Smart contract implementation: isAccredited(address) → must return true for both sender and receiver. Transfer timestamp check → block transfers before lockup expiration. Investor count limits → 506(b) allows up to 35 non-accredited investors in total across all holders. AML screening → OFAC watchlist check. These rules must be permanently encoded in the compliance module and cannot be bypassed even by the token issuer's own wallet."
+                },
+                {
+                    "id": 14,
+                    "question": "How do lockup periods work in security token smart contracts, and what happens when a holder tries to transfer before the lockup expires?",
+                    "options": {
+                        "A": "Lockup periods are advisory only in smart contracts — the contract warns the user but allows the transfer, and the legal lockup is enforced by the exchange platform through account restrictions",
+                        "B": "The smart contract stores the lockup expiry timestamp for each holder's position (set at transfer/issuance time) and the canTransfer() function reverts with an error message when block.timestamp is less than the lockup expiry — the transfer fails at the EVM level with no gas wasted beyond the failed transaction cost",
+                        "C": "Lockup periods in security tokens work identically to vesting in ERC-20 governance tokens — tokens are locked in a separate contract vault and released automatically via a time-lock mechanism that requires no transaction to unlock",
+                        "D": "Lockup periods require the token issuer to manually whitelist each holder for transfers after the lockup expires; the smart contract does not automatically track lockup expiry and relies entirely on issuer action"
+                    },
+                    "correct": "B",
+                    "explanation": "Lockup enforcement is a core feature of security token compliance modules. Implementation pattern: At token issuance or purchase, the contract records for each holder: transferLockup[holder] = block.timestamp + lockupDuration (e.g., 365 days for Reg D). The canTransfer() function includes: require(block.timestamp >= transferLockup[from], 'Transfer locked: holding period not elapsed'). When a locked holder attempts transfer, the EVM executes require() which evaluates to false, triggering a revert with the error message. The entire transaction is reverted — no state changes occur. The caller loses only the gas spent up to the revert point. Token transfers can also have position-level lockups (each lot of tokens bought has its own lockup based on purchase date) rather than wallet-level lockups, enabling partial transfers once older lots unlock. The lockup module typically emits events when lockups expire, enabling frontends to notify holders. Forced transfers (court-ordered) typically bypass lockup checks as an explicit override."
+                },
+                {
+                    "id": 15,
+                    "question": "A security token offering targets both US (Reg D) and non-US investors (Reg S). How does a compliance module handle these different jurisdictional rules simultaneously?",
+                    "options": {
+                        "A": "A token cannot simultaneously comply with both Reg D and Reg S; issuers must create separate token contracts for US and non-US investors, preventing any cross-border transfers",
+                        "B": "The compliance module uses the investor's registered country from the Identity Registry to apply different rule sets: US investors (country code US) are restricted by Reg D rules (accreditation, 12-month lockup, investor count limits), non-US investors (non-US country codes) are subject to Reg S rules (40-day distribution compliance period, no sales to US persons) — a single canTransfer() function routes to the appropriate rule set based on both sender and receiver jurisdictions",
+                        "C": "Reg S exempts all non-US offerings from compliance requirements entirely; the token contract only needs to implement Reg D rules and can ignore all international transfers",
+                        "D": "Multi-jurisdictional compliance requires government API integration in the smart contract; each transfer triggers a real-time query to SEC (for US) and ESMA (for EU) databases to check current regulations before execution"
+                    },
+                    "correct": "B",
+                    "explanation": "Dual Reg D / Reg S offerings are common for global security token issuances, and the compliance module must handle both rule sets. Regulation S provides an exemption for securities offered and sold outside the US. Key Reg S conditions: No directed selling efforts into the US, 40-day distribution compliance period (Category 2) or 1-year restricted period (Category 3) during which offshore buyers cannot resell to US persons. ERC-3643 compliance module implementation: getCountry(address) → retrieves ISO country code from Identity Registry. US addresses → apply Reg D: isAccredited() required, 12-month lockup. Non-US addresses → apply Reg S: 40-day distribution period lockup, block sales to US persons (to/from US address restricted during Reg S period). Transfer between US→non-US: check Reg D lockup for sender, Reg S restrictions for receiver. Transfer between non-US→non-US: apply lighter Reg S restrictions. This multi-rule architecture allows a single token to serve global investors while maintaining jurisdiction-specific compliance, dramatically reducing the cost of compliant global offerings compared to issuing multiple securities."
+                },
+                {
+                    "id": 16,
+                    "question": "What are tZERO and Securitize, and how do they differ from traditional stock exchanges in their approach to security token trading?",
+                    "options": {
+                        "A": "tZERO and Securitize are SEC-registered broker-dealers that converted their stock trading platforms to blockchain — they are functionally identical to NASDAQ but use Ethereum instead of traditional clearing systems",
+                        "B": "tZERO is an SEC-registered Alternative Trading System (ATS) for security token secondary markets, while Securitize is both a transfer agent and broker-dealer platform — both enable compliant peer-to-peer security token trading with on-chain compliance checks, real-time settlement (T+0 vs traditional T+2), and integrated KYC/AML rather than relying on DTCC/NSCC clearing infrastructure",
+                        "C": "tZERO and Securitize are decentralized exchanges that use smart contracts for all matching and settlement; they are not registered with any regulator and rely on geographic restrictions to avoid securities law",
+                        "D": "tZERO is a cryptocurrency exchange that added a token called TZERO as a utility token; Securitize is a tokenization platform but is not licensed to operate a trading venue for security tokens"
+                    },
+                    "correct": "B",
+                    "explanation": "tZERO and Securitize represent the emerging regulated security token trading infrastructure. tZERO: Founded by Overstock's Patrick Byrne in 2018. Registered as an SEC Alternative Trading System (ATS) under Reg ATS. Initially traded its own TZERO security token ($134M raise). Expanded to third-party security tokens. Key features: T+0 settlement (vs DTCC's T+2), blockchain-based ownership records, integrated compliance layers. tZERO markets provides retail access to private securities. Securitize: Operates as both a transfer agent (SEC-registered, replacing traditional transfer agents like Computershare) and a broker-dealer platform. Transfer agent role: maintains shareholder records on blockchain, processes corporate actions, handles distributions. Marketplace role: facilitates secondary trading for securities it has tokenized. Key clients: $500M+ in tokenized assets including real estate, funds, and private equity. Both platforms maintain KYC/AML on all users, enforce transfer restrictions via their platforms (complementing on-chain enforcement), provide reporting for tax and regulatory purposes, and integrate with traditional banking for fiat on/off ramps."
+                },
+                {
+                    "id": 17,
+                    "question": "What distinguishes INX Limited and SIX Digital Exchange (SDX) from US-focused security token platforms like tZERO?",
+                    "options": {
+                        "A": "INX and SDX are decentralized platforms that require no registration because they operate under Swiss blockchain-specific legislation that exempts all tokenized assets from securities law",
+                        "B": "INX conducted the first SEC-registered security token IPO ($83M raised via a registered S-1 filing, open to retail investors including non-accredited), while SDX is operated by the Swiss Exchange Group as a regulated financial market infrastructure for digital assets under FINMA supervision — both represent institutional-grade regulated trading venues outside the typical ATS structure",
+                        "C": "INX and SDX are identical platforms that merged in 2022 to create a single global security token exchange; they have reciprocal regulatory recognition between the SEC and FINMA",
+                        "D": "INX focuses exclusively on tokenized government bonds while SDX handles only equity tokens; this asset-type specialization is required by their respective regulators"
+                    },
+                    "correct": "B",
+                    "explanation": "INX and SDX represent different models of regulated security token trading. INX Limited: Conducted the first-ever SEC-registered security token offering via a full S-1 registration statement (not an exemption like Reg D). The offering raised $83M from retail and institutional investors — the first time non-accredited retail investors could participate in a security token offering through proper registration. INX listed on its own regulated exchange. The INX token entitles holders to 40% of cash flows from trading revenue — a genuine security token. INX is registered as a broker-dealer and ATS. SIX Digital Exchange (SDX): Operated by SIX Group (operator of the Swiss Stock Exchange). Regulated as financial market infrastructure by FINMA under Swiss DLT legislation (2021 DLT Act). Purpose-built institutional digital asset trading and settlement. Processes DvP (Delivery vs. Payment) in central bank digital currency equivalents. Clients: major Swiss and European banks. SDX represents the TradFi institutional approach — incumbent infrastructure operators building blockchain rails within existing regulatory frameworks, contrasted with crypto-native startups seeking regulatory approvals."
+                },
+                {
+                    "id": 18,
+                    "question": "What is the SPV (Special Purpose Vehicle) model for security token legal wrappers, and why is it essential that 'the token is NOT the asset itself'?",
+                    "options": {
+                        "A": "In the SPV model, the token IS the legal asset — smart contract ownership is legally equivalent to deed ownership, making traditional legal entities unnecessary for tokenized real estate or equity",
+                        "B": "In the SPV model, an LLC or similar entity owns the underlying asset (real estate, equity stake, bonds), and investors receive tokens representing ownership interests in the SPV rather than direct ownership of the asset — the token is a digital representation of a legal claim against the SPV; this is necessary because most legal systems do not recognize blockchain tokens as valid asset titles, requiring a traditional legal entity as the 'bridge' between on-chain tokens and off-chain legal rights",
+                        "C": "The SPV model is used exclusively for regulatory arbitrage — by routing assets through offshore SPVs in the Cayman Islands, issuers can avoid US securities regulation regardless of where investors are located",
+                        "D": "In the SPV model, tokens are backed by deposits in the SPV's bank account; token holders have priority claims on these deposits but no legal relationship to any underlying asset"
+                    },
+                    "correct": "B",
+                    "explanation": "The SPV wrapper is the standard legal architecture for tokenized real-world assets. Structure: (1) An LLC, limited partnership, or trust is formed specifically to hold the underlying asset (e.g., a building, a portfolio of loans, equity in a private company). (2) The SPV issues membership interests or shares that are tokenized on blockchain. (3) Token holders own interests in the SPV, which in turn owns the asset. (4) The SPV operating agreement specifies how distributions, governance, and liquidation are handled for token holders. Why 'token is NOT the asset': Most jurisdictions do not recognize blockchain token ownership as a valid legal title for real property, corporate equity, or financial instruments. A blockchain token is not a deed, stock certificate, or bond instrument under existing law. By using an SPV, the token represents a legal right (SPV membership interest) that IS recognized under law — the SPV operating agreement creates the legal obligation to honor token-based ownership. The blockchain provides a registry and transfer mechanism for the SPV interests, while the SPV provides the legal enforceability. If the smart contract has a bug or the blockchain fails, the SPV legal entity still owns the asset and token holders retain their legal claims through traditional court systems."
+                },
+                {
+                    "id": 19,
+                    "question": "How does the trust model for tokenized assets differ from the SPV model, and what are the advantages and risks of each?",
+                    "options": {
+                        "A": "Trust models and SPV models are legally identical; the only difference is the name — 'trust' is used in common law jurisdictions while 'SPV' is used in civil law jurisdictions",
+                        "B": "In the trust model, a trustee holds assets on behalf of token holder beneficiaries under trust law (enforceable fiduciary duties), while SPV models use corporate structures (LLC membership). Trusts offer stronger beneficiary protection through trustee fiduciary duties and established trust law but are inflexible and expensive to administer; SPVs are more flexible and easier to modify but may have weaker investor protections depending on jurisdiction",
+                        "C": "Trust models are used only for government bond tokenization because trusts are exempt from securities regulation; SPV models are used for all other asset types subject to full securities regulation",
+                        "D": "The trust model requires a licensed bank as trustee, making it suitable only for tokenized deposits; SPV models can be used for any asset type because they do not require bank involvement"
+                    },
+                    "correct": "B",
+                    "explanation": "The choice between trust and SPV structures affects investor rights, tax treatment, and operational flexibility. Trust model: A trustee (often a bank or trust company) holds assets under a trust deed for the benefit of token holders as beneficiaries. Fiduciary duty: trustees have strict legal obligations to act in beneficiaries' interests, with personal liability for breaches. Advantage: strong investor protection through well-established trust law (centuries of precedent). Used by: Franklin Templeton BENJI (money market fund on blockchain), tokenized bond structures, REIT-like structures. Disadvantages: expensive trust administration, inflexible governance, requires licensed trustee. SPV model: LLC or LP holds assets; token holders are members/partners. Advantage: flexibility in governance, tax transparency (pass-through taxation), easier modification. Used by: RealT (each property has its own LLC), most real estate tokenization, private equity tokenization. Disadvantages: corporate formalities required, weaker beneficiary protections than trust law, potential single-purpose entity risks. DAO LLC wrapper: a hybrid emerging in Wyoming and Marshall Islands — a smart contract-governed LLC where the DAO's governance decisions are legally binding on the LLC, combining blockchain governance with legal enforceability."
+                },
+                {
+                    "id": 20,
+                    "question": "How does a tokenized security compare to its traditional equivalent on dimensions of settlement, trading hours, custody, and minimum investment?",
+                    "options": {
+                        "A": "Tokenized securities are identical to traditional securities in all operational respects; tokenization only changes the record-keeping system from DTCC databases to blockchain databases without affecting settlement, custody, or accessibility",
+                        "B": "Tokenized securities offer: T+0 or near-instant settlement (vs T+2 for traditional equities), 24/7/365 trading (vs exchange business hours), self-custody options (private key ownership, no custodial intermediary required), programmable corporate actions, and fractional ownership enabling minimum investments as low as $50 (vs $10,000+ for private securities) — at the cost of smart contract risk, regulatory uncertainty, and lower liquidity than listed markets",
+                        "C": "Tokenized securities are strictly inferior to traditional securities: settlement takes longer due to blockchain confirmation times (Bitcoin 60 minutes vs DTCC T+2), custody requires expensive hardware wallets rather than simple brokerage accounts, and minimum investments are higher due to gas fees for token issuance",
+                        "D": "Tokenized securities eliminate all intermediaries including custodians, transfer agents, and exchanges; traditional securities require all three; this intermediary elimination is why tokenized securities have no regulatory requirements"
+                    },
+                    "correct": "B",
+                    "explanation": "The operational comparison between tokenized and traditional securities reveals both advantages and tradeoffs. Settlement: Traditional equities settle T+2 (2 business days) through DTCC/NSCC. Corporate bonds settle T+2 or T+1. Tokenized securities can settle in the same transaction (atomic DvP on blockchain) — near-instant, 24/7. Blockchain confirmation is 12 seconds (Ethereum) or minutes (Bitcoin). Trading hours: Traditional exchanges: weekdays, specific hours (NYSE 9:30am-4pm ET). Tokenized platforms: 24/7/365 (though liquidity varies). Custody: Traditional: custodian banks (DTCC, Euroclear), brokerage accounts, no self-custody. Tokenized: self-custody via hardware wallet possible, institutional custodians (Fireblocks, Copper) also available. Minimum investment: Traditional private securities: $10,000-$250,000 minimum (Reg D). RealT: $50 per token. BUIDL: $5M minimum. Fractional: any amount theoretically possible. Programmability: Automated dividend distribution, governance votes via smart contract, automatic compliance. Risks: Smart contract bugs, oracle manipulation, regulatory uncertainty, lower secondary market liquidity than listed stocks."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

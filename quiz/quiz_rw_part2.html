@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz RW-2: Stablecoins Deep Dive | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #8b5cf6;
+            --quiz-light: #ede9fe;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #7c3aed; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz RW-2: Stablecoins Deep Dive</div>
+        <div class="nav-links">
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz RW-2: Stablecoins Deep Dive</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What are the four primary categories in the stablecoin taxonomy, and what distinguishes each type's peg maintenance mechanism?",
+                    "options": {
+                        "A": "Stablecoins are classified by issuer type: bank-issued (fiat-backed), exchange-issued (crypto-backed), protocol-issued (algorithmic), and government-issued (central bank digital currencies); the classification determines regulatory treatment but not the technical peg mechanism",
+                        "B": "The four categories are: (1) fiat-backed — each token redeemable for held fiat reserves (USDT, USDC); (2) crypto-backed — overcollateralized with volatile crypto assets (DAI); (3) algorithmic — peg maintained by supply/demand mechanisms and seigniorage tokens without full collateral (Terra UST); (4) commodity-backed — each token represents physical commodities (PAXG for gold)",
+                        "C": "Stablecoins are classified by their target peg: USD-pegged (90% of market), EUR-pegged (8%), gold-pegged (1.5%), and other commodity-pegged (0.5%); the peg target determines the category, and all types use identical reserve mechanisms adjusted for the target currency",
+                        "D": "The taxonomy divides stablecoins into custodial (require a custodian to hold assets) and non-custodial (all assets held in smart contracts with no human custodian); algorithmic stablecoins are classified as non-custodial even if they use partial reserves"
+                    },
+                    "correct": "B",
+                    "explanation": "The stablecoin taxonomy reveals fundamentally different trust models and failure modes. Fiat-backed stablecoins (USDT, USDC, BUSD): a centralized issuer holds equivalent fiat reserves in bank accounts or money market instruments. Each token is a claim on those reserves. Trust assumption: the issuer is honest and solvent. Risk: bank failure, reserve misrepresentation, regulatory seizure. Crypto-backed stablecoins (DAI, LUSD): smart contracts hold crypto collateral — always more collateral than stablecoins issued (overcollateralization). If ETH drops 40%, the extra collateral provides a buffer. Trust assumption: collateral stays valuable enough; liquidation mechanisms work. Risk: extreme market crashes overwhelming overcollateralization. Algorithmic stablecoins (Terra UST, Frax v1): use supply expansion/contraction mechanics, often with a companion token that absorbs volatility. Trust assumption: market participants always believe the peg. Risk: loss of confidence triggers death spirals. Commodity-backed (PAXG, XAUT): each token represents physical gold or other commodities in certified vaults. Trust assumption: vault operator holds claimed physical assets. Risk: custodian fraud, regulatory action."
+                },
+                {
+                    "id": 2,
+                    "question": "What is the core mechanism by which fiat-backed stablecoins maintain their $1 peg through arbitrage, and why does this require redeemability?",
+                    "options": {
+                        "A": "Fiat-backed stablecoins maintain the peg through algorithmic supply adjustments: when price rises above $1, the smart contract mints new tokens; when price falls below $1, it burns tokens; redeemability is optional and most issuers do not offer it",
+                        "B": "The peg is maintained by direct redeemability arbitrage: if USDC trades at $0.98, any authorized participant can buy 1,000,000 USDC for $980,000 and redeem directly with Circle for $1,000,000 worth of USD, locking in $20,000 profit; this arbitrage pressure pushes the price back to $1.00 on exchanges; without redeemability, the arbitrage loop breaks",
+                        "C": "Fiat-backed stablecoins maintain the peg exclusively through market maker agreements: licensed market makers are contractually obligated to buy USDC below $0.999 and sell above $1.001, maintaining the peg band; redeemability exists only as a backup mechanism used fewer than 10 times historically",
+                        "D": "The peg mechanism works through collateral auctions: when USDC depegs below $1, the issuer auctions USD from reserves to anyone willing to sell USDC back; the auction mechanism is self-regulating and does not require prior redeemability arrangements"
+                    },
+                    "correct": "B",
+                    "explanation": "The fiat-backed stablecoin peg mechanism relies on a two-way arbitrage enforced by redeemability. The mechanics work in both directions. When price falls below $1 (depeg scenario): USDC trades at $0.97 on Coinbase. Arbitrageur buys 10,000,000 USDC for $9,700,000. Arbitrageur redeems with Circle directly: submits KYC, initiates redemption, receives $10,000,000 via wire transfer. Profit: $300,000. This buying pressure pushes USDC back toward $1. When price rises above $1 (premium scenario): USDC trades at $1.03. Arbitrageur deposits $10,000,000 with Circle, receives 10,000,000 USDC (at $1 face value). Sells 10,000,000 USDC on exchange for $10,300,000. Profit: $300,000. Selling pressure pushes USDC back toward $1. Why redeemability is essential: without the ability to create/destroy tokens at exactly $1 with the issuer, the arbitrage loop breaks and market forces cannot reliably maintain the peg. The SVB crisis (March 2023) showed this: USDC's SVB exposure created doubt about redeemability, causing it to trade at $0.87 briefly — the market priced in redeemability risk. Once Circle confirmed full reserves, the peg restored within 48 hours."
+                },
+                {
+                    "id": 3,
+                    "question": "What distinguishes overcollateralized crypto-backed stablecoins from fiat-backed stablecoins in terms of trust model and failure conditions?",
+                    "options": {
+                        "A": "Crypto-backed stablecoins are identical to fiat-backed stablecoins in trust model but use cryptocurrency instead of fiat in reserves; both require trusting a central issuer to maintain reserves and both fail identically if reserves are depleted",
+                        "B": "Crypto-backed stablecoins (like DAI) require no trusted central issuer — collateral is locked in public smart contracts and the entire system is transparently verifiable on-chain; they fail not from issuer fraud but from market conditions: if collateral value drops faster than liquidation mechanisms respond, the system can become undercollateralized; the trust is in mathematics and smart contract code rather than a company",
+                        "C": "Crypto-backed stablecoins trust the oracle network for pricing but are otherwise identical in failure conditions to algorithmic stablecoins since both rely on market participants maintaining confidence in the peg without fiat backing",
+                        "D": "The only meaningful distinction is regulatory: fiat-backed stablecoins are regulated as money market funds while crypto-backed stablecoins are regulated as derivatives; both maintain identical technical pegging mechanisms and have identical failure conditions"
+                    },
+                    "correct": "B",
+                    "explanation": "The trust model distinction between fiat-backed and crypto-backed stablecoins is fundamental. Fiat-backed trust model: you trust Circle (USDC issuer) to: (a) actually hold the dollars they claim, (b) not be seized by regulators, (c) honor redemptions when requested, (d) not go bankrupt. This is similar to trusting a bank. Crypto-backed trust model: no central issuer. All DAI collateral is locked in MakerDAO's smart contracts. Any person with an internet connection can verify the total collateral, outstanding DAI, collateralization ratios, and liquidation thresholds in real time. The code is the custodian. Failure conditions differ: Fiat-backed fails from: issuer insolvency, reserve fraud (claiming more reserves than held), regulatory seizure, bank failure holding reserves. Crypto-backed fails from: extreme market events where collateral value drops faster than liquidations can process (the March 12-13, 2020 'Black Thursday' event saw ETH drop 50% in hours, causing DAI liquidations to fail due to Ethereum congestion — DAI briefly traded at $1.10 from collateral shortfall). The tradeoff: crypto-backed stablecoins eliminate counterparty trust but introduce market risk from volatile collateral."
+                },
+                {
+                    "id": 4,
+                    "question": "What is Tether (USDT), what are the key facts about its market position and reserve composition, and what controversies have surrounded it?",
+                    "options": {
+                        "A": "USDT is the world's largest stablecoin with $90B+ in circulation, audited monthly by Deloitte, with reserves composed of 100% US Treasury bills and FDIC-insured bank deposits; Tether has never faced any legal or regulatory controversy",
+                        "B": "USDT is the world's largest stablecoin by market cap ($90B+, ~60% market share), issued by Tether Limited; reserves historically included commercial paper, loans, and less liquid instruments raising transparency concerns; Tether settled with the CFTC ($41M, 2021) and NY Attorney General ($18.5M, 2021) for misrepresenting reserves; reserve composition has shifted toward US T-bills (~85%+) but receives quarterly attestations from BDO Italia rather than full audits",
+                        "C": "USDT is a decentralized stablecoin issued by a DAO with $90B in fully on-chain collateral composed exclusively of ETH and Bitcoin; it has faced controversy because its algorithmic peg mechanism is similar to Terra/Luna and critics worry about systemic risk",
+                        "D": "USDT is the second-largest stablecoin (after USDC) with $45B in circulation; it is issued by Coinbase and Paxos jointly, fully audited quarterly by PwC, with reserves held 100% in FDIC-insured US bank accounts and short-duration US government securities"
+                    },
+                    "correct": "B",
+                    "explanation": "Tether (USDT) facts and controversies: Market position: USDT has maintained the #1 stablecoin position since 2019, with market cap exceeding $90 billion and approximately 60% of total stablecoin market share. It processes over $50 billion in daily trading volume, often exceeding Bitcoin. Reserve composition: Historically controversial. In 2021, the NY Attorney General revealed Tether had at various times backed USDT with loans to affiliated companies (Bitfinex), commercial paper, and other non-cash instruments rather than dollar-for-dollar fiat. Current reserves (per Tether attestations): approximately 85%+ in US T-bills and money market funds, remainder in cash, precious metals, and Bitcoin. Attestations vs. audits: Tether publishes quarterly reserve attestations by BDO Italia — these are not full independent audits, which verify that stated figures are accurate. An audit would also verify whether those reserves exist and are unencumbered. Tether has never completed a full third-party audit. Legal settlements: 2021 CFTC settlement: $41M for falsely representing USDT was 100% backed by fiat (it wasn't during certain periods). 2021 NY AG settlement: $18.5M fine, agreement to produce quarterly reserve reports for 2 years. Despite controversies, USDT has maintained its peg through all major crypto market crashes, suggesting functional reserves in practice."
+                },
+                {
+                    "id": 5,
+                    "question": "How does Tether's reserve management generate profits for the company, and why does this create a potential structural conflict of interest?",
+                    "options": {
+                        "A": "Tether earns revenue exclusively from transaction fees charged when users mint or redeem USDT; reserve management generates no profit because all reserves must be held as non-interest-bearing bank deposits per regulatory requirements",
+                        "B": "Tether profits from the spread between USDT's face value ($1.00) and the yield earned on its reserves: $90B invested at 5% in T-bills generates ~$4.5B/year in interest; USDT holders receive zero yield on their tokens; this structure gives Tether incentive to maximize reserve yields (potentially taking on risk) and creates pressure to avoid full audits that might reveal riskier allocations",
+                        "C": "Tether distributes all reserve yield to USDT holders proportionally each quarter, earning revenue only from protocol fees; this structure makes Tether economically similar to a money market fund and eliminates conflicts of interest",
+                        "D": "Tether's profit comes from market-making: the company buys and sells USDT on exchanges, profiting from the bid-ask spread; reserve management is outsourced entirely to BlackRock, which manages the reserves transparently and publishes daily holdings data"
+                    },
+                    "correct": "B",
+                    "explanation": "Tether's business model is extraordinarily profitable and creates a structural incentive problem. The revenue model: Tether issues USDT to users who deposit dollars. Those dollars are invested in interest-bearing instruments (T-bills at ~5% in 2024). On $90B in reserves: $90B x 5% = $4.5B annual interest income. Tether pays USDT holders zero interest — the yield stays entirely with Tether Limited. Tether charges redemption fees ($0.001/token for most users). Total estimated annual profit 2023: $6.2B (per Tether's own disclosure) — rivaling Goldman Sachs profit per employee. The structural conflict: Tether has strong incentive to maximize reserve yields, which means taking on credit risk (investing in riskier instruments for higher yields). A full audit would reveal exactly what assets back USDT and whether any are risky, illiquid, or affiliated-party loans. Since USDT holders cannot earn yield, they bear the risk of reserve mismanagement while Tether earns all the return. Compare to USDC: Circle publishes monthly reserve reports audited by Deloitte with detailed holdings, and faces stronger regulatory oversight. The asymmetry — Tether captures all reserve yield while holders bear reserve risk — is a defining feature of the fiat-backed stablecoin model."
+                },
+                {
+                    "id": 6,
+                    "question": "What specific allegations did regulators make about Tether's reserves, and what were the outcomes of the CFTC and NY Attorney General investigations?",
+                    "options": {
+                        "A": "Regulators alleged that Tether had minted USDT without any reserves at all (a pure fractional reserve scheme), and Tether was ordered to halt operations; after restructuring, Tether resumed operations in 2022 under direct Federal Reserve supervision",
+                        "B": "The CFTC alleged (and Tether settled for $41M in 2021) that USDT was not always fully backed by fiat — Tether held non-fiat assets and made loans to affiliated entities; the NY AG found Tether had loaned $850M of reserves to Bitfinex to cover Bitfinex's losses, misrepresenting reserves as fully backed; Tether paid $18.5M to settle without admitting wrongdoing and agreed to publish quarterly reserve reports",
+                        "C": "Both the CFTC and NY AG alleged that Tether was operating an illegal securities offering because USDT qualified as an investment contract under the Howey test; the SEC intervened and Tether registered USDT as a security, now subject to quarterly SEC filings",
+                        "D": "The CFTC found no violations but imposed enhanced disclosure requirements; the NY AG investigation concluded that Tether's reserves were always fully backed and the investigation was closed without any fine or settlement"
+                    },
+                    "correct": "B",
+                    "explanation": "The regulatory history reveals the seriousness of reserve misrepresentation concerns. CFTC Order (October 2021, $41M settlement): The CFTC found that Tether made untrue or misleading statements to customers by claiming USDT was always fully backed by fiat currency. Reality found by CFTC: For extended periods including 2016-2019, USDT was backed by a combination of cash, loans to affiliated entities, receivables from investments, and other non-fiat assets. Tether made false claims of 100% fiat backing during these periods. NY Attorney General Settlement (February 2021, $18.5M): The NY AG investigation revealed the Bitfinex crisis: In 2018, a Panamanian payment processor (Crypto Capital) that held $850M of Bitfinex customer funds was seized by European authorities. Bitfinex secretly borrowed from Tether's reserves to cover the gap ($900M in total), using customer/reserve funds without disclosure. Tether publicly claimed reserves were fully backed while $850M was actually a loan to Bitfinex. Settlement outcome: $18.5M fine, no criminal charges, agreement to publish quarterly reserve breakdowns for 2 years, agreement not to serve New York customers. Significance: These investigations confirmed that USDT was not always backed as claimed — a material misrepresentation to $90B+ of holders globally."
+                },
+                {
+                    "id": 7,
+                    "question": "What is USD Coin (USDC) and how does its reserve management and attestation process differ from Tether's?",
+                    "options": {
+                        "A": "USDC is identical to USDT in reserve management; the only difference is that USDC is issued by Coinbase (a US-listed company) rather than Tether Limited (Cayman Islands), providing slightly higher regulatory accountability but otherwise the same reserve opacity",
+                        "B": "USDC is issued by Circle with reserves held in short-duration US Treasuries and cash in regulated US financial institutions; Circle publishes monthly reserve attestations by Deloitte (a Big Four firm) with detailed asset breakdowns; USDC is supervised under US money transmitter licenses in each state, providing stronger regulatory oversight than USDT",
+                        "C": "USDC is a decentralized stablecoin where reserves are held in a multi-signature smart contract controlled by Circle, Coinbase, and three independent auditors; any two parties must approve reserve changes, providing cryptographic proof of reserve integrity",
+                        "D": "USDC maintains reserves exclusively in interest-bearing FDIC-insured savings accounts at JPMorgan Chase, Bank of America, and Wells Fargo; unlike USDT, USDC passes all interest income to token holders proportionally, making it function like a money market fund"
+                    },
+                    "correct": "B",
+                    "explanation": "USDC (USD Coin) vs. USDT — the key differentiators: Issuer and governance: Circle Internet Financial (Boston, US-based) issues USDC, originally through a consortium (Centre, co-founded with Coinbase, dissolved 2023). Both Circle and Coinbase are US-regulated entities subject to US law. Reserve composition: USDC reserves are invested in the Circle Reserve Fund (managed by BlackRock) — approximately 80% short-duration US Treasury bills, 20% overnight repo agreements collateralized by Treasuries, and cash in regulated US banks. Reserve transparency: Circle publishes monthly reserve attestation reports prepared by Deloitte, one of the Big Four accounting firms. These reports provide: total USDC in circulation, total reserve assets, breakdown by asset type and maturity, and confirmation that reserves exceed liabilities. This is more detailed and credible than Tether's BDO Italia quarterly attestations. Regulation: Circle holds money transmitter licenses in 49 US states, is regulated in the EU under EMI (Electronic Money Institution) licensing, and operates under the strictest regulatory framework of any major stablecoin issuer. Market size: ~$30B+ in circulation (as of 2024), approximately half of USDT. USDC is the preferred stablecoin for institutional DeFi users and regulated applications due to its transparency and US regulatory compliance."
+                },
+                {
+                    "id": 8,
+                    "question": "What happened to USDC during the Silicon Valley Bank collapse in March 2023, and what does this event reveal about fiat-backed stablecoin risks?",
+                    "options": {
+                        "A": "USDC maintained its $1.00 peg throughout the SVB collapse because Circle immediately moved all SVB reserves to JPMorgan; the event demonstrated that USDC's multi-bank reserve structure successfully prevented any peg disruption",
+                        "B": "Circle disclosed that $3.3 billion of USDC reserves (~8% of total) were held at Silicon Valley Bank when it was seized; USDC depegged to as low as $0.87 on March 11, 2023 as markets priced in potential reserve shortfall; the peg restored to $1.00 after the FDIC guaranteed all SVB deposits (including Circle's) on March 13, demonstrating that fiat-backed stablecoins inherit the banking system's risks",
+                        "C": "USDC lost its $1 peg permanently after SVB and was replaced by USDC 2.0, which uses a new reserve structure backed by Federal Reserve master accounts rather than commercial bank deposits",
+                        "D": "The SVB collapse had no impact on USDC because Circle held no reserves at SVB; the brief depeg was caused by false social media rumors, and Circle immediately published real-time reserve data demonstrating zero SVB exposure"
+                    },
+                    "correct": "B",
+                    "explanation": "The SVB USDC depeg event (March 10-13, 2023) is a crucial case study in fiat-backed stablecoin risk. The sequence of events: March 10, 2023 — SVB Financial Group fails after a bank run, seized by California regulators. FDIC takes over. March 10 evening — Circle discloses that $3.3 billion of USDC cash reserves (approximately 8% of $40B total USDC supply) were held at SVB and could not be withdrawn. Markets react immediately. March 11, 2023 — USDC trades as low as $0.87 on Coinbase (~13% depeg). This is one of the largest depegs for a major fiat-backed stablecoin. Hundreds of millions in DeFi liquidations triggered as USDC-collateralized positions faced liquidation at $0.87. DAI (which held significant USDC via PSM) also depegged briefly. March 12, 2023 — US Treasury, Federal Reserve, and FDIC announce all SVB depositors (including Circle) will be made whole, regardless of the FDIC $250K insurance limit. March 13, 2023 — USDC restores to $1.00. Lessons revealed: (1) Fiat-backed stablecoins inherit banking system risk. (2) Even 8% reserve exposure at a failed bank creates ~13% depeg. (3) DeFi protocols using fiat-backed stablecoins as collateral face cascading liquidation risks. (4) The peg is only as strong as confidence in reserve accessibility. (5) Government intervention (extraordinary FDIC guarantee) saved the situation — without it, USDC would have faced a severe crisis."
+                },
+                {
+                    "id": 9,
+                    "question": "What position does USDC hold in the DeFi ecosystem and institutional finance, and why do many protocols prefer USDC over USDT?",
+                    "options": {
+                        "A": "USDC is primarily used by retail investors for speculation while USDT dominates DeFi protocol reserves; institutional preference for USDC is a myth because Tether's larger market cap provides more liquidity for institutional-size trades",
+                        "B": "USDC is the dominant stablecoin in US-regulated DeFi protocols and institutional applications because its transparency (monthly Deloitte attestations), US regulatory compliance, and clear reserve composition make it acceptable for risk-averse institutions; USDC is the primary stablecoin in Uniswap liquidity pools, Aave, Compound, and institutional custody platforms",
+                        "C": "USDC and USDT are interchangeable and protocols select between them based solely on transaction fees; USDC charges $0.001/token more per transaction than USDT, which is why USDT maintains higher DeFi market share despite lower transparency",
+                        "D": "USDC is preferred in DeFi exclusively because it is the only stablecoin that pays yield to holders; DeFi protocols integrate USDC yield-sharing into their smart contracts to automatically reward liquidity providers with stablecoin interest"
+                    },
+                    "correct": "B",
+                    "explanation": "USDC occupies a distinct market position from USDT despite lower overall market cap. Institutional preference drivers: Regulatory clarity — Circle holds US money transmitter licenses in 49 states, is registered with FinCEN, and operates under a comprehensive compliance framework. US-based institutional counterparties (asset managers, hedge funds, corporations) face internal compliance requirements that often mandate using regulated, US-supervised entities. Reserve transparency — monthly Deloitte attestations with detailed breakdowns satisfy institutional due diligence requirements that USDT's quarterly BDO attestations cannot. Known management — Circle's leadership team, banking relationships, and regulatory history are fully public. DeFi ecosystem position: USDC is the primary stablecoin in most major US-based DeFi protocols. Coinbase's involvement means USDC is deeply integrated into Coinbase's ecosystem and Base (Coinbase's L2). Aave, Compound, and Uniswap all treat USDC as the highest-quality stablecoin collateral. Institutional applications: Franklin Templeton's BENJI fund uses USDC for settlement. Visa settled transactions using USDC on Solana in 2021 pilot. Multiple Fortune 500 companies use USDC for crypto treasury management. The tradeoff: USDC's smaller market cap means less liquidity for very large trades (>$100M) compared to USDT, where institutional whales often prefer USDT's deeper liquidity."
+                },
+                {
+                    "id": 10,
+                    "question": "What is DAI and how does MakerDAO's Collateralized Debt Position (CDP/Vault) system create DAI while maintaining its $1 peg?",
+                    "options": {
+                        "A": "DAI is a fiat-backed stablecoin issued by MakerDAO Foundation which holds US dollar reserves; the CDP system is a smart contract interface for users to convert dollars to DAI at a 1:1 ratio with automated compliance checks",
+                        "B": "DAI is a decentralized stablecoin created when users deposit collateral (ETH, wBTC, USDC, RWA tokens) into MakerDAO Vaults (CDPs), which mint DAI up to a Loan-to-Value limit (e.g., 150% collateral ratio for ETH means $150 ETH mints up to 66 DAI); users pay stability fees (interest); if collateral falls below minimum ratio, automated liquidations maintain DAI's backing",
+                        "C": "DAI is created by staking MKR governance tokens in MakerDAO's reserve pool; the MKR stake generates DAI as interest payments, similar to a proof-of-stake reward; the 1:1 peg is maintained by burning DAI to reduce supply when price exceeds $1",
+                        "D": "DAI is created through a DEX arbitrage mechanism: when DAI rises above $1, MakerDAO's smart contract sells ETH reserves to buy DAI, burning it to reduce supply; when DAI falls below $1, the contract sells DAI and buys ETH, increasing supply until equilibrium is restored"
+                    },
+                    "correct": "B",
+                    "explanation": "MakerDAO's CDP/Vault system is one of DeFi's most important innovations. Vault mechanics step by step: (1) User deposits collateral — Alice deposits 1.5 ETH (worth $3,000 at $2,000/ETH) into a MakerDAO Vault. (2) Minting DAI — with ETH's 150% minimum collateralization ratio, Alice can mint up to $3,000/1.5 = $2,000 of DAI. She mints 1,500 DAI to maintain a safety buffer (200% collateralization). (3) Stability fee — Alice owes a continuous stability fee (Maker's version of interest, set by MKR governance, e.g., 5% annually) on her 1,500 DAI debt. (4) Peg maintenance — DAI's soft peg to $1 is maintained through: (a) liquidation: if ETH price falls and Alice's collateral ratio drops to 150%, her Vault is liquidated — keepers buy her ETH at discount and repay her DAI debt. (b) Peg Stability Module (PSM): allows 1:1 swaps between USDC and DAI, providing a price floor/ceiling. (5) Redemption — to close the Vault, Alice repays 1,500 DAI + accrued stability fee in MKR or DAI, then receives back her ETH collateral. The elegance: DAI is created by locking value, not by printing money. Every DAI in circulation has documented overcollateralization. Governance sets risk parameters (collateral types, ratios, fees) via MKR token voting."
+                },
+                {
+                    "id": 11,
+                    "question": "Why does MakerDAO require overcollateralization (e.g., 150% minimum collateral ratio) rather than the 1:1 ratio used by fiat-backed stablecoins?",
+                    "options": {
+                        "A": "Overcollateralization is required by US banking regulations for all blockchain-based lending; fiat-backed stablecoins are exempt from this requirement because they hold actual dollars in bank accounts rather than using crypto as collateral",
+                        "B": "Overcollateralization compensates for crypto collateral volatility — ETH can lose 50%+ of value in days; with 150% collateral backing $100 of DAI, a 33% ETH price drop reduces collateral to 100%, triggering liquidation before DAI becomes undercollateralized; fiat-backed stablecoins use 1:1 because dollars do not lose value overnight",
+                        "C": "The 150% ratio is purely a UX design choice by MakerDAO to give users more borrowing power; technically a 101% ratio would be equally safe but MakerDAO founders preferred round numbers for marketing simplicity",
+                        "D": "Overcollateralization is required because MakerDAO charges stability fees in MKR tokens, which fluctuate in value; the extra collateral buffer ensures fee payments can always be made regardless of MKR price movements"
+                    },
+                    "correct": "B",
+                    "explanation": "Overcollateralization is the fundamental mechanism that allows a crypto-backed stablecoin to survive volatile collateral. The math shows why 1:1 would fail: Scenario with 1:1 collateral ratio (hypothetical): Alice deposits 1 ETH ($2,000) and mints 2,000 DAI. ETH drops 10% to $1,800. Collateral ($1,800) is now less than DAI debt ($2,000). System is insolvent — Alice has no incentive to repay (she'd pay $2,000 to get back $1,800 of ETH). She walks away. MakerDAO must absorb $200 loss. During a market crash with 10,000 such positions: catastrophic insolvency. Scenario with 150% minimum collateral ratio (actual): Alice deposits 1.5 ETH ($3,000) and mints 1,000 DAI (150% collateralization). ETH drops 30% to $1,400 → 1.5 ETH = $2,100 (210% collateral still, safe). ETH drops 40% to $1,200 → 1.5 ETH = $1,800 (180% collateral, safe). ETH drops 55% to $900 → 1.5 ETH = $1,350 (135%, below 150% minimum). Liquidation triggered. Liquidators buy Alice's 1.5 ETH at $1,350 (discount to market $1,350 actual value = breaking even but protecting DAI). Buffer protects the system. The liquidation penalty (e.g., 13%) incentivizes liquidators to act quickly, ensuring liquidations happen before the system becomes insolvent. MakerDAO survived the March 2020 crash (ETH -50% in hours) largely intact."
+                },
+                {
+                    "id": 12,
+                    "question": "What is MakerDAO's Peg Stability Module (PSM) and how has it affected DAI's decentralization and risk profile?",
+                    "options": {
+                        "A": "The PSM is a governance module where MKR holders vote daily on the DAI peg price; if voters set the peg at $0.99 instead of $1.00, all DAI rebalances automatically, making the PSM a fully decentralized peg mechanism",
+                        "B": "The PSM allows 1:1 swaps between DAI and USDC (and other stablecoins) with zero slippage, providing a price floor/ceiling that dramatically stabilized DAI's peg; however it means a significant portion of DAI backing is USDC — reintroducing centralization risk (Circle can freeze USDC) — and DAI effectively inherited USDC's counterparty risk, contradicting its original trust-minimized design",
+                        "C": "The PSM is a yield optimization module that automatically moves DAI reserves between USDC, T-bills, and ETH based on yield curves, maximizing stability fee revenue for MKR holders while maintaining perfect 1:1 backing at all times",
+                        "D": "The PSM replaced MakerDAO's collateral vault system entirely; all DAI is now backed 100% by USDC rather than crypto collateral; the original CDP/Vault system was deprecated when the PSM launched in 2020 as it provided more stable backing"
+                    },
+                    "correct": "B",
+                    "explanation": "The Peg Stability Module (PSM) is one of MakerDAO's most controversial but effective mechanisms. What it does: The PSM allows users to swap 1 USDC for exactly 1 DAI (and vice versa) with near-zero fees (0-0.1%). This creates a direct peg anchor: if DAI rises above $1.001, arbitrageurs swap USDC for DAI (profitable because 1 USDC buys 1 DAI worth $1.001+). This selling pressure pulls DAI back to $1. If DAI falls below $0.999, arbitrageurs swap DAI for USDC. Buying pressure pulls DAI back to $1. The effectiveness: Before PSM (2019-2020), DAI regularly traded at $1.02-1.05 due to crypto market demand imbalances. After PSM, DAI maintains an extremely tight peg to $0.999-$1.001. The centralization cost: USDC accounts for 40-60%+ of DAI's backing (at various points it was 80%+). This means: (1) If Circle freezes the USDC in MakerDAO's PSM, a huge portion of DAI backing disappears. (2) If USDC depegs (as in SVB crisis), DAI depegs correspondingly. (3) DAI is no longer truly trust-minimized if most of its backing is a centralized stablecoin. MakerDAO's response: The Endgame Plan (2023) aims to diversify backing into RWA (Real World Assets) — MakerDAO holds $2B+ in tokenized US Treasury bills — reducing USDC dependency while maintaining peg stability and generating yield."
+                },
+                {
+                    "id": 13,
+                    "question": "How has MakerDAO expanded into Real World Assets (RWA), and what is the stability fee mechanism that generates revenue for the protocol?",
+                    "options": {
+                        "A": "MakerDAO expanded into RWA by creating a DEX where users can trade tokenized real estate; the stability fee is a flat 2% annual charge on all DAI regardless of collateral type, used to buy and burn MKR tokens",
+                        "B": "MakerDAO holds $2B+ in tokenized US Treasury bills and other RWA as DAI collateral, earning 4-5% yield on these assets; stability fees are interest rates charged on crypto-collateralized Vaults (varying by collateral risk, e.g., 5% for ETH Vaults), and both RWA yield and stability fees flow to the protocol's surplus buffer, funding MKR buybacks and burns",
+                        "C": "The stability fee is a fee charged to Vault operators for using the MakerDAO interface; it does not affect DAI's supply or the peg mechanism; RWA integration provides marketing benefits but zero economic benefit to the protocol",
+                        "D": "MakerDAO's RWA expansion involves purchasing physical real estate and commodities directly; the stability fee is a transaction fee of 0.3% on all DAI swaps, identical to Uniswap's LP fee structure, distributed to MKR stakers proportionally to their governance participation"
+                    },
+                    "correct": "B",
+                    "explanation": "MakerDAO's RWA strategy represents one of DeFi's most ambitious integrations with traditional finance. RWA collateral strategy: MakerDAO governance approved multiple RWA collateral types. The Maker RWA portfolio includes: Tokenized US Treasury bills (via Monetalis Clydesdale, BlockTower Credit, and other legal structures) — $2B+ at 5% yield. Short-term bond funds (the Superstate USTB, Ondo OUSG). Trade finance receivables. Maker Community Treasury Bonds. Total RWA exposure: approximately $2-3B representing the largest DeFi RWA portfolio globally. Revenue model: (1) Stability fees — when a user mints DAI from an ETH Vault, they pay ongoing interest (e.g., 5.75% annually). These fees accumulate in the protocol's Surplus Buffer. (2) RWA yield — the tokenized T-bills earn ~5% annually, flowing directly to the protocol. (3) PSM fee income — tiny fees on USDC/DAI swaps. Revenue use: surplus buffer funds MKR buybacks and burns (deflationary for MKR), covers bad debt from liquidation failures, and funds protocol operations. Governance: MKR holders vote on all stability fee changes, new collateral types, and RWA allocations via on-chain governance — making Maker simultaneously one of the most decentralized and most financially sophisticated DeFi protocols."
+                },
+                {
+                    "id": 14,
+                    "question": "What was Terra/Luna (UST), and what specific mechanism was designed to maintain UST's algorithmic $1 peg?",
+                    "options": {
+                        "A": "UST was a crypto-backed stablecoin identical to DAI but using LUNA as collateral instead of ETH; the peg mechanism required 150% overcollateralization at all times, and the collapse occurred when LUNA price dropped below the minimum collateral threshold",
+                        "B": "UST was an algorithmic stablecoin using a mint-and-burn mechanism with LUNA: to mint 1 UST, users burned $1 of LUNA; to redeem 1 UST, they received $1 of newly minted LUNA; this maintained the peg through arbitrage — if UST < $1, burning UST for $1 LUNA was profitable; if UST > $1, burning $1 LUNA for 1 UST was profitable",
+                        "C": "UST maintained its peg through a centralized reserve managed by the Luna Foundation Guard using $10B in Bitcoin purchased specifically to defend the peg; the collapse occurred when the Bitcoin reserve was fully depleted in a coordinated speculative attack by a single hedge fund",
+                        "D": "UST was pegged to the Korean Won (not the USD) and was designed to facilitate cross-border payments between Korea and Southeast Asia; it collapsed due to Korean regulatory intervention that froze all LUNA transactions on Korean exchanges"
+                    },
+                    "correct": "B",
+                    "explanation": "Terra/Luna UST mechanics: The Terra blockchain had two native assets: LUNA (volatile governance/utility token) and UST (algorithmic stablecoin targeting $1). The mint-burn mechanism: Minting UST: burn $1 worth of LUNA at current market price → receive 1 UST. Redeeming UST: burn 1 UST → receive $1 worth of newly minted LUNA. The arbitrage maintenance: If UST trades at $0.90: buy 1 UST for $0.90, redeem for $1 of LUNA (mint $0.10 profit). Buying pressure on UST + selling pressure on LUNA (selling the received LUNA) pushes UST back toward $1. If UST trades at $1.10: buy $1 of LUNA, burn to mint 1 UST, sell UST for $1.10 ($0.10 profit). Buying pressure on LUNA + selling pressure on UST pushes UST back toward $1. The dependency problem: this mechanism is self-reinforcing only while LUNA retains value. If confidence in LUNA collapses, the redemption mechanism fails — burning UST mints worthless LUNA rather than $1 of value. Additional context: The Luna Foundation Guard (LFG) maintained a Bitcoin reserve (~$3B) as a secondary defense mechanism, but this proved insufficient during the May 2022 collapse."
+                },
+                {
+                    "id": 15,
+                    "question": "What triggered the Terra/Luna collapse in May 2022, and how did the 'death spiral' mechanism cause $40 billion in value to be destroyed in days?",
+                    "options": {
+                        "A": "The collapse was caused by a single hack of the Terra blockchain's smart contracts that directly deleted reserves; once the hack was discovered, users panicked and sold LUNA, completing the collapse within hours",
+                        "B": "Large UST withdrawals from Anchor Protocol (which offered 20% APY) began May 7-8, 2022; UST depegged slightly; arbitrageurs began burning UST for LUNA (minting billions of new LUNA); LUNA supply ballooned from 350M to 6.5 trillion tokens, hyperinflating LUNA to near zero; UST could no longer be redeemed for meaningful value, completing a death spiral where each depegging event triggered more LUNA minting, further devaluing both assets simultaneously",
+                        "C": "The collapse was triggered by US Treasury sanctions against the Luna Foundation Guard; the sanctions prevented the LFG from defending the peg with Bitcoin reserves, and without intervention, normal market selling pressure caused the peg to gradually decline over three months",
+                        "D": "Terra/Luna collapsed because Celsius Network, a major UST holder, went bankrupt and force-sold $10B of UST in a single block to cover client withdrawals; the single large sell order overwhelmed market depth and triggered automated smart contract liquidations"
+                    },
+                    "correct": "B",
+                    "explanation": "The Terra/Luna death spiral is the most catastrophic failure in crypto history, destroying ~$40-60B in market value in 72 hours. Sequence of events: May 7-8, 2022 — Anchor Protocol (Terra's flagship DeFi protocol offering unsustainable 20% UST APY) saw large withdrawals totaling $2B+. These withdrawals were partially coordinated (later attributed to large traders, possibly including Jump Crypto unwinding positions). UST began depegging from $1.00 toward $0.98-0.95. May 8-9, 2022 — The death spiral begins. Mechanism: UST holders, fearing further depeg, rush to redeem UST for LUNA. The Terra protocol mints new LUNA for each UST redeemed. LUNA supply explodes: from ~350 million LUNA → 1 billion → 10 billion → 100 billion → 6.5 trillion in 3 days. Hyperinflation: each new LUNA is worth dramatically less. LUNA price: $80 → $30 → $5 → $0.10 → $0.0001. Feedback loop: as LUNA value approaches zero, redeeming UST yields near-worthless LUNA, so the arbitrage mechanism fails. UST: $1.00 → $0.90 → $0.60 → $0.30 → $0.10. By May 13, 2022: UST trading at $0.02-0.10. LUNA market cap: $0 (from $41B peak). Total destroyed value: $40-60B depending on measurement. Luna Foundation Guard deployed $3.5B in Bitcoin to defend the peg — insufficient against the scale of selling."
+                },
+                {
+                    "id": 16,
+                    "question": "What are the lasting lessons from the Terra/Luna collapse for algorithmic stablecoin design, and what happened to Do Kwon and Terraform Labs afterward?",
+                    "options": {
+                        "A": "The main lesson is that algorithmic stablecoins need larger Bitcoin reserves; Do Kwon remains at large and Terraform Labs launched LUNA 2.0 which has recovered to 80% of LUNA's pre-collapse price",
+                        "B": "The collapse demonstrated that reflexive algorithmic stablecoins without sufficient external collateral are inherently unstable — their peg depends entirely on confidence; once confidence breaks, the mint-burn mechanism becomes a self-reinforcing destruction mechanism; Do Kwon was arrested in Montenegro in 2023 and faces US federal fraud charges; Terraform Labs filed for bankruptcy; the SEC sued Terraform Labs for unregistered securities",
+                        "C": "The lesson is that 20% APY yields are unsustainable; algorithmic stablecoins offering below 5% APY (like Frax) have proven stable; Do Kwon was fined $50M by the SEC and agreed to permanent industry ban but faces no criminal charges",
+                        "D": "Terra/Luna collapse was caused by external manipulation that could have been prevented with better smart contract security; the lesson is primarily about smart contract auditing rather than algorithmic design; Do Kwon completed a successful relaunch with LUNA 2.0 and is currently running Terra 3.0 development"
+                    },
+                    "correct": "B",
+                    "explanation": "The Terra/Luna collapse produced profound lessons for DeFi and regulatory responses. Core design failure identified: The UST/LUNA system was reflexively circular — LUNA's value depended on UST demand, and UST's stability depended on LUNA value. When this circular dependency broke, there was no external anchor. This is distinct from DAI's overcollateralization (external value from ETH) or USDC's fiat backing (external value from dollars). No amount of clever mechanism design makes a reflexive system stable against coordinated selling or panic. The Anchor Protocol 20% APY was funded by Terraform Labs subsidy (not real yield) — an unsustainable incentive that attracted mercenary capital that fled at the first sign of instability. Regulatory aftermath: SEC lawsuit (February 2023): SEC sued Terraform Labs and Do Kwon for fraud and offering unregistered securities. The SEC alleged UST and LUNA were securities, and that Kwon made false claims about the algorithmic peg. CFTC charges: Separate charges for fraudulent misrepresentation. Do Kwon's legal situation: Arrested in Montenegro March 2023 while traveling on falsified documents. Extradition battle between US and South Korea. South Korean prosecutors filed embezzlement and fraud charges. As of 2024, extradition proceedings ongoing. Terraform Labs bankruptcy: Filed Chapter 11 in January 2024. LUNA 2.0: Launched May 2022, trades far below LUNA 1.0 peak values."
+                },
+                {
+                    "id": 17,
+                    "question": "What does the total stablecoin market size represent in 2024, and what does stablecoin settlement volume reveal about real-world adoption?",
+                    "options": {
+                        "A": "The total stablecoin market is approximately $5 billion (down from $200B peak due to Terra/Luna collapse), with settlement volume under $100 billion annually; the market remains primarily speculative with minimal real-world utility",
+                        "B": "Total stablecoin market capitalization exceeds $150 billion (2024), with USDT holding ~60% share; annual stablecoin settlement volume exceeds $10 trillion, surpassing Mastercard's annual volume; stablecoins process billions in remittances, DeFi settlements, and institutional transactions daily — representing genuine financial infrastructure rather than purely speculative instruments",
+                        "C": "The stablecoin market is $150 billion in nominal value but most tokens are locked in DeFi smart contracts and never transferred; actual settlement activity is under $500 billion annually because most tokens are held as passive savings instruments",
+                        "D": "Total stablecoin settlement has declined to $2 trillion annually from a $15 trillion peak in 2021 because DeFi summer activity has permanently ended; the market has consolidated to 3 issuers (USDT, USDC, DAI) who collectively process 99.9% of all stablecoin volume"
+                    },
+                    "correct": "B",
+                    "explanation": "Stablecoin market scale and adoption data (2024): Market capitalization: Total stablecoin market capitalization: $150B+ (as of mid-2024). USDT: $90B+ (~60% market share). USDC: $30B+ (~20% share). DAI/USDS: $5B+. Other stablecoins (BUSD, TUSD, PYUSD, FRAX, GUSD): combined $25B+. Settlement volume: On-chain stablecoin settlement volume has exceeded $10 trillion annually — this is on-chain transfers only, not counting off-chain netting. For comparison: Mastercard processes ~$9 trillion annually. Visa processes ~$14 trillion annually. The Federal Reserve's Fedwire Funds Service: ~$1 quadrillion annually (but includes interbank settlements). Stablecoins now handle Mastercard-comparable volumes. Use case breakdown: DeFi trading and lending: approximately 40% of volume. Cross-border remittances: significant and growing (Bitso in Mexico/Latin America, local adoption across Africa, Southeast Asia). Institutional OTC settlement: growing. Corporate treasury and payments: early stage. The remittance use case is particularly significant: sending $1,000 from the US to Mexico costs ~$10 (1%) via Western Union and takes 1-3 days. Sending $1,000 in USDC on Polygon costs ~$0.01 and settles in seconds. For the 1.7 billion global unbanked and the $800B annual remittance market, stablecoins represent a genuinely transformative financial primitive."
+                },
+                {
+                    "id": 18,
+                    "question": "What is USDT's dominant market share (~60%) in stablecoin trading, and what factors explain its persistence despite transparency concerns?",
+                    "options": {
+                        "A": "USDT's 60% market share is temporary and declining rapidly; Tether expects to lose market share to USDC within 12 months as institutional adoption of regulated stablecoins accelerates following the EU's MiCA framework implementation",
+                        "B": "USDT maintains ~60% share because of network effects and first-mover advantage: it was the first major stablecoin (2014), is listed on virtually every exchange globally including many that cannot or do not list USDC for regulatory reasons (e.g., Binance), offers the deepest liquidity for institutional-size trades, and is the default trading pair on most Asian exchanges where crypto adoption is heaviest",
+                        "C": "USDT's dominant share is explained entirely by Tether's lower fees: USDT charges 0% for minting and redemption while USDC charges 0.1%, and in a $90B market this fee differential explains why traders strongly prefer USDT for all transaction types",
+                        "D": "USDT maintains market dominance because it is the only stablecoin that can be used for NFT purchases on OpenSea, Blur, and Magic Eden; USDC is technically incompatible with NFT marketplaces due to its transfer restriction architecture"
+                    },
+                    "correct": "B",
+                    "explanation": "USDT's persistence at 60% market share despite ongoing transparency concerns is a fascinating case of network effects trumping quality signals. Historical advantage: Tether launched in 2014 (as 'RealCoin'), establishing itself before any competitors. Early exchanges (Bitfinex, OKX, Huobi) built infrastructure around USDT. By the time USDC launched in 2018, USDT had a 4-year head start and deep exchange integration. Exchange access: USDT is listed on virtually every crypto exchange globally — including many that cannot or choose not to list USDC due to US regulatory exposure concerns. Binance (world's largest exchange by volume) historically preferred USDT and its own BUSD over USDC. Exchanges in jurisdictions with unclear US reach (Turkey, Vietnam, many emerging markets) use USDT as the default stablecoin. Liquidity depth: For a $100M+ institutional trade, USDT typically offers better market depth (tighter spreads, larger order books) than USDC on most exchanges. Liquidity begets liquidity. Geographic concentration: Asian crypto markets (South Korea, Southeast Asia, Middle East) have historically used USDT as the dominant stablecoin. The path dependency means even institutions that might prefer USDC for transparency must use USDT for market access. Retail stickiness: retail users default to the most common stablecoin on their exchange of choice — switching requires active decision-making that most users don't undertake."
+                },
+                {
+                    "id": 19,
+                    "question": "What are the key provisions of the EU's Markets in Crypto-Assets (MiCA) framework regarding stablecoins, and how does it treat algorithmic stablecoins differently?",
+                    "options": {
+                        "A": "MiCA bans all stablecoins in the EU because they compete with the digital Euro; all existing stablecoin users in EU member states must convert to CBDC by 2025 or face legal penalties",
+                        "B": "MiCA (effective June 2024) classifies stablecoins as EMTs (Electronic Money Tokens, fiat-backed) or ARTs (Asset-Referenced Tokens, multi-asset backed); EMT issuers must be licensed EU banks or e-money institutions, hold 100% liquid reserves, prohibit interest payments to holders, and are subject to daily transaction volume caps ($200M/day for non-EUR denominated tokens); purely algorithmic stablecoins with no asset backing are effectively prohibited",
+                        "C": "MiCA's stablecoin provisions exclusively address cybersecurity requirements; the framework mandates smart contract audits every 6 months but imposes no restrictions on reserve composition, interest payments, or issuer qualifications for stablecoin operators in the EU",
+                        "D": "MiCA treats stablecoins identically to traditional e-money and requires only IBAN account registration to issue stablecoins in the EU; the framework adds no new requirements beyond existing Payment Services Directive 2 (PSD2) obligations already applicable to digital payment tokens"
+                    },
+                    "correct": "B",
+                    "explanation": "MiCA (Markets in Crypto-Assets Regulation) represents the world's most comprehensive stablecoin regulatory framework and became effective for stablecoin provisions in June 2024. Stablecoin classification under MiCA: Category 1 — Electronic Money Tokens (EMTs): Stablecoins referencing a single fiat currency (USDC, USDT). Requirements: Issuer must be an authorized credit institution (bank) or e-money institution (EMI) licensed in an EU member state. Reserves must be 100% liquid assets (cash and highly liquid instruments). Interest prohibition: EMT issuers CANNOT pay interest or yield to token holders (this targets competition with bank deposits). Daily transaction cap: if an EMT exceeds €200M daily transactions in non-EUR currencies, a €1 cap per transaction applies (designed to prevent USD-pegged stablecoins from dominating EU commerce). Category 2 — Asset-Referenced Tokens (ARTs): Stablecoins referencing multiple currencies, commodities, or crypto assets. Stricter requirements: minimum 350,000 EUR capital, minimum 30% of reserves in credit institutions, governance requirements. Algorithmic stablecoins: MiCA Article 68 effectively prohibits stablecoins 'that aim to stabilize their value through protocols that provide for the increase or decrease of the supply of such crypto-assets in response to changes in demand' without full asset backing. This directly prohibits Terra/Luna-style mechanisms. Impact: Circle became the first major stablecoin issuer to receive EU MiCA EMT compliance (via SAS France). Tether's USDT faces more complex compliance given its offshore structure."
+                },
+                {
+                    "id": 20,
+                    "question": "What characterizes the US regulatory approach to stablecoins compared to the EU's MiCA framework, and what are the key legislative proposals?",
+                    "options": {
+                        "A": "The US has implemented a comprehensive federal stablecoin law identical to MiCA that was passed unanimously by Congress in 2023; the only difference from MiCA is that the US framework permits interest payments to stablecoin holders",
+                        "B": "The US regulatory approach to stablecoins is fragmented across multiple agencies (SEC, CFTC, OCC, state regulators) with no comprehensive federal stablecoin law as of 2024; key proposals include the GENIUS Act and STABLE Act which debate whether stablecoin issuers must be banks vs. non-banks, and whether the Fed or OCC should be the primary regulator; the regulatory uncertainty has driven some issuers to establish EU entities first",
+                        "C": "The US has effectively banned dollar-denominated stablecoins by classifying them as securities under SEC jurisdiction; USDT and USDC can only be offered to accredited investors under Regulation D, making retail stablecoin usage illegal in the United States",
+                        "D": "US stablecoin regulation is complete and controlled exclusively by the Federal Reserve, which operates a master account system where all stablecoin reserves must be held; the Fed approves each stablecoin issuer individually and sets reserve requirements identical to those for federally chartered banks"
+                    },
+                    "correct": "B",
+                    "explanation": "US stablecoin regulation remains in flux as of 2024, in stark contrast to the EU's comprehensive MiCA framework. Regulatory fragmentation: Multiple US agencies claim jurisdiction: SEC (Gary Gensler era): Stablecoins may be securities depending on structure; sued various issuers. CFTC: Claims stablecoins used in derivatives markets are commodities. OCC: Issued guidance permitting national banks to issue stablecoins and hold crypto reserves (OCC Interpretive Letter 1179). State regulators: New York DFS regulates USDC and PAXG via BitLicense; Wyoming allows special purpose depository institutions for crypto. FinCEN: Stablecoin issuers are money services businesses subject to BSA/AML. Key legislative proposals: GENIUS Act (Senate): Requires stablecoin issuers to hold 1:1 liquid reserves, mandates monthly audits, allows both bank and non-bank issuers (with different capital requirements). STABLE Act (House): Requires all stablecoin issuers to be insured depository institutions (banks) — more restrictive. Key debates: Should non-banks be allowed to issue stablecoins? Should the Fed be the primary regulator? Should interest be permitted on stablecoins? How should algorithmic stablecoins be treated? Regulatory status (2024): No comprehensive federal law enacted. Circle operates under money transmitter licenses in 49 states. USDT is largely unregulated at the federal level. The regulatory gap has driven Circle to establish EU and Singapore entities under MiCA/MAS frameworks while federal clarity remains pending."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Privacy \& Zero-Knowledge Proofs} \textcolor{mlgray}{|} Lesson 13 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{Privacy \& Zero-Knowledge Proofs}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 13 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% -- Activity 1 ----------------------------------------------------------------
+\activitybox{Activity 1: ZK Proof Intuition Builder}{10 min}{%
+Build an intuitive understanding of zero-knowledge proofs before the technical details. Answer:
+\begin{enumerate}
+\item Explain the ``Where's Waldo'' analogy for zero-knowledge proofs. How does it satisfy the three core properties: \textbf{completeness} (an honest prover always convinces a verifier), \textbf{soundness} (a cheating prover cannot convince a verifier of a false statement), and \textbf{zero-knowledge} (the verifier learns nothing beyond the truth of the statement)?
+\item Think of \textbf{3 real-world scenarios} where you might want to prove something without revealing the underlying information. For each, state what is \emph{proved} and what \emph{remains hidden} (example: proving you are over 18 without showing your full date of birth or ID number).
+\item What is the difference between \textbf{interactive} and \textbf{non-interactive} zero-knowledge proofs? Why are non-interactive proofs (NIZKs) significantly more useful for blockchain applications where asynchronous verification is required?
+\item What is a \textbf{``trusted setup''}? Why do some proof systems (like Groth16, used in Zcash) require one, and why is this controversial from a security and trust perspective? What is a ``toxic waste'' ceremony?
+\end{enumerate}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 2 ----------------------------------------------------------------
+\activitybox{Activity 2: Proof Systems Comparison}{10 min}{%
+Research the main families of ZK proof systems and compare their engineering trade-offs. Answer:
+\begin{enumerate}
+\item Look up \textbf{SNARKs vs.\ STARKs}. Compare them across: proof size, verification time, trusted setup requirement, and quantum resistance. Fill in the comparison table below.
+\item What does the ``S'' in SNARK stand for? What does ``succinct'' mean in concrete terms for blockchain scalability --- specifically for on-chain verification costs (gas)?
+\item What is the \textbf{FRI protocol} (Fast Reed--Solomon Interactive Oracle Proof of Proximity) used in STARKs? In one sentence, why does its algebraic structure avoid the need for a trusted setup?
+\item Look up \textbf{Bulletproofs}, the proof system used in Monero for confidential transactions. How do they differ from SNARKs in terms of proof generation and verification complexity? What is their main advantage and disadvantage compared to SNARKs?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{4pt}%
+\begin{tabular}{@{}p{2.6cm}p{2.2cm}p{2.2cm}p{2.2cm}p{2.2cm}p{2.8cm}@{}}
+\toprule
+\textbf{System} & \textbf{Proof Size} & \textbf{Verify Time} & \textbf{Trusted Setup} & \textbf{Quantum Safe} & \textbf{Used By} \\
+\midrule
+Groth16 (SNARK) & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+PLONK (SNARK)   & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+STARK           & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+Bulletproofs    & \fillcell & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 3 ----------------------------------------------------------------
+\activitybox{Activity 3: Privacy Coins Explorer}{5 min}{%
+Investigate the two leading privacy-preserving cryptocurrencies and the regulatory environment around them. Answer:
+\begin{enumerate}
+\item Compare \textbf{Monero (XMR)} and \textbf{Zcash (ZEC)}. What specific cryptographic privacy techniques does each use? Is privacy mandatory (always-on) or optional (shielded vs.\ transparent) for each?
+\item What are \textbf{ring signatures}? How does Monero use them to hide the identity of the sender among a group of possible signers, without requiring cooperation from the other group members?
+\item What are \textbf{stealth addresses}? How does Monero's one-time address scheme protect the receiver by ensuring each transaction generates a fresh, unlinkable destination address?
+\item Why have major exchanges (e.g., Kraken UK, Bittrex, Binance in some regions) delisted privacy coins? What is the fundamental regulatory tension between financial privacy and Anti-Money Laundering (AML) / Know Your Customer (KYC) compliance obligations?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}p{4.0cm}p{3.5cm}p{3.5cm}p{3.0cm}@{}}
+\toprule
+\textbf{Feature} & \textbf{Monero (XMR)} & \textbf{Zcash (ZEC)} & \textbf{Bitcoin} \\
+\midrule
+Sender Privacy Technique  & \fillcell & \fillcell & \fillcell \\
+Receiver Privacy Technique & \fillcell & \fillcell & \fillcell \\
+Amount Hiding             & \fillcell & \fillcell & \fillcell \\
+Privacy Mandatory?        & \fillcell & \fillcell & \fillcell \\
+Exchange Listing Status   & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 4 ----------------------------------------------------------------
+\activitybox{Activity 4: ZK Applications Discovery}{5 min}{%
+Explore how zero-knowledge proofs are being deployed in production blockchain systems today. Answer:
+\begin{enumerate}
+\item What is a \textbf{ZK-rollup}? How does it use ZK proofs to batch thousands of transactions and post only a succinct validity proof to Ethereum, reducing costs? Name \textbf{2 live ZK-rollup projects} and look up their current Total Value Locked (TVL) on \textbf{L2Beat.com} (\url{https://l2beat.com}).
+\item What is a \textbf{zkEVM}? Why is achieving full EVM-equivalence with ZK proofs considered a major engineering challenge? Name one zkEVM project and identify where it sits on Vitalik Buterin's zkEVM ``Type'' classification (Type 1--4).
+\item How could ZK proofs enable \textbf{private voting on a blockchain}? List the properties such a system would require: (a) vote secrecy, (b) eligibility verification, (c) double-vote prevention, and (d) public verifiability of the tally --- without a trusted tallier.
+\item What is \textbf{zkML} (zero-knowledge machine learning)? Why might proving that an AI model was correctly executed on specific inputs be important for financial auditing, AI safety, or regulatory compliance --- without revealing the model weights or private input data?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}p{3.5cm}p{3.0cm}p{3.0cm}p{4.0cm}@{}}
+\toprule
+\textbf{ZK-Rollup Project} & \textbf{TVL (from L2Beat)} & \textbf{Proof System Used} & \textbf{EVM Compatible?} \\
+\midrule
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{4pt}
+
+% -- Glossary ------------------------------------------------------------------
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.8cm}p{10.8cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{Zero-Knowledge Proof}    & A cryptographic protocol in which a prover convinces a verifier that a statement is true without revealing any information beyond the truth of the statement itself. Requires completeness, soundness, and the zero-knowledge property. \\
+\textbf{Completeness}            & The property that an honest prover with a valid witness can always convince an honest verifier; i.e., correct proofs are always accepted. \\
+\textbf{Soundness}               & The property that a cheating prover cannot convince a verifier of a false statement, except with negligible (cryptographically small) probability. \\
+\textbf{SNARK}                   & Succinct Non-interactive ARgument of Knowledge. A ZK proof system producing extremely short proofs (e.g., 200 bytes) that can be verified in milliseconds. Typically requires a trusted setup. Examples: Groth16, PLONK. \\
+\textbf{STARK}                   & Scalable Transparent ARgument of Knowledge. A ZK proof system based on hash functions and the FRI protocol. No trusted setup, post-quantum secure, but produces larger proofs than SNARKs. \\
+\textbf{Trusted Setup}           & A one-time ceremony that generates public parameters (a common reference string) for a SNARK. The randomness used must be destroyed (``toxic waste''); if retained, it could be used to forge false proofs. \\
+\textbf{Ring Signature}          & A digital signature scheme where a signer signs on behalf of an ad-hoc group (``ring'') of possible signers. Verifiers confirm the signature came from a group member but cannot identify which one. Used in Monero. \\
+\textbf{Stealth Address}         & A one-time address generated by the sender for each transaction using the receiver's public key. Only the intended receiver can derive the private key to spend funds, breaking on-chain address linkability. \\
+\textbf{Nullifier}               & A unique value derived from a spent note or coin that is revealed and recorded on-chain to prevent double-spending, without revealing which note was spent. Core to Zcash's shielded transaction protocol. \\
+\textbf{ZK-Rollup}               & A Layer-2 scaling solution that bundles many transactions off-chain and submits a single ZK validity proof to the base layer (e.g., Ethereum). Inherits the security of the base layer without requiring data availability assumptions. \\
+\textbf{zkEVM}                   & A zero-knowledge Ethereum Virtual Machine: a ZK circuit that proves the correct execution of EVM bytecode. Enables ZK-rollups to run existing Ethereum smart contracts without modification. \\
+\textbf{Commitment Scheme}       & A cryptographic primitive that binds a prover to a value (``commits'') without revealing it, and later allows the value to be opened and verified. Used throughout ZK proof constructions (e.g., Pedersen commitments). \\
+\textbf{FRI Protocol}            & Fast Reed--Solomon IOP of Proximity. An interactive oracle proof used in STARKs to prove that a function is close to a low-degree polynomial, enabling transparent (no trusted setup) proof generation using only hash functions. \\
+\textbf{Verifiable Computation}  & A paradigm in which a computationally weak verifier can outsource a computation to an untrusted prover and receive a proof that the computation was executed correctly, without re-running the computation itself. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Privacy \& Zero-Knowledge Proofs --- Lesson 13 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}
