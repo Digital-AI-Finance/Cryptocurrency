@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SM-3: How Smart Contracts Work | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #d946ef;
+            --quiz-light: #fae8ff;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #c026d3; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #c026d3; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz SM-3: How Smart Contracts Work</div>
+        <div class="nav-links">
+            <a href="quiz_sm_part1.html">SM-1</a>
+            <a href="quiz_sm_part2.html">SM-2</a>
+            <a href="quiz_sm_part3.html">SM-3</a>
+            <a href="quiz_sm_part4.html">SM-4</a>
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz SM-3: How Smart Contracts Work</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What are the three main components of a smart contract's anatomy?",
+                    "options": {
+                        "A": "Username, password, and encryption key that secure the contract from unauthorized access",
+                        "B": "State variables (data stored on the blockchain), functions (executable logic that reads or modifies state), and events (logs emitted during execution that external applications can listen to)",
+                        "C": "Input form, processing server, and output display that create the user interface for the contract",
+                        "D": "Sender address, receiver address, and transaction amount that define a simple payment transfer"
+                    },
+                    "correct": "B",
+                    "explanation": "Every smart contract is built from three fundamental components. State variables are the data permanently stored on the blockchain, such as token balances, owner addresses, or configuration parameters. Functions contain the executable logic that can read state variables (view functions) or modify them (state-changing functions). Events are log entries emitted during function execution that are stored in transaction receipts but not in contract storage; they are much cheaper than state variables and allow off-chain applications (like web frontends) to react to contract activity. Understanding this anatomy is essential for comprehending how any smart contract operates."
+                },
+                {
+                    "id": 2,
+                    "question": "What is the correct lifecycle of a smart contract from creation to use?",
+                    "options": {
+                        "A": "Deploy first, then write the code, then test it, and finally compile it into bytecode",
+                        "B": "Write the code in a high-level language, compile it into bytecode, deploy it to the blockchain via a transaction, and then interact with it by sending transactions to its address",
+                        "C": "Download the contract from an app store, install it on your computer, and run it locally without any blockchain",
+                        "D": "Submit a proposal to the Ethereum Foundation, wait for approval, and then the Foundation deploys the contract on your behalf"
+                    },
+                    "correct": "B",
+                    "explanation": "The smart contract lifecycle follows four sequential steps. First, the developer writes the contract code in a high-level language like Solidity (for Ethereum). Second, the code is compiled into EVM bytecode -- the low-level instructions that the Ethereum Virtual Machine can execute. Third, the compiled bytecode is deployed to the blockchain by sending a special transaction that creates a new contract address. This deployment costs gas and is irreversible. Fourth, users and other contracts interact with the deployed contract by sending transactions to its address, calling its functions. Each interaction that modifies state also costs gas. This lifecycle highlights why thorough testing and auditing before deployment is critical."
+                },
+                {
+                    "id": 3,
+                    "question": "Why is the EVM sometimes described as a 'global computer'?",
+                    "options": {
+                        "A": "Because the Ethereum Foundation operates the world's largest supercomputer that processes all smart contract computations",
+                        "B": "Because every Ethereum node worldwide executes the same smart contract code and maintains the same state, effectively functioning as a single shared computer that no one entity controls",
+                        "C": "Because Ethereum uses satellite connections to link computers in every country into a single physical network",
+                        "D": "Because the EVM can access any computer connected to the internet and execute code on it remotely"
+                    },
+                    "correct": "B",
+                    "explanation": "The 'world computer' metaphor captures a key property of the EVM: it behaves as if there is one single computer processing all transactions, even though in reality thousands of independent nodes are each running the same computations independently. Every node executes every transaction and arrives at the same result, maintaining identical state. This means a smart contract deployed on Ethereum is simultaneously running on thousands of computers worldwide, making it extremely resistant to censorship or downtime. However, this redundancy comes at a cost: every computation is performed thousands of times, which is why Ethereum is much slower and more expensive per computation than a traditional server."
+                },
+                {
+                    "id": 4,
+                    "question": "What is 'gas' in Ethereum, and why does it exist?",
+                    "options": {
+                        "A": "Gas is a type of cryptocurrency separate from ETH that must be purchased on exchanges before using smart contracts",
+                        "B": "Gas is a unit of measurement for computational effort -- every operation in a smart contract costs a specific amount of gas, and users pay for gas in ETH. It exists to prevent infinite loops, allocate scarce computational resources fairly, and compensate validators for processing transactions",
+                        "C": "Gas is the electricity consumed by mining equipment, and users pay their local power company directly for each transaction",
+                        "D": "Gas is an optional tip that users can add to transactions to speed them up, but transactions will still process without any gas"
+                    },
+                    "correct": "B",
+                    "explanation": "Gas serves multiple essential purposes in Ethereum. First, it prevents abuse: without gas costs, an attacker could deploy a contract with an infinite loop that would run forever, consuming network resources. The gas limit ensures every transaction terminates. Second, it fairly allocates scarce block space: users who are willing to pay more gas get priority processing, creating a market for computation. Third, it compensates validators who invest hardware and energy to process and validate transactions. The total cost of a transaction is calculated as gas units used multiplied by the gas price (in ETH per unit). A simple ETH transfer costs 21,000 gas, while complex smart contract interactions can cost hundreds of thousands of gas units."
+                },
+                {
+                    "id": 5,
+                    "question": "What is the difference between 'gas price' and 'gas limit' in an Ethereum transaction?",
+                    "options": {
+                        "A": "Gas price and gas limit are different names for the same concept and can be used interchangeably",
+                        "B": "Gas price is how much ETH you are willing to pay per unit of gas (determining transaction priority), while gas limit is the maximum number of gas units you authorize the transaction to consume (protecting you from unexpectedly expensive computations)",
+                        "C": "Gas price is set by the Ethereum Foundation and cannot be changed by users, while gas limit is the total amount of ETH in your wallet",
+                        "D": "Gas limit determines how fast a transaction processes, while gas price determines which blockchain the transaction is recorded on"
+                    },
+                    "correct": "B",
+                    "explanation": "Understanding the distinction between gas price and gas limit is crucial for using Ethereum effectively. The gas price (measured in gwei, where 1 gwei = 0.000000001 ETH) determines how much you pay per unit of computation. Higher gas prices incentivize validators to include your transaction sooner, especially during network congestion. The gas limit is your safety cap: it sets the maximum gas units your transaction can consume. If the contract execution needs more gas than your limit allows, the transaction reverts (fails) but you still pay for the gas consumed up to that point. If it uses less, you are refunded the difference. Setting the gas limit too low causes failures; setting it appropriately protects against unexpectedly expensive contract interactions."
+                },
+                {
+                    "id": 6,
+                    "question": "Why are 'read' operations on a smart contract free, while 'write' operations cost gas?",
+                    "options": {
+                        "A": "Read operations are not actually free -- they are just cheaper than write operations and the cost is hidden in the wallet software",
+                        "B": "Read operations only query the current state data from a local node without creating a transaction or changing the blockchain, so no computational consensus is needed. Write operations modify the blockchain state, requiring a transaction to be validated by all nodes and included in a block, which consumes computational resources",
+                        "C": "Read operations are free because the Ethereum Foundation subsidizes them from its treasury, while write operations are paid by users",
+                        "D": "There is no difference -- both read and write operations cost the same amount of gas on Ethereum"
+                    },
+                    "correct": "B",
+                    "explanation": "This distinction is fundamental to understanding smart contract costs. When you read data (e.g., checking your token balance), your request is handled by a single local node that simply looks up the current state. No transaction is broadcast, no consensus is required, and no block space is used -- so there is no cost. When you write data (e.g., transferring tokens), the operation must be packaged into a transaction, broadcast to the network, validated by all nodes, and permanently recorded in a block. This consensus process consumes network resources and block space, which is why it costs gas. This is why well-designed smart contracts minimize write operations and maximize reads to keep user costs low."
+                },
+                {
+                    "id": 7,
+                    "question": "What are 'events' in smart contracts, and why are they useful?",
+                    "options": {
+                        "A": "Events are error messages that are displayed when a smart contract crashes during execution",
+                        "B": "Events are logs emitted by smart contracts during execution that are stored in transaction receipts on the blockchain. They are cheaper than storing data in state variables and allow off-chain applications (like websites and analytics tools) to efficiently track and react to contract activity",
+                        "C": "Events are scheduled future executions of smart contract functions, similar to cron jobs on a traditional server",
+                        "D": "Events are governance proposals that token holders vote on to determine how the smart contract should behave"
+                    },
+                    "correct": "B",
+                    "explanation": "Events are a critical but often overlooked component of smart contract architecture. When a smart contract emits an event (for example, a Transfer event when tokens move between addresses), the event data is stored in the transaction receipt's logs. This data is much cheaper to store than state variables (about 8 gas per byte vs. 20,000 gas for a new storage slot) but cannot be accessed by other smart contracts -- only by off-chain applications. This makes events ideal for notifications: a decentralized exchange frontend can listen for Trade events to update the UI in real time, a portfolio tracker can monitor Transfer events across all tokens, and analytics platforms can build historical datasets. Events are the primary mechanism for smart contracts to communicate with the outside world."
+                },
+                {
+                    "id": 8,
+                    "question": "What is the ERC-20 token standard, and why is it important?",
+                    "options": {
+                        "A": "ERC-20 is a regulation issued by the US Securities and Exchange Commission that governs how tokens must be registered before sale",
+                        "B": "ERC-20 is a standard interface that defines a common set of functions (like transfer, approve, and balanceOf) that all fungible tokens on Ethereum must implement, ensuring any ERC-20 token works seamlessly with wallets, exchanges, and other smart contracts without custom integration",
+                        "C": "ERC-20 is a specific cryptocurrency created by the Ethereum Foundation that competes with Bitcoin",
+                        "D": "ERC-20 is an encryption standard that determines how token transaction data is protected from unauthorized viewing"
+                    },
+                    "correct": "B",
+                    "explanation": "The ERC-20 standard (Ethereum Request for Comments 20, proposed in 2015) was a breakthrough in token interoperability. Before ERC-20, every token contract had its own unique interface, meaning wallets and exchanges needed custom code for each token. ERC-20 defines a standard set of functions: totalSupply() returns the total token supply, balanceOf(address) returns a specific account's balance, transfer(to, amount) moves tokens, and approve/transferFrom enables delegated transfers. Because all ERC-20 tokens share this interface, a wallet that supports one ERC-20 token automatically supports all of them. This standardization enabled the explosion of token creation on Ethereum and is used by thousands of tokens including USDT, USDC, LINK, and UNI."
+                },
+                {
+                    "id": 9,
+                    "question": "How does the ERC-721 standard differ from ERC-20, and what is it used for?",
+                    "options": {
+                        "A": "ERC-721 is simply an updated version of ERC-20 with faster transaction speeds and lower fees",
+                        "B": "ERC-721 defines non-fungible tokens (NFTs) where each token has a unique identifier and is not interchangeable with any other token, unlike ERC-20 where every token is identical. ERC-721 is used for representing unique digital assets like artwork, collectibles, game items, and real estate deeds",
+                        "C": "ERC-721 is a standard for stablecoins only, while ERC-20 is used for all other types of tokens",
+                        "D": "ERC-721 tokens can only be created by the Ethereum Foundation, while anyone can create ERC-20 tokens"
+                    },
+                    "correct": "B",
+                    "explanation": "The key distinction is fungibility. ERC-20 tokens are fungible: one USDC is identical to and interchangeable with any other USDC, just as one dollar bill is interchangeable with any other dollar bill. ERC-721 tokens are non-fungible: each token has a unique token ID and potentially unique properties. This makes ERC-721 ideal for representing things that are inherently unique -- a specific piece of digital art, a particular plot of virtual land, or a unique game character. The standard defines functions like ownerOf(tokenId) and transferFrom() that work with unique token IDs rather than amounts. ERC-721 powered the NFT boom, enabling platforms like OpenSea, and extends to real-world applications like digital identity and property records."
+                },
+                {
+                    "id": 10,
+                    "question": "What is the ERC-1155 multi-token standard, and what problem does it solve?",
+                    "options": {
+                        "A": "ERC-1155 is a token standard that can only be used on Layer 2 networks and is not compatible with Ethereum mainnet",
+                        "B": "ERC-1155 is a multi-token standard that allows a single smart contract to manage both fungible and non-fungible tokens simultaneously, reducing deployment costs and enabling efficient batch transfers of multiple token types in a single transaction",
+                        "C": "ERC-1155 is a governance standard that determines how DAOs should structure their voting mechanisms",
+                        "D": "ERC-1155 replaces both ERC-20 and ERC-721 entirely and makes those older standards obsolete"
+                    },
+                    "correct": "B",
+                    "explanation": "ERC-1155, proposed by Enjin in 2018, addresses practical limitations of using separate ERC-20 and ERC-721 contracts. In a game with 100 different item types (some fungible like gold coins, some non-fungible like unique weapons), deploying 100 separate contracts would be expensive and inefficient. ERC-1155 allows one contract to manage all token types. It also introduces batch operations: transferring 50 different items to another player requires just one transaction instead of 50 separate ones, dramatically reducing gas costs. Each token type has a unique ID, and the contract tracks balances per ID per address. This standard is particularly popular in gaming and metaverse applications where diverse asset types are common."
+                },
+                {
+                    "id": 11,
+                    "question": "What is an Automated Market Maker (AMM), and how do smart contracts enable it?",
+                    "options": {
+                        "A": "An AMM is a human market maker employed by a decentralized exchange who manually sets prices for all trading pairs",
+                        "B": "An AMM is a smart contract that uses mathematical formulas (like the constant product formula x * y = k) to automatically determine token prices based on the ratio of tokens in a liquidity pool, enabling trustless trading without an order book or centralized matching engine",
+                        "C": "An AMM is an AI trading bot that uses machine learning to predict cryptocurrency prices and execute trades on behalf of users",
+                        "D": "An AMM is a regulatory body that approves which tokens can be listed on decentralized exchanges"
+                    },
+                    "correct": "B",
+                    "explanation": "AMMs are one of the most innovative applications of smart contracts in DeFi. Traditional exchanges use order books where buyers and sellers place orders that a matching engine pairs. AMMs replace this entirely with a smart contract holding pools of token pairs. The most common formula, used by Uniswap, is x * y = k, where x and y are the quantities of two tokens in the pool and k is a constant. When a trader swaps token A for token B, they add A to the pool and receive B; the formula determines how much B they receive. Larger trades relative to pool size cause more price impact (slippage). Liquidity providers deposit tokens into pools and earn a share of trading fees. This model enables permissionless, 24/7 trading of any token pair without centralized infrastructure."
+                },
+                {
+                    "id": 12,
+                    "question": "How do decentralized lending protocols like Aave and Compound use smart contracts?",
+                    "options": {
+                        "A": "They use smart contracts to connect borrowers with traditional banks that provide the actual loans",
+                        "B": "Smart contracts manage the entire lending process: lenders deposit assets into pools and earn interest, borrowers provide collateral and borrow from the pool, interest rates adjust algorithmically based on supply and demand, and liquidation occurs automatically if collateral values fall below required thresholds",
+                        "C": "They use smart contracts only to verify borrower credit scores before forwarding loan applications to human underwriters",
+                        "D": "Lending protocols use smart contracts to send email reminders to borrowers about upcoming payment deadlines"
+                    },
+                    "correct": "B",
+                    "explanation": "DeFi lending protocols demonstrate the full power of smart contract automation. The entire lending operation runs on smart contracts without human intervention. Lenders deposit assets (like USDC or ETH) into lending pools and receive interest-bearing tokens in return. Borrowers lock collateral worth more than their desired loan (overcollateralization, typically 150%+) and borrow from the pool. Interest rates are set algorithmically: when utilization is high (many borrowers, few lenders), rates rise to attract more lenders. The critical safety mechanism is automated liquidation: if a borrower's collateral value drops below the required ratio, any user can trigger a liquidation transaction, selling the collateral to repay the loan. Aave alone has processed billions of dollars in loans entirely through smart contracts."
+                },
+                {
+                    "id": 13,
+                    "question": "What is the difference between algorithmic and collateralized stablecoins in terms of smart contract design?",
+                    "options": {
+                        "A": "There is no difference -- all stablecoins use the same smart contract design regardless of their stabilization mechanism",
+                        "B": "Collateralized stablecoins (like DAI) use smart contracts to lock reserve assets and mint stablecoins against them, while algorithmic stablecoins use smart contracts to automatically expand or contract the token supply based on market price to maintain the peg, without holding equivalent reserves",
+                        "C": "Algorithmic stablecoins are always safer than collateralized ones because the algorithm guarantees the peg can never break",
+                        "D": "Collateralized stablecoins run on smart contracts while algorithmic stablecoins run on traditional databases"
+                    },
+                    "correct": "B",
+                    "explanation": "The smart contract designs differ fundamentally. Collateralized stablecoins like DAI use vault contracts that hold crypto assets (ETH, WBTC) as collateral; users deposit collateral and the contract mints new stablecoins proportionally. The contract enforces overcollateralization (e.g., $150 of ETH to mint $100 of DAI) and liquidates positions if collateral values drop. Algorithmic stablecoins attempt to maintain their peg through supply manipulation: if the price rises above $1, the contract mints more tokens (increasing supply, reducing price). If the price falls below $1, it contracts supply through mechanisms like burning or rebasing. The collapse of TerraUSD (UST) in May 2022, which lost $40 billion in value, demonstrated that algorithmic designs carry significant risks when confidence in the mechanism breaks down."
+                },
+                {
+                    "id": 14,
+                    "question": "Why are smart contract security audits critical, and what do they involve?",
+                    "options": {
+                        "A": "Security audits are optional marketing exercises that have no real impact on smart contract safety",
+                        "B": "Security audits involve expert review of smart contract code to identify vulnerabilities (like reentrancy, integer overflow, access control flaws), logic errors, and economic attack vectors before deployment, helping prevent the loss of user funds from exploitable bugs in immutable code",
+                        "C": "Security audits only check whether the smart contract's visual interface looks professional and is easy to use",
+                        "D": "Security audits are performed by the Ethereum Foundation automatically when a contract is deployed and require no action from developers"
+                    },
+                    "correct": "B",
+                    "explanation": "Smart contract audits are arguably the most important step before deploying a contract that will handle real value. Because deployed contracts are immutable, bugs cannot be patched after deployment (without upgrade mechanisms). Auditors review the code line by line, looking for common vulnerability patterns (reentrancy attacks, integer overflows, front-running opportunities), logic errors (incorrect access controls, flawed state transitions), and economic attack vectors (flash loan exploits, oracle manipulation). Reputable audit firms include Trail of Bits, OpenZeppelin, Consensys Diligence, and Certik. A thorough audit of a complex DeFi protocol can cost $100,000-$500,000 and take weeks. Despite this cost, the alternative -- losing millions to an exploit -- makes auditing essential for any serious project."
+                },
+                {
+                    "id": 15,
+                    "question": "What is formal verification in the context of smart contract security?",
+                    "options": {
+                        "A": "Formal verification means getting the contract approved by a government regulatory body before deployment",
+                        "B": "Formal verification uses mathematical proofs to demonstrate that a smart contract's code will behave exactly as specified under all possible inputs and conditions, providing a higher level of assurance than testing or manual code review alone",
+                        "C": "Formal verification is the process of verifying that a developer has the correct credentials to deploy smart contracts",
+                        "D": "Formal verification means checking that the smart contract's formatting and code style follow community guidelines"
+                    },
+                    "correct": "B",
+                    "explanation": "Formal verification is the gold standard of smart contract security assurance. While testing checks specific scenarios and audits rely on human reviewers finding bugs, formal verification uses mathematical logic to prove properties about the code hold under all possible conditions. For example, you can formally prove that 'the total supply of tokens never changes except through the mint and burn functions' or 'no single address can withdraw more than their balance.' Tools like Certora, K Framework, and Solidity's SMTChecker enable formal verification for Ethereum smart contracts. The approach is computationally intensive and requires specialized expertise, but for contracts managing billions of dollars (like Aave or MakerDAO), the investment in mathematical certainty is justified."
+                },
+                {
+                    "id": 16,
+                    "question": "What was 'The DAO hack' of 2016, and what vulnerability did it exploit?",
+                    "options": {
+                        "A": "The DAO hack was a social engineering attack where the attacker tricked the DAO's administrators into revealing their private keys",
+                        "B": "The attacker exploited a reentrancy vulnerability: the smart contract sent ETH to the attacker before updating its internal balance records, allowing the attacker to recursively call the withdrawal function and drain approximately $60 million in ETH before the balance was updated",
+                        "C": "The DAO hack was caused by a hardware failure at the data center hosting the Ethereum blockchain",
+                        "D": "The hack occurred because The DAO used an outdated version of the Ethereum software that had a known password vulnerability"
+                    },
+                    "correct": "B",
+                    "explanation": "The DAO hack is the most famous smart contract exploit in history and fundamentally shaped how the industry approaches security. The vulnerability was a reentrancy bug: when a user withdrew funds, the contract first sent the ETH and then updated the user's balance to reflect the withdrawal. The attacker created a malicious contract whose fallback function automatically called the withdrawal function again when it received ETH. This created a recursive loop: withdraw, receive ETH, trigger another withdrawal, receive more ETH, and so on -- all before the balance was ever updated. The attacker drained approximately $60 million. This led to the controversial Ethereum hard fork (creating Ethereum and Ethereum Classic) and established reentrancy guards as a fundamental security pattern in all subsequent smart contract development."
+                },
+                {
+                    "id": 17,
+                    "question": "What was the Parity wallet bug, and what lesson did it teach about smart contract design?",
+                    "options": {
+                        "A": "The Parity bug was a minor display error in the wallet's user interface that showed incorrect token balances",
+                        "B": "A user accidentally triggered a function in a shared library contract that made it self-destruct, permanently freezing approximately $300 million worth of ETH in wallets that depended on that library, teaching that critical dependencies on shared contracts create dangerous single points of failure",
+                        "C": "The Parity wallet was hacked by a quantum computer that broke its encryption algorithm",
+                        "D": "The Parity bug was a planned test by the Ethereum Foundation to evaluate the network's response to emergencies"
+                    },
+                    "correct": "B",
+                    "explanation": "The Parity wallet incident (November 2017) is one of the most costly smart contract disasters. Parity's multi-signature wallets used a shared library contract for common functions. A user (apparently accidentally) called an initialization function on this library contract, became its owner, and then called its self-destruct function. When the library was destroyed, all wallets that depended on it for their core logic became permanently non-functional. Approximately $300 million in ETH was frozen forever, with no way to recover it. The lesson was profound: shared library contracts are dangerous single points of failure. If a library contract is destroyed or compromised, every contract depending on it fails. This led to improved patterns for library usage, including using immutable libraries and avoiding delegatecall to mutable contracts."
+                },
+                {
+                    "id": 18,
+                    "question": "What is a proxy pattern in smart contract upgradeability, and why is it used?",
+                    "options": {
+                        "A": "A proxy pattern is a way to hide the identity of the smart contract's creator for privacy purposes",
+                        "B": "A proxy pattern separates a contract into two parts: a proxy contract (which stores state and has a permanent address) and an implementation contract (which contains the logic). The proxy delegates all calls to the implementation, and the implementation can be swapped to a new version, allowing the contract's logic to be upgraded while preserving its address and stored data",
+                        "C": "A proxy pattern means running two identical copies of a smart contract on different blockchains simultaneously",
+                        "D": "A proxy pattern is a testing technique where a fake contract stands in for the real one during development"
+                    },
+                    "correct": "B",
+                    "explanation": "The proxy pattern is the most widely used solution to the immutability-upgradeability tension. The user interacts with the proxy contract, which has a permanent address and stores all state data. The proxy uses a special mechanism (delegatecall in Solidity) to forward all function calls to a separate implementation contract. When a bug is found or new features are needed, the administrator points the proxy to a new implementation contract. Users continue interacting with the same proxy address, and all their data (balances, permissions) is preserved. OpenZeppelin provides standardized proxy implementations (Transparent Proxy, UUPS). However, proxy patterns introduce trust assumptions: whoever controls the upgrade mechanism has significant power over the contract, which is why many protocols place upgrade authority behind timelocks and multi-signature wallets."
+                },
+                {
+                    "id": 19,
+                    "question": "What are Hardhat and Foundry, and how do they help smart contract developers?",
+                    "options": {
+                        "A": "Hardhat and Foundry are cryptocurrency exchanges where developers can buy and sell smart contract templates",
+                        "B": "Hardhat and Foundry are development frameworks that provide tools for writing, compiling, testing, debugging, and deploying smart contracts. Hardhat uses JavaScript/TypeScript for testing, while Foundry uses Solidity itself for tests, and both include local blockchain simulation for development",
+                        "C": "Hardhat and Foundry are physical hardware devices that must be purchased to connect to the Ethereum network",
+                        "D": "Hardhat and Foundry are governance platforms where developers vote on changes to the Ethereum protocol"
+                    },
+                    "correct": "B",
+                    "explanation": "Hardhat and Foundry are the two dominant smart contract development frameworks. Hardhat (JavaScript-based) provides a local Ethereum network for testing, a console for debugging, and plugins for deployment and verification. Its test framework uses JavaScript/TypeScript with libraries like ethers.js. Foundry (Rust-based, using Solidity for tests) has gained popularity for its speed and the advantage of writing tests in the same language as the contracts. Both include features like forking mainnet state for testing against real protocols, gas usage reporting, and stack traces for debugging failed transactions. Other important tools include Remix (browser-based IDE, great for beginners), OpenZeppelin (reusable secure contract libraries), and Tenderly (transaction debugging and simulation)."
+                },
+                {
+                    "id": 20,
+                    "question": "What is a bug bounty program in smart contract security, and why are they important?",
+                    "options": {
+                        "A": "A bug bounty is a penalty fee charged to developers who deploy smart contracts with bugs",
+                        "B": "A bug bounty program offers financial rewards to security researchers who discover and responsibly report vulnerabilities in smart contracts, creating an economic incentive for white-hat hackers to find bugs before malicious actors exploit them",
+                        "C": "A bug bounty is an insurance policy that automatically pays out when a smart contract is hacked",
+                        "D": "A bug bounty program is a competition where developers race to write smart contracts with the fewest lines of code"
+                    },
+                    "correct": "B",
+                    "explanation": "Bug bounty programs are a critical layer in the defense-in-depth approach to smart contract security. Even after thorough auditing and formal verification, vulnerabilities can remain. Bug bounties create an economic incentive for the global security research community to scrutinize the code: a researcher who finds a critical vulnerability might earn $100,000-$1,000,000 for reporting it, which is far cheaper than losing $100 million in an exploit. Platforms like Immunefi specialize in DeFi bug bounties, hosting programs for Aave, MakerDAO, Polygon, and hundreds of other protocols. The largest DeFi bug bounty payouts have exceeded $10 million. Bug bounties complement audits by providing continuous, crowd-sourced security review long after the initial audit is complete."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            nextBtn.classList.remove('show');
+            renderQuestions();
+
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

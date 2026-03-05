@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SM-4: Comprehensive Review | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #d946ef;
+            --quiz-light: #fae8ff;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #c026d3; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #c026d3; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz SM-4: Comprehensive Review</div>
+        <div class="nav-links">
+            <a href="quiz_sm_part1.html">SM-1</a>
+            <a href="quiz_sm_part2.html">SM-2</a>
+            <a href="quiz_sm_part3.html">SM-3</a>
+            <a href="quiz_sm_part4.html">SM-4</a>
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz SM-4: Comprehensive Review</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "A farmer wants insurance that pays out automatically if rainfall drops below 50mm in a month. Which combination of smart contract concepts makes this possible?",
+                    "options": {
+                        "A": "Only an ERC-20 token is needed -- the token itself can measure rainfall and trigger payments",
+                        "B": "A parametric insurance smart contract combined with a Chainlink oracle for weather data -- the oracle feeds rainfall measurements to the contract, which automatically executes the payout when the threshold is breached",
+                        "C": "A standard bank transfer scheduled through a traditional calendar application, since smart contracts cannot access weather data",
+                        "D": "An NFT representing the insurance policy that automatically changes color when it rains, alerting the farmer to file a claim manually"
+                    },
+                    "correct": "B",
+                    "explanation": "This scenario connects three key concepts from across the course. The parametric insurance design (from business applications) defines automatic payouts based on measurable conditions rather than claim filing. The oracle (Chainlink, from foundations) solves the problem of getting real-world weather data onto the blockchain. And the smart contract's self-executing property (from foundations) ensures the payout happens automatically without any claims adjuster. This combination eliminates the entire traditional claims process: no filing, no investigation, no delays. The farmer receives payment within minutes of the rainfall threshold being breached."
+                },
+                {
+                    "id": 2,
+                    "question": "Why is the DAO hack of 2016 relevant to understanding both smart contract security AND the oracle problem?",
+                    "options": {
+                        "A": "The DAO hack was caused by a faulty oracle providing wrong data, directly demonstrating the oracle problem",
+                        "B": "The DAO hack demonstrated that code bugs in immutable contracts can be catastrophic (security lesson), and the community's response -- a hard fork to reverse the exploit -- showed that even 'trustless' systems ultimately depend on human consensus decisions, paralleling how oracles introduce human trust into supposedly trustless systems",
+                        "C": "The DAO hack and the oracle problem are completely unrelated concepts that should never be discussed together",
+                        "D": "The DAO hack proved that oracles are unnecessary because all smart contracts should only use on-chain data"
+                    },
+                    "correct": "B",
+                    "explanation": "This question synthesizes security concepts with the trust assumptions underlying smart contracts. The DAO hack directly taught that bugs in immutable code create permanent vulnerabilities (a security lesson). But more deeply, the Ethereum community's decision to hard fork and reverse the hack revealed a philosophical parallel to the oracle problem: both involve external trust dependencies. With oracles, you trust off-chain data providers. With governance, you trust the community to make fair decisions about irreversible code. In both cases, the promise of 'code is law' encounters situations where human judgment becomes necessary. This tension between trustless code and necessary human oversight is a recurring theme throughout smart contract design."
+                },
+                {
+                    "id": 3,
+                    "question": "A company is choosing between Ethereum and Solana for deploying a high-frequency trading smart contract. Which factors from the lecture are most relevant to this decision?",
+                    "options": {
+                        "A": "Only the logo design and marketing of each platform matter for this business decision",
+                        "B": "Transaction throughput (Solana handles thousands of TPS vs Ethereum's 15-30), gas fees (Solana's are fractions of a cent vs Ethereum's variable and sometimes high fees), ecosystem maturity and liquidity (Ethereum has deeper DeFi liquidity), and decentralization tradeoffs (Ethereum is more decentralized but slower)",
+                        "C": "The programming language is the only factor that matters -- whichever language the developers already know should determine the choice",
+                        "D": "The company should choose whichever platform has the higher token price, since that indicates better technology"
+                    },
+                    "correct": "B",
+                    "explanation": "This question applies platform comparison knowledge (from foundations) to a specific business scenario (from business applications). For high-frequency trading, transaction speed and cost are critical: Solana's higher TPS and lower fees are advantageous for strategies that require many rapid transactions. However, Ethereum's deeper DeFi liquidity means better execution for large trades, and its more established ecosystem offers more composable protocols. The decentralization tradeoff matters for trust: Solana's network outages raise reliability concerns for a trading system that cannot afford downtime. A sophisticated answer considers all these factors together rather than optimizing for any single dimension."
+                },
+                {
+                    "id": 4,
+                    "question": "How does the concept of gas connect Nick Szabo's vending machine analogy to modern DeFi lending protocols?",
+                    "options": {
+                        "A": "Gas has no connection to either concept -- it is purely a technical implementation detail with no conceptual significance",
+                        "B": "Just as a vending machine requires you to insert coins before it dispenses a product, gas requires users to pay for computation before the smart contract executes. In a DeFi lending protocol, every interaction (depositing collateral, borrowing, repaying, liquidating) costs gas, meaning the 'automated, intermediary-free' promise has a real cost that must be factored into the business case",
+                        "C": "Gas replaces the coins in the vending machine analogy -- instead of buying products, users buy gas tokens that give them ownership of the lending protocol",
+                        "D": "The vending machine analogy is outdated and has been replaced by the gas concept in modern smart contract theory"
+                    },
+                    "correct": "B",
+                    "explanation": "This question connects foundational concepts across multiple sections. Szabo's vending machine illustrates the basic principle: pay to execute an automated agreement. Gas is the modern implementation of this principle on Ethereum: you pay ETH to execute smart contract logic. In DeFi lending, this creates practical implications -- a small borrower depositing $50 of collateral might pay $10-50 in gas fees during high congestion, making the transaction uneconomical. This is why Layer 2 solutions and alternative platforms are critical: they reduce the 'cost of using the vending machine' to make smart contract applications viable for everyday users and smaller transactions."
+                },
+                {
+                    "id": 5,
+                    "question": "A hospital wants to implement smart contract-based patient consent management. What challenges connect the oracle problem, privacy concerns, and regulatory requirements?",
+                    "options": {
+                        "A": "There are no challenges -- healthcare data can be stored directly on a public blockchain with full transparency",
+                        "B": "The oracle problem arises because the smart contract needs to verify identity credentials from off-chain systems. Privacy laws (like HIPAA and GDPR) conflict with blockchain transparency because patient data must remain confidential. And the evolving regulatory landscape means the smart contract must comply with rules that may change, challenging immutability",
+                        "C": "The only challenge is gas costs, which make healthcare applications too expensive for any hospital",
+                        "D": "Healthcare is exempt from all blockchain limitations because medical data is treated differently than financial data by the Ethereum protocol"
+                    },
+                    "correct": "B",
+                    "explanation": "This scenario forces synthesis across foundations (oracle problem, immutability), business applications (healthcare, privacy), and technical mechanics. The oracle challenge is real: verifying that a doctor requesting records is actually credentialed requires trusted off-chain identity verification. Privacy is the central tension: HIPAA requires that patient data be confidential and that patients can request deletion, but blockchain data is public and permanent. Solutions include storing data off-chain with only access hashes on-chain, using zero-knowledge proofs to verify permissions without revealing data, and using permissioned blockchains. The regulatory challenge connects to immutability: if HIPAA rules change, an immutable contract cannot update its compliance logic without upgrade patterns."
+                },
+                {
+                    "id": 6,
+                    "question": "Why would a supply chain company choose to use ERC-1155 tokens rather than separate ERC-20 and ERC-721 contracts for tracking products?",
+                    "options": {
+                        "A": "ERC-1155 is required by law for supply chain applications, while ERC-20 and ERC-721 are only allowed for financial applications",
+                        "B": "ERC-1155 allows one contract to manage both fungible items (bulk commodities like wheat or oil measured in quantities) and non-fungible items (unique serialized products like luxury goods) simultaneously, with batch transfer capabilities that reduce gas costs when moving multiple item types in a single shipment transaction",
+                        "C": "There is no advantage -- ERC-1155 is identical to ERC-20 in every way",
+                        "D": "ERC-1155 is faster than ERC-20 because it uses a different blockchain with higher throughput"
+                    },
+                    "correct": "B",
+                    "explanation": "This question connects token standards (technical mechanics) with supply chain applications (business). A supply chain handles diverse items: bulk raw materials (fungible -- 1000 kg of steel is interchangeable), manufactured components (semi-fungible -- same model but with serial numbers), and finished luxury goods (non-fungible -- each has unique provenance). ERC-1155's multi-token capability handles all three in one contract, and its batch transfer feature is particularly valuable for supply chains: when a container with 50 different product types moves from one warehouse to another, one transaction updates all 50 balances instead of requiring 50 separate transactions. This practical efficiency demonstrates why choosing the right token standard matters for real business applications."
+                },
+                {
+                    "id": 7,
+                    "question": "How does the proxy upgrade pattern relate to the tension between smart contract immutability and the need for regulatory compliance?",
+                    "options": {
+                        "A": "The proxy pattern has no relevance to regulation because regulators do not care about smart contract architecture",
+                        "B": "The proxy pattern allows smart contract logic to be updated while preserving the contract address and stored data, which is essential for regulatory compliance because laws and regulations change over time and businesses need the ability to update their smart contract logic to remain compliant without migrating all users to a new contract",
+                        "C": "The proxy pattern makes smart contracts completely immutable, which regulators prefer because it prevents fraud",
+                        "D": "Regulators require all smart contracts to use the proxy pattern, and contracts without it are automatically illegal"
+                    },
+                    "correct": "B",
+                    "explanation": "This question bridges technical architecture (proxy patterns from mechanics) with regulatory reality (from foundations and business). Immutability is a core smart contract property, but regulations are not immutable -- MiCA, GDPR, KYC/AML rules, and securities laws evolve continuously. A business deploying a smart contract for tokenized real estate must comply with current regulations, but those regulations may change next year. The proxy pattern provides a practical solution: the contract can be upgraded to incorporate new compliance requirements without forcing all users to migrate their assets to a new contract address. However, this introduces a trust tradeoff: whoever controls the upgrade mechanism has power to change the rules, which partially undermines the trustless promise of smart contracts."
+                },
+                {
+                    "id": 8,
+                    "question": "A DeFi lending protocol uses Chainlink oracles for price feeds. If the oracle temporarily reports an incorrect price, what cascading effects could occur across the system?",
+                    "options": {
+                        "A": "Nothing would happen because smart contracts automatically detect and ignore incorrect oracle data",
+                        "B": "If the oracle reports a price that is too low, the smart contract could incorrectly liquidate healthy borrower positions, selling their collateral at a loss. If the price is too high, borrowers could take out loans against inflated collateral values, and when the true price is restored, those loans become undercollateralized, potentially causing bad debt that threatens the entire protocol",
+                        "C": "The smart contract would pause all operations automatically and wait for the oracle to correct itself",
+                        "D": "Oracle errors only affect the display on the website but have no impact on actual smart contract execution"
+                    },
+                    "correct": "B",
+                    "explanation": "This question demonstrates why the oracle problem (foundations) has direct consequences for DeFi applications (business/mechanics). Smart contracts execute deterministically based on the data they receive -- they cannot distinguish between correct and incorrect oracle data. An oracle reporting ETH at $100 instead of $2,000 would trigger mass liquidations of positions that are actually healthy, causing borrowers to lose collateral they should not have lost. Conversely, an inflated price allows borrowers to extract more value than their collateral supports. This is why DeFi protocols implement oracle safeguards: using multiple data sources, setting maximum price deviation thresholds, implementing time-weighted average prices (TWAPs), and adding circuit breakers that pause the protocol during extreme price movements."
+                },
+                {
+                    "id": 9,
+                    "question": "Compare how trust works in three systems: a traditional bank loan, a smart contract escrow, and Szabo's vending machine. What is the common principle?",
+                    "options": {
+                        "A": "All three systems require complete trust in a human intermediary to function correctly",
+                        "B": "The common principle is embedding enforcement into the mechanism itself. The vending machine enforces the transaction through physical design (coins in, product out). The smart contract escrow enforces through deterministic code (conditions met, funds released). The bank loan relies on legal enforcement (contracts, courts, regulations). Smart contracts move the enforcement from legal institutions to code, similar to how the vending machine moved it from a shopkeeper to a machine",
+                        "C": "There is no common principle -- these three systems are completely unrelated",
+                        "D": "The common principle is that all three systems use blockchain technology for transaction processing"
+                    },
+                    "correct": "B",
+                    "explanation": "This question synthesizes the conceptual evolution from Szabo's original analogy through modern smart contracts. The vending machine was Szabo's insight that trust can be embedded in mechanism design rather than requiring human judgment. A traditional bank loan represents the old paradigm: trust is maintained through legal contracts, credit checks, and court enforcement. A smart contract escrow represents the new paradigm: trust is embedded in code that executes deterministically. The progression shows how smart contracts extend Szabo's vending machine principle from simple physical transactions to complex financial arrangements. Each step reduces reliance on human enforcement but introduces new challenges (bugs in code vs. bias in judges)."
+                },
+                {
+                    "id": 10,
+                    "question": "Why might a company implementing a blockchain supply chain solution choose a permissioned blockchain over deploying smart contracts on public Ethereum?",
+                    "options": {
+                        "A": "Permissioned blockchains are always faster, cheaper, and more secure than Ethereum in every possible scenario",
+                        "B": "A permissioned blockchain keeps transaction data visible only to authorized participants (protecting competitive information like pricing and volumes), offers predictable transaction costs (no gas price volatility), and provides higher throughput for high-volume supply chain operations, while sacrificing the full decentralization and censorship resistance of a public blockchain",
+                        "C": "There is no reason to use a permissioned blockchain -- all supply chain applications should use public Ethereum",
+                        "D": "Permissioned blockchains are required by international trade law for all cross-border supply chain transactions"
+                    },
+                    "correct": "B",
+                    "explanation": "This question connects privacy concerns (business applications) with platform selection (foundations) and practical enterprise needs. Supply chain data is commercially sensitive: a retailer does not want competitors seeing how much they pay suppliers or what volumes they order. On public Ethereum, all transaction data is visible to anyone. A permissioned blockchain like Hyperledger Fabric restricts data visibility to authorized participants while still providing the immutability and transparency benefits within the consortium. However, the tradeoff is significant: a permissioned blockchain is only as trustworthy as the consortium operating it, losing the censorship resistance and open verifiability that make public blockchains powerful. The choice depends on whether confidentiality or maximal decentralization is more important for the specific use case."
+                },
+                {
+                    "id": 11,
+                    "question": "How does the concept of 'state variables' in a smart contract's anatomy connect to the immutability property discussed in the foundations section?",
+                    "options": {
+                        "A": "State variables and immutability are unrelated concepts that exist in different parts of the Ethereum system",
+                        "B": "State variables are the data stored permanently on the blockchain by the smart contract. Because the contract code is immutable, the logic for how state variables can be modified is fixed forever -- meaning if the code has a bug that allows unauthorized modification of state variables (like token balances), that vulnerability exists permanently unless an upgrade mechanism was built in",
+                        "C": "State variables are automatically deleted after each transaction, so immutability does not apply to them",
+                        "D": "Immutability means that state variables can never change their values once initialized, making token transfers impossible"
+                    },
+                    "correct": "B",
+                    "explanation": "This question connects smart contract anatomy (mechanics) with the immutability property (foundations) and security implications (mechanics). State variables are the persistent data -- token balances, ownership records, configuration settings. The contract's functions define the only ways these variables can change. Because the code is immutable, the rules governing state changes are permanent. If a function incorrectly allows anyone to modify the owner variable, that vulnerability is permanently exploitable. The Parity wallet freeze ($300 million locked forever) is a direct example: a state variable (the library address) was set to a dead address, and no immutable code existed to fix it. This is why both the code logic AND the state variable design must be thoroughly audited before deployment."
+                },
+                {
+                    "id": 12,
+                    "question": "A real estate tokenization project uses ERC-721 NFTs to represent property ownership and a DAO for governance decisions about the building. How do the oracle problem, legal wrappers, and gas costs interact in this scenario?",
+                    "options": {
+                        "A": "These three concepts are independent and do not interact in real estate tokenization",
+                        "B": "The oracle problem affects property valuation (appraisals must come from off-chain). Legal wrappers are essential because NFT ownership must be linked to real-world legal property rights. And gas costs affect whether small fractional owners can afford to participate in DAO governance votes, potentially creating a plutocratic governance structure where only large owners vote",
+                        "C": "Only the legal wrapper matters -- oracles and gas costs are irrelevant to real estate applications",
+                        "D": "Gas costs make real estate tokenization impossible because each property transfer costs more than the property itself"
+                    },
+                    "correct": "B",
+                    "explanation": "This complex scenario demonstrates how foundational concepts (oracles, legal status), business applications (real estate, DAOs), and technical mechanics (gas, token standards) all interact in a single real-world project. Oracles: property appraisals, rental income data, and maintenance cost data all originate off-chain and must be fed to the smart contract reliably. Legal: an NFT representing a building is meaningless unless a legal wrapper (like a Wyoming DAO LLC) connects token ownership to actual property rights. Gas: if a DAO governance vote costs $5-20 in gas, an owner of a $100 fractional share may not vote, creating governance apathy. Layer 2 solutions help with gas, Chainlink helps with oracles, and legal innovation helps with wrappers -- all three must work together."
+                },
+                {
+                    "id": 13,
+                    "question": "Why is the distinction between read (free) and write (costs gas) operations particularly important for a supply chain tracking application?",
+                    "options": {
+                        "A": "The distinction is not important because supply chain applications only read data and never write it",
+                        "B": "Supply chain tracking involves many participants frequently reading status updates (free) but relatively fewer write operations when goods change hands or reach checkpoints (costs gas). Designing the system to maximize reads and minimize writes keeps operational costs manageable, since a global supply chain might have thousands of status checks per day but only hundreds of actual state changes",
+                        "C": "Read and write operations cost the same in supply chain applications because they receive special pricing from the Ethereum Foundation",
+                        "D": "Supply chain applications should avoid read operations because they slow down the blockchain"
+                    },
+                    "correct": "B",
+                    "explanation": "This question applies a technical concept (read vs. write costs from mechanics) to a business application (supply chain from business). In a supply chain, many parties need to check shipment status throughout the day -- a distributor checking if goods have shipped, customs verifying documentation, a retailer checking delivery estimates. These are all read operations and cost nothing. But recording that a shipment left a warehouse, arrived at customs, or was delivered requires write operations that cost gas. A well-designed system batches write operations (recording multiple checkpoints in one transaction using events), uses off-chain data stores for non-critical updates, and reserves on-chain writes for key milestones. This architectural decision directly impacts the economic viability of the application."
+                },
+                {
+                    "id": 14,
+                    "question": "How do bug bounty programs, security audits, and formal verification form complementary layers of smart contract security?",
+                    "options": {
+                        "A": "They are redundant -- any one of these three approaches provides complete security on its own",
+                        "B": "Formal verification mathematically proves specific properties hold under all conditions but may miss business logic errors. Security audits provide expert human review that catches logic flaws and architectural issues but may miss edge cases. Bug bounties provide continuous, crowd-sourced review that catches vulnerabilities missed by the first two layers. Together, they form a defense-in-depth strategy where each layer compensates for the others' weaknesses",
+                        "C": "Bug bounties replace the need for audits and formal verification because they are cheaper and more effective",
+                        "D": "These security measures are only relevant for small smart contracts -- large DeFi protocols are inherently secure due to their size"
+                    },
+                    "correct": "B",
+                    "explanation": "This question synthesizes the security concepts from the mechanics section into a coherent security strategy. Each approach has strengths and limitations. Formal verification can prove 'total supply never changes except through mint/burn' but cannot prove 'the economic model is sound.' Audits catch design-level issues ('this liquidation mechanism can be manipulated') but are time-limited and depend on auditor expertise. Bug bounties provide ongoing scrutiny from a global pool of researchers incentivized by rewards, catching issues that emerge over time or from novel attack vectors. The most secure DeFi protocols use all three: formal verification for core invariants, multiple independent audits for comprehensive review, and ongoing bug bounties for continuous protection. The DAO hack might have been prevented by any of these layers."
+                },
+                {
+                    "id": 15,
+                    "question": "A startup is building a cross-border payment system using smart contracts. How do the concepts of disintermediation, gas costs, stablecoins, and Layer 2 solutions all need to work together?",
+                    "options": {
+                        "A": "These concepts are independent features that can each be implemented separately without considering the others",
+                        "B": "Disintermediation removes correspondent banks (reducing costs from $25-50 to near zero). Stablecoins solve the volatility problem (recipients need predictable value, not fluctuating cryptocurrency). Gas costs must be minimized because a $5 gas fee on a $20 remittance defeats the purpose. Layer 2 solutions reduce gas costs to fractions of a cent, making small cross-border transfers economically viable",
+                        "C": "Only stablecoins matter for cross-border payments -- gas costs, Layer 2, and disintermediation are irrelevant",
+                        "D": "Cross-border payments using smart contracts are impossible because different countries use different blockchains"
+                    },
+                    "correct": "B",
+                    "explanation": "This question demonstrates how multiple concepts must work in concert for a real application. The business case starts with disintermediation (foundations/business): eliminating correspondent banks removes the primary cost. But sending volatile ETH does not work for remittances -- the recipient needs stable value, hence stablecoins (mechanics). However, sending a stablecoin transaction on Ethereum mainnet might cost $5-20 in gas, which is unacceptable for small remittances that average $200-500 globally. Layer 2 solutions (foundations) bring gas costs down to under $0.01, finally making the economic case work. All four concepts must align: remove intermediaries to eliminate fees, use stablecoins for value stability, deploy on Layer 2 for low costs, and the result is a payment that is cheaper, faster, and more accessible than traditional channels."
+                },
+                {
+                    "id": 16,
+                    "question": "Compare the security implications of The DAO hack (reentrancy) with the Parity wallet freeze (library dependency). What common lesson do they share about smart contract design?",
+                    "options": {
+                        "A": "They share no common lesson because one was a hack and the other was an accident",
+                        "B": "Both demonstrate that smart contract immutability magnifies the consequences of design flaws. The DAO's reentrancy bug allowed fund drainage, and Parity's library dependency allowed permanent fund freezing. In traditional software, both issues would be patched within hours. In immutable smart contracts, both resulted in hundreds of millions in permanent losses. The common lesson is that smart contract architecture must be designed for permanence, with every dependency, interaction pattern, and failure mode considered before deployment",
+                        "C": "The only lesson is that developers should never use smart contracts because they are inherently unsafe",
+                        "D": "Both incidents were caused by oracle failures and have nothing to do with contract design"
+                    },
+                    "correct": "B",
+                    "explanation": "This question connects two famous security incidents (mechanics) to reveal a deeper principle about smart contract design philosophy (foundations). The DAO hack was a malicious exploit of a code vulnerability ($60M lost). The Parity freeze was an accidental triggering of a design flaw ($300M frozen). In traditional software, both would have been fixed with a patch within hours. But immutability means these flaws are permanent. The common lesson is that smart contracts demand a fundamentally different approach to software engineering -- one that assumes the code will never be changed. This means exhaustive testing, formal verification, minimal external dependencies, fail-safe designs, and the humility to recognize that complex code will contain bugs, necessitating upgrade patterns and emergency mechanisms."
+                },
+                {
+                    "id": 17,
+                    "question": "How does the AMM concept from DeFi demonstrate both the power and the limitations of smart contracts as described throughout the lecture?",
+                    "options": {
+                        "A": "AMMs only demonstrate the power of smart contracts and have no limitations",
+                        "B": "AMMs demonstrate the power of trustless, automated trading without intermediaries (disintermediation), running 24/7 without human operators (self-execution), with transparent pricing visible to all (transparency). But they also reveal limitations: they cannot access off-chain order flow (oracle problem), they are vulnerable to front-running by miners (MEV), they require gas for every trade (scalability), and bugs in the pricing formula are permanently exploitable (immutability risk)",
+                        "C": "AMMs are not actually smart contracts -- they are traditional exchange software that happens to run on blockchain",
+                        "D": "AMMs demonstrate only limitations and have no advantages over traditional centralized exchanges"
+                    },
+                    "correct": "B",
+                    "explanation": "AMMs are an ideal lens for reviewing the entire lecture because they embody nearly every concept discussed. The power side demonstrates disintermediation (no exchange operator), self-execution (trades happen automatically via the formula), determinism (the same inputs always produce the same output), and transparency (all liquidity pool sizes and prices are publicly verifiable). The limitation side demonstrates the oracle problem (AMMs create prices from their own pools, which can diverge from broader markets), scalability challenges (every swap costs gas), immutability risks (a formula bug would be permanently exploitable), and the need for security (flash loan attacks, sandwich attacks, and MEV extraction are ongoing threats). This balanced view is essential for understanding smart contracts realistically."
+                },
+                {
+                    "id": 18,
+                    "question": "A government is considering using smart contracts for public procurement. How do the concepts of transparency, immutability, the oracle problem, and legal recognition interact?",
+                    "options": {
+                        "A": "Smart contracts solve all government procurement challenges automatically without any complications",
+                        "B": "Transparency benefits procurement by making all bids and contract awards publicly auditable, reducing corruption. Immutability ensures procurement rules cannot be changed mid-process to favor specific bidders. The oracle problem arises because contract fulfillment verification (did the contractor deliver quality work?) requires subjective off-chain judgment. Legal recognition is essential because government contracts must comply with procurement law, and smart contracts' legal status remains uncertain in most jurisdictions",
+                        "C": "Government procurement is too simple for smart contracts -- traditional paper processes work perfectly",
+                        "D": "The only relevant concept is transparency; immutability, oracles, and legal status do not affect government use cases"
+                    },
+                    "correct": "B",
+                    "explanation": "This scenario synthesizes concepts from all three sections to analyze a real-world application. Transparency (foundations) is perhaps the strongest benefit: citizens could verify that procurement followed the stated rules, and all bid information would be immutably recorded. Immutability (foundations) prevents rule changes after bidding opens. But the oracle problem (foundations) is significant: unlike financial contracts where delivery is binary (did the payment arrive?), government contracts often require subjective quality assessment (was the road built to specification?) that cannot be easily automated. And legal recognition (foundations) is critical: government contracts carry legal obligations, require specific statutory processes, and must be enforceable in courts. This analysis shows that smart contracts are most valuable for the transparent, rule-bound aspects of procurement, while human judgment remains necessary for quality verification."
+                },
+                {
+                    "id": 19,
+                    "question": "Why is the choice between an algorithmic stablecoin and a collateralized stablecoin relevant to understanding the broader difference between trusting code versus trusting collateral?",
+                    "options": {
+                        "A": "The choice is purely technical and has no broader implications for understanding smart contract trust models",
+                        "B": "Algorithmic stablecoins trust that the code's supply-adjustment mechanism will maintain the peg under all market conditions (trusting code). Collateralized stablecoins trust that the locked collateral will always be sufficient to back the stablecoin value (trusting assets). The collapse of TerraUSD showed that trusting code alone is fragile when market confidence breaks, while MakerDAO's survival shows that trusting overcollateralized assets is more robust but less capital-efficient",
+                        "C": "Both types are equally risky and equally safe, so the distinction does not matter",
+                        "D": "Collateralized stablecoins do not use smart contracts, so the comparison is invalid"
+                    },
+                    "correct": "B",
+                    "explanation": "This question connects stablecoin design (mechanics) with the fundamental trust question running through the entire lecture. Szabo's original vision was replacing human trust with mechanical/code-based trust. Algorithmic stablecoins take this to the extreme: they trust that a mathematical formula will maintain value without any backing assets. TerraUSD's $40 billion collapse proved this trust was misplaced during a confidence crisis. Collateralized stablecoins like DAI take a hybrid approach: they use smart contracts (trusting code for execution) but back the value with real assets (trusting collateral). This mirrors the lecture's broader theme that smart contracts are most effective when they automate and enforce rules around tangible value, rather than trying to create value purely through algorithmic mechanisms."
+                },
+                {
+                    "id": 20,
+                    "question": "Looking at the evolution from Szabo's 1994 concept to modern DeFi protocols, what is the most significant gap between the original vision and current reality?",
+                    "options": {
+                        "A": "There is no gap -- modern smart contracts perfectly fulfill Szabo's original vision in every way",
+                        "B": "Szabo envisioned smart contracts as a way to reduce reliance on trusted third parties and legal enforcement. While modern smart contracts have achieved this for financial transactions (DeFi, token transfers), they have not yet solved the connection to the physical world (the oracle problem), the legal recognition problem (code-based agreements still lack universal legal status), and the accessibility problem (gas costs and complexity limit adoption to technically sophisticated users)",
+                        "C": "The biggest gap is that Szabo wanted smart contracts to run on centralized servers, while they now run on decentralized blockchains",
+                        "D": "The only gap is transaction speed -- everything else in Szabo's vision has been fully achieved"
+                    },
+                    "correct": "B",
+                    "explanation": "This final synthesis question spans the entire lecture. Szabo's 1994 vision was elegant: embed contractual terms in self-executing code to reduce reliance on legal enforcement and trusted intermediaries. Modern DeFi has remarkably achieved this for purely digital transactions: billions of dollars are lent, borrowed, traded, and insured through smart contracts without banks, brokers, or courts. However, three fundamental gaps remain. The oracle problem means smart contracts still depend on trusted data providers for real-world information. The legal gap means code-based agreements exist in a regulatory gray zone, limiting adoption for high-stakes business applications. And the accessibility gap (gas costs, wallet complexity, private key management) means the technology remains inaccessible to most of the world's population. Bridging these gaps through Layer 2 scaling, cross-chain interoperability, AI integration, and regulatory clarity represents the next phase of smart contract evolution."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            nextBtn.classList.remove('show');
+            renderQuestions();
+
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

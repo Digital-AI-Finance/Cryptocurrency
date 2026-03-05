@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SM-2: Smart Contracts in Business & Finance | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #d946ef;
+            --quiz-light: #fae8ff;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #c026d3; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #c026d3; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz SM-2: Smart Contracts in Business & Finance</div>
+        <div class="nav-links">
+            <a href="quiz_sm_part1.html">SM-1</a>
+            <a href="quiz_sm_part2.html">SM-2</a>
+            <a href="quiz_sm_part3.html">SM-3</a>
+            <a href="quiz_sm_part4.html">SM-4</a>
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz SM-2: Smart Contracts in Business & Finance</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "What is the primary reason businesses are interested in adopting smart contracts?",
+                    "options": {
+                        "A": "Smart contracts allow businesses to avoid paying any taxes on digital transactions",
+                        "B": "Smart contracts can reduce costs by eliminating intermediaries, increase speed through automation, and enhance trust through transparent and tamper-proof execution",
+                        "C": "Smart contracts guarantee that a business will always be profitable because the code optimizes revenue automatically",
+                        "D": "Smart contracts are required by law in most countries for any business conducting online transactions"
+                    },
+                    "correct": "B",
+                    "explanation": "Businesses are drawn to smart contracts for three main advantages. First, cost reduction: by removing intermediaries like brokers, escrow agents, and clearinghouses, businesses save on fees and commissions. Second, speed: automated execution eliminates manual processing delays that can take days or weeks in traditional systems. Third, trust: because the contract logic is transparent and runs on an immutable blockchain, all parties can verify the rules and trust that they will be enforced without relying on a single authority. These benefits are particularly compelling in industries with complex multi-party transactions."
+                },
+                {
+                    "id": 2,
+                    "question": "What does 'disintermediation' mean in the context of smart contracts, and why is it significant?",
+                    "options": {
+                        "A": "Disintermediation means adding more intermediaries to a transaction to increase security and compliance",
+                        "B": "Disintermediation means replacing internet connections with direct blockchain links between computers",
+                        "C": "Disintermediation means removing middlemen (such as banks, brokers, lawyers, or escrow agents) from transactions by letting smart contracts handle the functions these intermediaries traditionally perform, potentially reducing costs and delays",
+                        "D": "Disintermediation means converting all business communications from digital back to paper-based systems for legal reasons"
+                    },
+                    "correct": "C",
+                    "explanation": "Disintermediation is one of the most transformative aspects of smart contracts. In traditional business, intermediaries exist because parties do not fully trust each other -- a bank verifies payments, an escrow agent holds funds, a notary authenticates documents. Smart contracts can perform many of these trust functions automatically through code. For example, an escrow smart contract can hold funds and release them only when both buyer and seller confirm delivery, eliminating the need for a human escrow agent. This reduces transaction costs, speeds up processes, and removes single points of failure or manipulation in the transaction chain."
+                },
+                {
+                    "id": 3,
+                    "question": "How can smart contracts improve supply chain management?",
+                    "options": {
+                        "A": "Smart contracts can only track shipments within a single country and cannot handle international supply chains",
+                        "B": "Smart contracts can provide transparent provenance tracking, automate payments when goods reach checkpoints, and create an immutable record of every step in the supply chain, helping verify authenticity and reduce fraud",
+                        "C": "Smart contracts replace all physical logistics with digital delivery of goods through the blockchain",
+                        "D": "Smart contracts in supply chains work by eliminating the need for any physical inspection of goods at any point"
+                    },
+                    "correct": "B",
+                    "explanation": "Supply chain management is one of the most practical applications of smart contracts. Each step in the supply chain (raw materials, manufacturing, shipping, customs, delivery) can be recorded on the blockchain, creating a transparent and tamper-proof history. Smart contracts can automate payments to suppliers when goods arrive at specific checkpoints (verified by IoT sensors or manual confirmation). A notable real-world example is the IBM Food Trust platform, used by Walmart, which reduced the time to trace a food product from farm to store from seven days to 2.2 seconds. This transparency helps combat counterfeiting and enables rapid identification of contaminated products."
+                },
+                {
+                    "id": 4,
+                    "question": "What is a parametric insurance contract, and how do smart contracts enable it?",
+                    "options": {
+                        "A": "A parametric insurance contract is a standard insurance policy that requires a human claims adjuster to evaluate every claim before payout",
+                        "B": "A parametric insurance contract pays out automatically when a predefined measurable condition is met (such as rainfall below a threshold or an earthquake above a certain magnitude), and smart contracts enable this by connecting to oracle data feeds and executing the payout instantly without a claims process",
+                        "C": "A parametric insurance contract is an insurance policy that covers only digital assets stored on blockchain and cannot insure physical property",
+                        "D": "A parametric insurance contract requires policyholders to stake cryptocurrency as collateral, which they lose if they file too many claims"
+                    },
+                    "correct": "B",
+                    "explanation": "Parametric insurance represents a paradigm shift from traditional indemnity insurance. Instead of requiring policyholders to file claims, provide documentation, and wait for an adjuster to assess damages, parametric contracts pay out automatically based on objective, measurable triggers. For example, a crop insurance contract might pay farmers automatically if rainfall in their region drops below 50mm in a month, as reported by a trusted weather oracle. Etherisc is a notable project building decentralized parametric insurance on Ethereum. Smart contracts make this practical because they can monitor oracle data feeds continuously and execute payouts within minutes of a triggering event, eliminating the entire claims process."
+                },
+                {
+                    "id": 5,
+                    "question": "How can smart contracts be used in real estate transactions?",
+                    "options": {
+                        "A": "Smart contracts can only be used for virtual real estate in metaverse platforms and have no application to physical property",
+                        "B": "Smart contracts can facilitate real estate transactions through tokenization of property (representing ownership as digital tokens), automated escrow for purchase payments, and fractional ownership that allows multiple investors to own shares of a property",
+                        "C": "Smart contracts in real estate work by physically building houses using robotic construction directed by blockchain code",
+                        "D": "Smart contracts replace all real estate agents and make property viewings unnecessary by providing virtual tours encoded on the blockchain"
+                    },
+                    "correct": "B",
+                    "explanation": "Real estate is a compelling use case for smart contracts because traditional property transactions involve numerous intermediaries (agents, lawyers, title companies, escrow services) and take weeks to complete. Smart contracts can streamline this in several ways. Tokenization converts property ownership into digital tokens on a blockchain, making transfer as simple as a token transaction. Automated escrow holds the buyer's funds and releases them to the seller only when title transfer conditions are met. Perhaps most innovatively, fractional ownership allows a property to be divided into thousands of tokens, enabling small investors to own a fraction of high-value real estate. Projects like RealT and Lofty have pioneered tokenized real estate on Ethereum."
+                },
+                {
+                    "id": 6,
+                    "question": "What advantage do smart contracts offer for financial derivatives settlement?",
+                    "options": {
+                        "A": "Smart contracts guarantee that derivatives always increase in value, eliminating financial risk for all parties",
+                        "B": "Smart contracts can automate the settlement of derivatives contracts, reducing counterparty risk by holding collateral in escrow and executing settlements based on oracle-provided price data, eliminating the multi-day clearing process used in traditional finance",
+                        "C": "Smart contracts make financial derivatives illegal because they bypass regulated exchanges",
+                        "D": "Smart contracts for derivatives only work with cryptocurrency pairs and cannot reference traditional assets like stocks or commodities"
+                    },
+                    "correct": "B",
+                    "explanation": "In traditional finance, derivatives settlement involves clearinghouses, margin calls, and a T+2 (two business days) or longer settlement cycle, creating counterparty risk during the settlement period. Smart contracts fundamentally change this by enabling near-instant, automated settlement. Collateral can be locked in the smart contract at the time the derivative is created, and settlement occurs automatically when the contract expires, based on prices provided by oracles. This eliminates counterparty risk (because the collateral is already locked) and reduces settlement time from days to seconds. DeFi protocols like Synthetix and dYdX demonstrate this concept, allowing users to trade synthetic derivatives that settle automatically on-chain."
+                },
+                {
+                    "id": 7,
+                    "question": "How can smart contracts improve trade finance, particularly letters of credit?",
+                    "options": {
+                        "A": "Smart contracts eliminate the need for any documentation in international trade, allowing goods to cross borders without paperwork",
+                        "B": "Smart contracts can digitize and automate letters of credit by encoding the terms (shipping documents, inspection certificates, delivery confirmation) into code, automatically releasing payment when all conditions are verified, reducing the typical 5-10 day processing time to near-instant settlement",
+                        "C": "Smart contracts in trade finance work by replacing all physical shipping with digital delivery of goods through the internet",
+                        "D": "Smart contracts make trade finance unnecessary because blockchain eliminates the need for trust between international trading partners"
+                    },
+                    "correct": "B",
+                    "explanation": "Trade finance is one of the most paper-intensive areas of global commerce. A traditional letter of credit involves multiple banks, shipping companies, customs agencies, and inspection firms exchanging physical documents, often taking 5-10 business days and costing thousands of dollars in fees. Smart contracts can encode all the conditions of a letter of credit into code: when the shipping company confirms delivery (via IoT or manual attestation), when the inspection certificate is uploaded, and when customs clearance is documented, the payment releases automatically. Several major banks and consortia (including HSBC, Standard Chartered, and the Marco Polo Network) have piloted blockchain-based trade finance, demonstrating significant reductions in processing time and costs."
+                },
+                {
+                    "id": 8,
+                    "question": "What is a Decentralized Autonomous Organization (DAO), and how do smart contracts enable it?",
+                    "options": {
+                        "A": "A DAO is a traditional corporation that uses email instead of paper mail for communications",
+                        "B": "A DAO is an organization governed by smart contracts where rules, treasury management, and decision-making are encoded in code and executed automatically based on token-holder votes, operating without traditional management hierarchies",
+                        "C": "A DAO is a government agency that regulates blockchain technology and issues licenses for smart contract deployment",
+                        "D": "A DAO is a type of cryptocurrency exchange that is owned by a single corporation but marketed as decentralized"
+                    },
+                    "correct": "B",
+                    "explanation": "DAOs represent a fundamentally new form of organization enabled by smart contracts. In a DAO, the rules of the organization (how funds are allocated, how decisions are made, how members join) are encoded in smart contracts rather than in corporate bylaws enforced by a legal system. Members typically hold governance tokens that give them voting rights on proposals. When a proposal passes the required vote threshold, the smart contract executes the decision automatically -- for example, sending treasury funds to a development team. MakerDAO, which governs the DAI stablecoin, is one of the most prominent examples, with billions of dollars managed through on-chain governance. DAOs demonstrate smart contracts' ability to coordinate complex organizations without traditional management structures."
+                },
+                {
+                    "id": 9,
+                    "question": "How does MakerDAO use smart contracts for governance and stablecoin management?",
+                    "options": {
+                        "A": "MakerDAO is a centralized company where executives manually set the DAI stablecoin price each day",
+                        "B": "MakerDAO uses smart contracts to manage the DAI stablecoin system: MKR token holders vote on risk parameters (collateral types, stability fees, liquidation ratios), and the smart contracts automatically enforce these parameters to maintain DAI's peg to the US dollar",
+                        "C": "MakerDAO uses smart contracts exclusively for marketing and has no role in managing the DAI stablecoin's value",
+                        "D": "MakerDAO's smart contracts directly control the US Federal Reserve's interest rate decisions to maintain DAI's value"
+                    },
+                    "correct": "B",
+                    "explanation": "MakerDAO is a landmark example of smart contract-powered governance. The system works through several interconnected smart contracts: Vault contracts hold user collateral (ETH, WBTC, and other approved assets) and mint DAI against it. Governance contracts allow MKR token holders to vote on critical parameters like which assets can serve as collateral, how much DAI can be minted per dollar of collateral (the collateralization ratio), and what fees borrowers pay (the stability fee). Liquidation contracts automatically sell collateral if its value drops too low, protecting the system's solvency. All of these rules execute automatically through smart contracts, with human governance limited to setting the parameters rather than making day-to-day operational decisions."
+                },
+                {
+                    "id": 10,
+                    "question": "How can smart contracts be applied to healthcare data management?",
+                    "options": {
+                        "A": "Smart contracts can replace doctors by diagnosing patients and prescribing treatments automatically through AI",
+                        "B": "Smart contracts can manage patient consent for data sharing, enabling individuals to control who accesses their medical records and under what conditions, while creating an auditable trail of all data access events",
+                        "C": "Smart contracts store all medical imaging data directly on the blockchain, making X-rays and MRIs available to anyone worldwide",
+                        "D": "Smart contracts in healthcare work by automating surgical procedures through blockchain-connected robotic systems"
+                    },
+                    "correct": "B",
+                    "explanation": "Healthcare data management is a promising smart contract application because it addresses real pain points around patient privacy and data interoperability. Currently, patients have limited control over who accesses their medical records, and sharing data between providers is cumbersome. Smart contracts can encode consent rules: a patient might grant their primary doctor full access, give a specialist time-limited access to specific records, and allow a research institution to use anonymized data. Each access event is logged immutably on the blockchain, creating a complete audit trail. The actual medical data typically lives off-chain (due to size and privacy requirements), while the smart contract manages access permissions. Projects like MedRec (MIT) and Medicalchain have explored this concept."
+                },
+                {
+                    "id": 11,
+                    "question": "What is self-sovereign identity, and how do smart contracts support it?",
+                    "options": {
+                        "A": "Self-sovereign identity means that governments issue blockchain-based passports that replace all paper identification documents",
+                        "B": "Self-sovereign identity is a model where individuals own and control their digital identity without depending on a central authority, and smart contracts can manage verifiable credentials -- issuing, presenting, and revoking identity claims without a centralized identity provider",
+                        "C": "Self-sovereign identity means creating a single global username and password that works on all websites, managed by a United Nations blockchain",
+                        "D": "Self-sovereign identity is a cryptocurrency trading strategy where users maintain anonymous identities to avoid capital gains taxes"
+                    },
+                    "correct": "B",
+                    "explanation": "Self-sovereign identity (SSI) is a paradigm where individuals, not companies or governments, control their own digital identity data. Today, our digital identities are fragmented across platforms (Google, Facebook, government databases) that control and monetize our data. With SSI and smart contracts, a university could issue a verifiable credential (a degree) to a student's blockchain wallet. The student can then present this credential to an employer without the employer needing to contact the university -- the smart contract cryptographically verifies the credential's authenticity and that it has not been revoked. This gives individuals control over what they share and with whom, while preserving verifiability. The W3C Verifiable Credentials standard and projects like uPort and Civic advance this vision."
+                },
+                {
+                    "id": 12,
+                    "question": "How are smart contracts being used in the gaming industry?",
+                    "options": {
+                        "A": "Smart contracts are only used to process payments at video game stores and have no role in actual gameplay",
+                        "B": "Smart contracts enable true ownership of in-game assets (as NFTs), provably fair random number generation for game mechanics, and player-driven economies where items can be traded across games and platforms",
+                        "C": "Smart contracts make all video games free to play by eliminating the cost of game development through automation",
+                        "D": "Smart contracts in gaming work by replacing all human game designers with AI that generates game content on the blockchain"
+                    },
+                    "correct": "B",
+                    "explanation": "The gaming industry is being transformed by smart contracts in several ways. First, true asset ownership: in traditional games, the company owns all in-game items and can revoke them at will. When items are represented as NFTs on a blockchain, players genuinely own them and can sell, trade, or use them in other compatible games. Second, provably fair mechanics: smart contracts can generate verifiable random numbers for loot drops, card draws, and other game mechanics, proving to players that the outcomes are not rigged. Third, interoperable economies: because blockchain assets follow open standards, a sword earned in one game could theoretically be used or traded in another. Games like Axie Infinity, Gods Unchained, and Illuvium have demonstrated these concepts, though the model continues to evolve."
+                },
+                {
+                    "id": 13,
+                    "question": "What is the 'disintermediation thesis' as it applies to smart contracts in financial services?",
+                    "options": {
+                        "A": "The disintermediation thesis states that smart contracts will eliminate all jobs in the financial sector within two years",
+                        "B": "The disintermediation thesis argues that smart contracts can perform many functions currently handled by financial intermediaries (banks, brokers, clearinghouses, insurers) at lower cost and higher speed, potentially restructuring entire financial value chains by removing layers of middlemen",
+                        "C": "The disintermediation thesis is a theory that financial intermediaries will adopt smart contracts but charge higher fees for the added technology",
+                        "D": "The disintermediation thesis claims that only cryptocurrency transactions benefit from removing intermediaries, while traditional financial products always require human oversight"
+                    },
+                    "correct": "B",
+                    "explanation": "The disintermediation thesis is the core economic argument for smart contracts in finance. Financial intermediaries exist primarily because of trust deficits between transacting parties. Banks verify that payers have funds. Clearinghouses guarantee that both sides of a trade will settle. Escrow agents hold funds neutrally. Each layer adds cost and delay. Smart contracts can replicate many of these trust functions in code: an automated market maker replaces an exchange's order book, a lending protocol replaces a bank's credit department, and an on-chain settlement system replaces a clearinghouse. The thesis does not argue that all intermediaries will disappear, but that many layers can be compressed or eliminated, reducing the cost of financial services and potentially making them accessible to unbanked populations globally."
+                },
+                {
+                    "id": 14,
+                    "question": "What challenges do enterprises face when integrating smart contracts with existing legacy systems?",
+                    "options": {
+                        "A": "There are no challenges -- smart contracts integrate seamlessly with any existing software system through automatic compatibility",
+                        "B": "Enterprises face challenges including connecting blockchain systems to existing databases and ERP software, training staff on new technology, managing the transition period where both old and new systems run simultaneously, and addressing data privacy requirements that may conflict with blockchain transparency",
+                        "C": "The only challenge is the cost of Ethereum gas fees, which makes all enterprise applications of smart contracts economically impossible",
+                        "D": "Legacy system integration is simple because all enterprise software was designed with blockchain compatibility built in from the start"
+                    },
+                    "correct": "B",
+                    "explanation": "Enterprise adoption of smart contracts faces significant practical hurdles beyond the technology itself. Existing systems (ERP software like SAP, databases like Oracle, communication systems) were not designed for blockchain interaction, requiring middleware and API integrations. Staff training is substantial because smart contract concepts are fundamentally different from traditional IT. Running parallel systems during transition is expensive and complex. Perhaps most critically, blockchain's default transparency conflicts with business confidentiality needs -- companies do not want competitors seeing their transaction volumes or supplier relationships on a public blockchain. Solutions include private or permissioned blockchains, zero-knowledge proofs for selective disclosure, and hybrid architectures where sensitive data stays off-chain while only verification hashes go on-chain."
+                },
+                {
+                    "id": 15,
+                    "question": "How do smart contracts address privacy concerns in business applications?",
+                    "options": {
+                        "A": "Smart contracts on public blockchains are completely private by default, so privacy is never a concern",
+                        "B": "Businesses can use permissioned blockchains, zero-knowledge proofs, or off-chain computation with on-chain verification to balance the transparency benefits of blockchain with the confidentiality requirements of business operations",
+                        "C": "Privacy is impossible with smart contracts, which is why no serious business has ever considered using them",
+                        "D": "Smart contracts achieve privacy by encrypting all data so heavily that not even the contract participants can read the transaction details"
+                    },
+                    "correct": "B",
+                    "explanation": "Privacy is a genuine challenge for enterprise smart contract adoption because public blockchains are transparent by design. Several solutions have emerged. Permissioned blockchains (like Hyperledger Fabric) restrict who can see transaction data to authorized participants. Zero-knowledge proofs allow one party to prove a statement is true (e.g., 'this shipment meets quality standards') without revealing the underlying data. Off-chain computation processes sensitive data privately, then submits only a verification hash to the blockchain. Layer 2 privacy solutions can batch transactions and reveal only aggregate information on-chain. These approaches let businesses benefit from blockchain's trust and automation properties while maintaining the confidentiality that commercial operations require."
+                },
+                {
+                    "id": 16,
+                    "question": "What is the Walmart and IBM Food Trust use case, and what did it demonstrate about smart contracts in supply chains?",
+                    "options": {
+                        "A": "Walmart used smart contracts to fully automate food production in its factories, replacing all human workers",
+                        "B": "Walmart partnered with IBM to use blockchain-based smart contracts for food traceability, reducing the time to trace a product from farm to store shelf from seven days to approximately 2.2 seconds, demonstrating that smart contracts can dramatically improve supply chain transparency and food safety response times",
+                        "C": "Walmart used smart contracts to set dynamic food prices that change every second based on supply and demand",
+                        "D": "The IBM Food Trust was a failed experiment that proved smart contracts cannot work at the scale required by major retailers"
+                    },
+                    "correct": "B",
+                    "explanation": "The Walmart-IBM Food Trust partnership is one of the most cited real-world smart contract success stories. Before blockchain, tracing a package of mangoes from farm to store required contacting multiple parties (farmers, processors, shippers, distributors) and took approximately seven days. Using the IBM Food Trust blockchain platform, Walmart could trace the same product in 2.2 seconds. Each participant in the supply chain records their handling of the product on the blockchain, creating a complete, tamper-proof provenance record. This has critical food safety implications: during a contamination outbreak, rapid tracing can identify affected products within seconds, potentially saving lives and reducing the scope of costly recalls. The system now tracks hundreds of products across multiple suppliers."
+                },
+                {
+                    "id": 17,
+                    "question": "How can smart contracts enable fractional ownership of assets?",
+                    "options": {
+                        "A": "Fractional ownership is only possible for cryptocurrency tokens and cannot apply to real-world assets",
+                        "B": "Smart contracts can tokenize real-world assets (real estate, art, commodities) by dividing ownership into thousands of digital tokens, allowing investors to buy small fractions of expensive assets that would otherwise be inaccessible, with the smart contract managing ownership records, dividend distributions, and transfer rules",
+                        "C": "Fractional ownership through smart contracts means physically cutting an asset into smaller pieces so each owner gets a physical portion",
+                        "D": "Smart contracts for fractional ownership work by creating synthetic copies of assets, so each owner gets a full duplicate"
+                    },
+                    "correct": "B",
+                    "explanation": "Fractional ownership through tokenization is one of the most democratizing applications of smart contracts. A commercial building worth $10 million can be represented by 10 million tokens, each worth $1, allowing small investors to participate in real estate markets previously reserved for the wealthy. The smart contract manages the entire ownership lifecycle: recording who owns which tokens, distributing rental income proportionally to token holders, enforcing transfer restrictions (such as regulatory holding periods), and enabling 24/7 secondary market trading of ownership fractions. This concept extends to fine art, rare collectibles, and other illiquid assets. The key innovation is that liquidity and accessibility increase dramatically when large assets can be divided into small, tradeable units."
+                },
+                {
+                    "id": 18,
+                    "question": "How do smart contracts reduce counterparty risk in financial transactions?",
+                    "options": {
+                        "A": "Smart contracts eliminate all financial risk entirely, making it impossible for any party to lose money",
+                        "B": "Smart contracts reduce counterparty risk by holding collateral in escrow and executing settlement automatically based on predefined conditions, ensuring that both parties fulfill their obligations without relying on trust or a third-party guarantor",
+                        "C": "Smart contracts increase counterparty risk because the code could contain bugs that cause unexpected fund transfers",
+                        "D": "Smart contracts reduce counterparty risk only in transactions under $100 and are not suitable for large financial deals"
+                    },
+                    "correct": "B",
+                    "explanation": "Counterparty risk -- the risk that the other party in a transaction will not fulfill their obligations -- is a fundamental concern in finance. Traditional mitigation requires trusted intermediaries (clearinghouses, escrow agents) that add cost and complexity. Smart contracts address this by locking collateral at the time the agreement is created, not at settlement. For example, in a DeFi lending protocol, the borrower deposits collateral worth more than the loan into the smart contract before receiving any funds. If the collateral value drops below a threshold, the smart contract automatically liquidates it to repay the lender. This atomic, collateral-backed approach means that settlement risk is minimized or eliminated, because the funds are already held by the impartial smart contract."
+                },
+                {
+                    "id": 19,
+                    "question": "What is the cost-benefit analysis of using smart contracts versus traditional contracts for a business process?",
+                    "options": {
+                        "A": "Smart contracts are always cheaper than traditional contracts in every situation, making the decision obvious",
+                        "B": "The costs of smart contracts include development, auditing, gas fees, and integration with existing systems, while benefits include reduced intermediary fees, faster execution, fewer disputes, and automated compliance -- the net benefit depends on the complexity, volume, and current cost of the business process being replaced",
+                        "C": "Traditional contracts are always more cost-effective because lawyers are cheaper than blockchain developers",
+                        "D": "The cost-benefit analysis is irrelevant because regulatory requirements force all businesses to use smart contracts"
+                    },
+                    "correct": "B",
+                    "explanation": "A proper cost-benefit analysis of smart contracts must consider both sides. Costs include: development (writing and testing the smart contract code), security auditing (professional audits can cost $50,000-$500,000 for complex contracts), gas fees (ongoing transaction costs on public blockchains), integration costs (connecting to existing systems), and training (educating staff). Benefits include: elimination of intermediary fees (which can be substantial -- trade finance fees alone are estimated at $9 billion annually), faster execution (seconds vs. days), reduced disputes (clear, deterministic execution), and automated compliance (rules enforced by code). The analysis favors smart contracts most strongly for high-volume, repetitive processes with significant intermediary costs and where the trustless execution property adds real value."
+                },
+                {
+                    "id": 20,
+                    "question": "What role could smart contracts play in cross-border payments, and what problem do they solve?",
+                    "options": {
+                        "A": "Smart contracts make cross-border payments slower but more secure, which is the preferred tradeoff for most businesses",
+                        "B": "Smart contracts cannot be used for cross-border payments because different countries use different blockchain platforms",
+                        "C": "Smart contracts can enable near-instant, low-cost cross-border payments by eliminating the correspondent banking chain (multiple intermediary banks) that traditional international transfers require, reducing both settlement time from 3-5 days to minutes and fees from $25-50 per transaction to under $1",
+                        "D": "Smart contracts for cross-border payments work by converting all currencies to Bitcoin before completing the transfer"
+                    },
+                    "correct": "C",
+                    "explanation": "Cross-border payments are one of the highest-impact applications of smart contracts. Today, sending money internationally typically involves a chain of correspondent banks: the sender's bank, one or more intermediary banks, and the recipient's bank. Each bank charges fees and adds processing time, resulting in costs of $25-50 per transaction and 3-5 business days for settlement. For developing countries, remittance fees can exceed 6-7% of the transfer amount. Smart contracts on blockchain networks can execute the transfer directly between sender and receiver, using stablecoins to avoid cryptocurrency volatility. The transaction settles in minutes at a fraction of the cost. Projects like Stellar, Ripple (though more centralized), and various stablecoin-based solutions are pursuing this opportunity, which the World Bank estimates represents over $700 billion in annual remittance flows."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            nextBtn.classList.remove('show');
+            renderQuestions();
+
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>

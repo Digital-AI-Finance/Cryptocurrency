@@ -111,6 +111,18 @@
   \bottomnote{Navigate through 5 sections covering DeFi landscape to advanced topics}
 \end{frame}
 
+\begin{frame}{Learning Objectives}
+By the end of this lecture, you will be able to:
+\begin{enumerate}
+\item \textbf{Explain} the DeFi stack and how composability enables ``money legos''
+\item \textbf{Calculate} AMM prices, slippage, and impermanent loss using the constant product formula
+\item \textbf{Analyze} lending protocol mechanics (collateralization ratios, liquidation, health factors)
+\item \textbf{Compare} yield farming strategies and distinguish real yield from token emissions
+\item \textbf{Evaluate} DeFi security risks including flash loan attacks and MEV extraction
+\end{enumerate}
+\bottomnote{Bloom's taxonomy levels: Remember $\rightarrow$ Understand $\rightarrow$ Apply $\rightarrow$ Analyze $\rightarrow$ Evaluate $\rightarrow$ Create}
+\end{frame}
+
 %% ============================================================
 %% SECTION 1: DeFi Landscape
 %% ============================================================
@@ -267,8 +279,8 @@
     \node[sub]                    (cmp)  at (-5.0,-3.0) {Compound};
 
     % Stablecoins
-    \node[cat, fill=mlorange!20]  (stbl) at (0.0, 3.2) {Stablecoins};
-    \node[sub]                    (mkr)  at (0.0, 2.4) {MakerDAO};
+    \node[cat, fill=mlorange!20]  (stbl) at (0.0, 3.0) {Stablecoins};
+    \node[sub]                    (mkr)  at (0.0, 2.3) {MakerDAO};
 
     % Derivatives
     \node[cat, fill=mlred!15]     (derv) at (5.0, 2.0) {Derivatives};
@@ -279,8 +291,8 @@
     \node[sub]                    (nxs)  at (5.0,-2.3) {Nexus Mutual};
 
     % Aggregators
-    \node[cat, fill=mllavender!60](agg)  at (0.0,-3.2) {Aggregators};
-    \node[sub]                    (onei) at (0.0,-4.0) {1inch};
+    \node[cat, fill=mllavender!60](agg)  at (0.0,-3.0) {Aggregators};
+    \node[sub]                    (onei) at (0.0,-3.7) {1inch};
 
     % Connections
     \draw[conn] (eth.west)  -- (dex.east);
@@ -346,6 +358,7 @@
 % Frame 9: DeFi Growth Timeline
 \begin{frame}{DeFi Growth Timeline}
   \centering
+  \adjustbox{max width=\textwidth}{%
   \begin{tikzpicture}[
     evtbox/.style={rectangle, rounded corners=3pt, draw=mlpurple, thick,
                    minimum width=2.6cm, minimum height=1.0cm, align=center,
@@ -387,6 +400,7 @@
     \node[evtbox, fill=mlgreen!20]  at (13.0,-1.4) {Market\\recovery};
     \draw[thick, mlpurple] (13.0,-0.25) -- (13.0,-0.85);
   \end{tikzpicture}
+  }%
   \bottomnote{DeFi grew from a single stablecoin protocol in 2017 to a multi-hundred-billion-dollar ecosystem by 2021}
 \end{frame}
 
@@ -444,6 +458,7 @@
 % Frame 11: Key DeFi Metrics
 \begin{frame}{Key DeFi Metrics}
   \centering
+  \adjustbox{max width=\textwidth}{%
   \begin{tikzpicture}[
     hdr/.style={rectangle, fill=mlpurple, text=white, minimum height=0.7cm,
                 align=center, font=\small\bfseries},
@@ -498,6 +513,7 @@
     \node[cel, minimum width=4.4cm, align=left] at (11.2,-4.0)
       {Protocol activity and fee revenue};
   \end{tikzpicture}
+  }%
   \bottomnote{Metrics should be evaluated together; a high APY with low TVL and high utilisation may signal unsustainable incentives}
 \end{frame}
 
@@ -538,6 +554,7 @@
 % Frame 13: Major DeFi Hacks
 \begin{frame}{Major DeFi Hacks: A Security Retrospective}
   \centering
+  \adjustbox{max width=\textwidth}{%
   \begin{tikzpicture}[
     hdr/.style={rectangle, minimum height=0.75cm, align=center,
                 font=\small\bfseries, text=white},
@@ -585,6 +602,7 @@
     \node[sev2, minimum width=3.6cm] at (7.3,-3.6)  {Flash loan + liquidation};
     \node[sev2, minimum width=4.6cm] at (11.0,-3.6) {Audit donate() interactions};
   \end{tikzpicture}
+  }%
 
   \vspace{3mm}
   \footnotesize\textit{Note: Ronin Bridge funds were partially returned; Euler attacker returned most funds.}
@@ -1022,7 +1040,7 @@
 
       \begin{tikzpicture}
         \begin{axis}[
-          width=6.0cm, height=3.2cm,
+          width=6.0cm, height=2.6cm,
           xmin=0, xmax=10,
           ymin=0, ymax=1.5,
           xlabel={Price},
@@ -1042,13 +1060,13 @@
         \end{axis}
       \end{tikzpicture}
 
-      \vspace{3mm}
+      \vspace{1mm}
       \textbf{V3: Concentrated Liquidity}
       \vspace{2mm}
 
       \begin{tikzpicture}
         \begin{axis}[
-          width=6.0cm, height=3.2cm,
+          width=6.0cm, height=2.6cm,
           xmin=0, xmax=10,
           ymin=0, ymax=5.5,
           xlabel={Price},
@@ -1644,11 +1662,11 @@ struct Position {
     % Step 3: HF < 1
     \node[stepbox, fill=mlred!20]    (s3) at (10.0, 0) {3. ETH drops further\\{\footnotesize HF $< 1.0$ $\Rightarrow$ Undercollateralised}};
     % Step 4: liquidator acts
-    \node[stepbox, fill=mlorange!25] (s4) at (10.0,-2.2) {4. Liquidator repays\\{\footnotesize up to 50\% of debt + bonus}};
+    \node[stepbox, fill=mlorange!25] (s4) at (10.0,-1.9) {4. Liquidator repays\\{\footnotesize up to 50\% of debt + bonus}};
     % Step 5: position reduced
-    \node[stepbox, fill=mlblue!20]   (s5) at (5.0, -2.2) {5. Collateral seized\\{\footnotesize position partially closed}};
+    \node[stepbox, fill=mlblue!20]   (s5) at (5.0, -1.9) {5. Collateral seized\\{\footnotesize position partially closed}};
     % Step 6: protocol solvent
-    \node[stepbox, fill=mlgreen!25]  (s6) at (0,   -2.2) {6. Protocol remains\\{\footnotesize solvent, HF restored}};
+    \node[stepbox, fill=mlgreen!25]  (s6) at (0,   -1.9) {6. Protocol remains\\{\footnotesize solvent, HF restored}};
 
     \draw[arr] (s1.east) -- (s2.west);
     \draw[arr] (s2.east) -- (s3.west);
@@ -1659,13 +1677,13 @@ struct Position {
     % Color zone legend
     \node[rectangle, fill=mlgreen!25,  draw=mlgreen,  rounded corners=2pt,
           minimum width=2.0cm, minimum height=0.45cm, align=center, font=\tiny\bfseries]
-      at (1.8, -3.6) {HF $> 1.5$: Safe};
+      at (1.8, -3.1) {HF $> 1.5$: Safe};
     \node[rectangle, fill=mlorange!25, draw=mlorange, rounded corners=2pt,
           minimum width=2.4cm, minimum height=0.45cm, align=center, font=\tiny\bfseries]
-      at (5.0, -3.6) {$1.0 < $ HF $ < 1.5$: Warning};
+      at (5.0, -3.1) {$1.0 < $ HF $ < 1.5$: Warning};
     \node[rectangle, fill=mlred!20,    draw=mlred,    rounded corners=2pt,
           minimum width=2.0cm, minimum height=0.45cm, align=center, font=\tiny\bfseries]
-      at (8.4, -3.6) {HF $< 1.0$: Liquidation};
+      at (8.4, -3.1) {HF $< 1.0$: Liquidation};
   \end{tikzpicture}
   \bottomnote{Liquidations are permissionless: any wallet can repay a borrower's debt and claim collateral at a discount; this incentivises rapid execution}
 \end{frame}
@@ -1806,6 +1824,7 @@ interface ILendingPool {
 % Frame 35: Compound vs Aave
 \begin{frame}{Compound vs.\ Aave: Protocol Comparison}
   \centering
+  \adjustbox{max width=\textwidth, max totalheight=6.5cm}{%
   \begin{tikzpicture}[
     hdr/.style={rectangle, minimum height=0.72cm, align=center,
                 font=\small\bfseries, text=white},
@@ -1825,40 +1844,41 @@ interface ILendingPool {
 
     % Row 1: Governance token
     \node[rectangle, fill=mllavender4, minimum height=0.72cm, minimum width=3.8cm,
-          align=center, font=\scriptsize] at (0,   -0.8) {Governance token};
-    \node[celA, minimum width=4.4cm] at (4.1,  -0.8) {COMP};
-    \node[celB, minimum width=4.4cm] at (8.5,  -0.8) {AAVE};
+          align=center, font=\scriptsize] at (0,   -0.7) {Governance token};
+    \node[celA, minimum width=4.4cm] at (4.1,  -0.7) {COMP};
+    \node[celB, minimum width=4.4cm] at (8.5,  -0.7) {AAVE};
 
     % Row 2: Interest rate model
     \node[rectangle, fill=mllavender3, minimum height=0.72cm, minimum width=3.8cm,
-          align=center, font=\scriptsize] at (0,   -1.6) {Rate model};
-    \node[altA, minimum width=4.4cm] at (4.1, -1.6) {Kinked (per market)};
-    \node[altB, minimum width=4.4cm] at (8.5, -1.6) {Kinked + stable rate};
+          align=center, font=\scriptsize] at (0,   -1.4) {Rate model};
+    \node[altA, minimum width=4.4cm] at (4.1, -1.4) {Kinked (per market)};
+    \node[altB, minimum width=4.4cm] at (8.5, -1.4) {Kinked + stable rate};
 
     % Row 3: Multi-chain
     \node[rectangle, fill=mllavender4, minimum height=0.72cm, minimum width=3.8cm,
-          align=center, font=\scriptsize] at (0,   -2.4) {Multi-chain};
-    \node[celA, minimum width=4.4cm] at (4.1,  -2.4) {Ethereum + limited};
-    \node[celB, minimum width=4.4cm] at (8.5,  -2.4) {8+ chains (Portal)};
+          align=center, font=\scriptsize] at (0,   -2.1) {Multi-chain};
+    \node[celA, minimum width=4.4cm] at (4.1,  -2.1) {Ethereum + limited};
+    \node[celB, minimum width=4.4cm] at (8.5,  -2.1) {8+ chains (Portal)};
 
     % Row 4: Flash loans
     \node[rectangle, fill=mllavender3, minimum height=0.72cm, minimum width=3.8cm,
-          align=center, font=\scriptsize] at (0,   -3.2) {Flash loans};
-    \node[altA, minimum width=4.4cm] at (4.1, -3.2) {No (native)};
-    \node[altB, minimum width=4.4cm] at (8.5, -3.2) {Yes (0.09\% fee)};
+          align=center, font=\scriptsize] at (0,   -2.8) {Flash loans};
+    \node[altA, minimum width=4.4cm] at (4.1, -2.8) {No (native)};
+    \node[altB, minimum width=4.4cm] at (8.5, -2.8) {Yes (0.09\% fee)};
 
     % Row 5: Token standard
     \node[rectangle, fill=mllavender4, minimum height=0.72cm, minimum width=3.8cm,
-          align=center, font=\scriptsize] at (0,   -4.0) {Yield token};
-    \node[celA, minimum width=4.4cm] at (4.1,  -4.0) {cToken (exchange rate)};
-    \node[celB, minimum width=4.4cm] at (8.5,  -4.0) {aToken (rebasing)};
+          align=center, font=\scriptsize] at (0,   -3.5) {Yield token};
+    \node[celA, minimum width=4.4cm] at (4.1,  -3.5) {cToken (exchange rate)};
+    \node[celB, minimum width=4.4cm] at (8.5,  -3.5) {aToken (rebasing)};
 
     % Row 6: Liquidation
     \node[rectangle, fill=mllavender3, minimum height=0.72cm, minimum width=3.8cm,
-          align=center, font=\scriptsize] at (0,   -4.8) {Liquidation cap};
-    \node[altA, minimum width=4.4cm] at (4.1, -4.8) {50\% of position};
-    \node[altB, minimum width=4.4cm] at (8.5, -4.8) {50\% (default)};
+          align=center, font=\scriptsize] at (0,   -4.2) {Liquidation cap};
+    \node[altA, minimum width=4.4cm] at (4.1, -4.2) {50\% of position};
+    \node[altB, minimum width=4.4cm] at (8.5, -4.2) {50\% (default)};
   \end{tikzpicture}
+  }%
   \bottomnote{Compound pioneered DeFi lending in 2018; Aave extended the model with stable rates, flash loans, and multi-chain support}
 \end{frame}
 
@@ -1929,11 +1949,11 @@ interface ILendingPool {
         arr/.style={-{Stealth[length=6pt]}, thick}
       ]
         % CDP flow
-        \node[procbox, fill=mlblue!20]   (dep)  at (0, 4.8) {1. Deposit ETH\\into Vault (CDP)};
-        \node[procbox, fill=mlgreen!20]  (mint) at (0, 3.4) {2. Mint DAI\\(up to 66\% of value)};
-        \node[procbox, fill=mlorange!20] (use)  at (0, 2.0) {3. Use DAI\\in DeFi ecosystem};
-        \node[procbox, fill=mlpurple!15] (fee)  at (0, 0.6) {4. Accrue Stability Fee\\(annual DAI interest)};
-        \node[procbox, fill=mlgreen!15]  (rep)  at (0,-0.8) {5. Repay DAI + fee\\to reclaim ETH};
+        \node[procbox, fill=mlblue!20]   (dep)  at (0, 4.0) {1. Deposit ETH\\into Vault (CDP)};
+        \node[procbox, fill=mlgreen!20]  (mint) at (0, 2.9) {2. Mint DAI\\(up to 66\% of value)};
+        \node[procbox, fill=mlorange!20] (use)  at (0, 1.8) {3. Use DAI\\in DeFi ecosystem};
+        \node[procbox, fill=mlpurple!15] (fee)  at (0, 0.7) {4. Accrue Stability Fee\\(annual DAI interest)};
+        \node[procbox, fill=mlgreen!15]  (rep)  at (0,-0.4) {5. Repay DAI + fee\\to reclaim ETH};
 
         \draw[-{Stealth[length=6pt]}, thick, mlpurple] (dep.south)  -- (mint.north);
         \draw[-{Stealth[length=6pt]}, thick, mlpurple] (mint.south) -- (use.north);
@@ -1941,12 +1961,12 @@ interface ILendingPool {
         \draw[-{Stealth[length=6pt]}, thick, mlpurple] (fee.south)  -- (rep.north);
 
         % Liquidation branch
-        \node[procbox, fill=mlred!20] (liq) at (4.8, 0.6) {Liquidation\\triggered at 150\%};
+        \node[procbox, fill=mlred!20] (liq) at (4.8, 0.7) {Liquidation\\triggered at 150\%};
         \draw[-{Stealth[length=6pt]}, thick, mlred, dashed] (fee.east) -- (liq.west)
           node[midway, above, font=\tiny\bfseries, mlred] {price drops};
 
         % Peg mechanism
-        \node[font=\scriptsize, mlgray, align=center] at (0,-2.0)
+        \node[font=\scriptsize, mlgray, align=center] at (0,-1.5)
           {Peg maintained via over-collateralisation\\+ stability fee + DSR (DAI Savings Rate)};
       \end{tikzpicture}
     \end{column}
@@ -1963,16 +1983,16 @@ interface ILendingPool {
           \bottomrule
         \end{tabular}
       \end{block}
-      \vspace{3mm}
+      \vspace{1mm}
       \begin{block}{Peg Stability Mechanisms}
-        \begin{itemize}\setlength\itemsep{3pt}
+        \begin{itemize}\setlength\itemsep{1pt}
           \item \textbf{Over-collateralisation} ensures DAI is always backed
           \item \textbf{Stability fee} controls minting incentive (DAI supply)
           \item \textbf{DSR} controls holding incentive (DAI demand)
           \item \textbf{PSM} (Peg Stability Module) allows 1:1 USDC swap at zero fee
         \end{itemize}
       \end{block}
-      \vspace{3mm}
+      \vspace{1mm}
       \begin{alertblock}{Multi-Collateral DAI}
         MakerDAO expanded to accept 40+ collateral types including real-world assets (RWA),
         making DAI partially dependent on centralised assets.
@@ -2033,15 +2053,15 @@ interface ILendingPool {
 \section{Yield Farming \& Liquidity Mining}
 
 % Frame 39: Section Divider
-\begin{frame}{}
+\begin{frame}
   \begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
-    {\LARGE\bfseries Section 4}\\[6pt]
-    {\large Yield Farming and Liquidity Mining}
+    {\Large\bfseries Section 4: Yield Farming and Liquidity Mining}\\{}\vspace{6pt}
+    {\normalsize LP tokens, APR vs APY, impermanent loss, yield strategies, and real yield analysis}
   \end{beamercolorbox}
-  \vspace{6mm}
+  \vspace{8mm}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
-      \begin{block}{Section Topics}
+      \begin{block}{What you will learn}
         \begin{itemize}\setlength\itemsep{2pt}
           \item What is yield farming?
           \item LP token mechanics
@@ -2054,10 +2074,15 @@ interface ILendingPool {
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{alertblock}{Key Question}
-        How do liquidity providers earn returns, and what are the real
-        risks --- including impermanent loss --- behind advertised APYs?
-      \end{alertblock}
+      \begin{block}{Frames in this section}
+        \begin{itemize}\setlength\itemsep{2pt}
+          \item Frame 40 -- What is Yield Farming?
+          \item Frame 41 -- LP Token Mechanics
+          \item Frames 42--43 -- APR vs APY, Compounding
+          \item Frames 44--45 -- Impermanent Loss, Strategies
+          \item Frames 46--48 -- Real Yield, Aggregators, Summary
+        \end{itemize}
+      \end{block}
     \end{column}
   \end{columns}
   \bottomnote{Section 4 of 5 | Yield Farming \& Liquidity Mining | Frames 39--48}
@@ -2278,7 +2303,7 @@ interface ILendingPool {
 
 % Frame 44: Impermanent Loss Table
 \begin{frame}{Impermanent Loss Table}
-  \vspace{2mm}
+  \vspace{1mm}
   \begin{center}
   \begin{tikzpicture}[
     hdr/.style={rectangle, minimum width=3.2cm, minimum height=0.7cm,
@@ -2322,7 +2347,7 @@ interface ILendingPool {
     \node[cel, fill=mlred!40]    at (6.6,-4.10)  {Extreme};
   \end{tikzpicture}
   \end{center}
-  \vspace{3mm}
+  \vspace{2mm}
   \begin{block}{IL Formula}
     \[
       \text{IL}(r) = \frac{2\sqrt{r}}{1+r} - 1, \quad r = \frac{P_{\text{new}}}{P_{\text{initial}}}
@@ -2482,18 +2507,18 @@ interface ILendingPool {
 
 % Frame 48: Section 4 Summary
 \begin{frame}{Section 4 Summary}
-  \vspace{2mm}
+  \vspace{1mm}
   \begin{tikzpicture}[
-    sumbox/.style={rectangle, rounded corners=5pt, minimum width=13.5cm, minimum height=0.85cm,
+    sumbox/.style={rectangle, rounded corners=5pt, minimum width=13.5cm, minimum height=0.75cm,
       draw=mlpurple, thick, align=center, font=\small}
   ]
     \node[sumbox, fill=mlblue!20]    at (0,0)    {\textbf{LP Tokens} represent proportional pool ownership; $\text{LP} = \sqrt{A \times B}$; composable in DeFi};
-    \node[sumbox, fill=mlpurple!15]  at (0,-1.0) {\textbf{APY vs APR}: Daily compounding at 50\% APR yields 64.8\% APY; advertised figures are often APY};
-    \node[sumbox, fill=mlorange!20]  at (0,-2.0) {\textbf{Impermanent Loss}: $\text{IL}(r)=\frac{2\sqrt{r}}{1+r}-1$; 2$\times$ price move costs 5.7\%; grows nonlinearly};
-    \node[sumbox, fill=mlgreen!20]   at (0,-3.0) {\textbf{Strategies}: spectrum from single-sided staking (safe) to leveraged farming (highest risk)};
-    \node[sumbox, fill=mlred!15]     at (0,-4.0) {\textbf{Real Yield}: always distinguish fee revenue from inflationary token emissions};
+    \node[sumbox, fill=mlpurple!15]  at (0,-0.85) {\textbf{APY vs APR}: Daily compounding at 50\% APR yields 64.8\% APY; advertised figures are often APY};
+    \node[sumbox, fill=mlorange!20]  at (0,-1.70) {\textbf{Impermanent Loss}: $\text{IL}(r)=\frac{2\sqrt{r}}{1+r}-1$; 2$\times$ price move costs 5.7\%; grows nonlinearly};
+    \node[sumbox, fill=mlgreen!20]   at (0,-2.55) {\textbf{Strategies}: spectrum from single-sided staking (safe) to leveraged farming (highest risk)};
+    \node[sumbox, fill=mlred!15]     at (0,-3.40) {\textbf{Real Yield}: always distinguish fee revenue from inflationary token emissions};
   \end{tikzpicture}
-  \vspace{3mm}
+  \vspace{2mm}
   \begin{alertblock}{Key Insight}
     Headline APYs combine fees, emissions, and compounding. Decompose each component and
     account for IL before comparing yield farming opportunities.
@@ -2508,15 +2533,15 @@ interface ILendingPool {
 \section{Advanced Topics \& Summary}
 
 % Frame 49: Section Divider
-\begin{frame}{}
+\begin{frame}
   \begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
-    {\LARGE\bfseries Section 5}\\[6pt]
-    {\large Advanced Topics and Summary}
+    {\Large\bfseries Section 5: Advanced Topics and Summary}\\{}\vspace{6pt}
+    {\normalsize Flash loans, MEV, DeFi security, attack anatomy, regulation, and course summary}
   \end{beamercolorbox}
-  \vspace{6mm}
+  \vspace{8mm}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
-      \begin{block}{Section Topics}
+      \begin{block}{What you will learn}
         \begin{itemize}\setlength\itemsep{2pt}
           \item Flash loans
           \item MEV --- Maximal Extractable Value
@@ -2528,10 +2553,15 @@ interface ILendingPool {
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{alertblock}{Final Section}
-        We move beyond mechanics to systemic risks, adversarial dynamics,
-        and the regulatory environment shaping DeFi's future.
-      \end{alertblock}
+      \begin{block}{Frames in this section}
+        \begin{itemize}\setlength\itemsep{2pt}
+          \item Frame 50 -- Flash Loans
+          \item Frame 51 -- MEV
+          \item Frame 52 -- DeFi Security Best Practices
+          \item Frames 53--54 -- Flash Loan Attacks, Regulation
+          \item Frame 55 -- Key Takeaways and Course Summary
+        \end{itemize}
+      \end{block}
     \end{column}
   \end{columns}
   \bottomnote{Section 5 of 5 | Advanced Topics \& Summary | Frames 49--55}
@@ -2688,6 +2718,7 @@ contract MyFlashLoan {
 % Frame 53: Flash Loan Attack Anatomy (TikZ only)
 \begin{frame}{Flash Loan Attack Anatomy}
   \begin{center}
+  \adjustbox{max width=\textwidth, max totalheight=6.5cm}{%
   \begin{tikzpicture}[
     atk/.style={rectangle, rounded corners=5pt, minimum width=3.0cm, minimum height=1.0cm,
       draw=mlred, thick, align=center, font=\scriptsize\bfseries},
@@ -2721,6 +2752,7 @@ contract MyFlashLoan {
       {Example: bZx Attack (2020) --- Borrow ETH $\to$ short on Fulcrum $\to$ dump on Uniswap $\to$
        trigger undercollateralised loan $\to$ profit \$350k};
   \end{tikzpicture}
+  }%
   \end{center}
   \bottomnote{Flash loan attacks exploit atomic composability; defence: TWAP oracles, circuit breakers, reentrancy guards}
 \end{frame}
@@ -2771,22 +2803,22 @@ contract MyFlashLoan {
 \begin{frame}{Key Takeaways and Course Summary}
   \vspace{1mm}
   \begin{tikzpicture}[
-    tkbox/.style={rectangle, rounded corners=5pt, minimum width=13.5cm, minimum height=0.85cm,
+    tkbox/.style={rectangle, rounded corners=5pt, minimum width=13.5cm, minimum height=0.75cm,
       draw=mlpurple, thick, align=center, font=\small\bfseries}
   ]
     \node[tkbox, fill=mlblue!25]    (t1) at (0,0)    {%
       1.\ Permissionless Finance: DeFi removes intermediaries via open, auditable smart contracts};
-    \node[tkbox, fill=mlpurple!20]  (t2) at (0,-1.0) {%
+    \node[tkbox, fill=mlpurple!20]  (t2) at (0,-0.85) {%
       2.\ AMMs: $x \cdot y = k$ enables trustless trading; price impact and IL are fundamental tradeoffs};
-    \node[tkbox, fill=mlgreen!20]   (t3) at (0,-2.0) {%
+    \node[tkbox, fill=mlgreen!20]   (t3) at (0,-1.70) {%
       3.\ Overcollateralised Lending: health factor $>1$ prevents insolvency; interest rate curves balance supply/demand};
-    \node[tkbox, fill=mlorange!20]  (t4) at (0,-3.0) {%
+    \node[tkbox, fill=mlorange!20]  (t4) at (0,-2.55) {%
       4.\ Yield Farming: stack fees + emissions + compounding; always decompose APY and quantify IL};
-    \node[tkbox, fill=mlred!20]     (t5) at (0,-4.0) {%
+    \node[tkbox, fill=mlred!20]     (t5) at (0,-3.40) {%
       5.\ Flash Loans, MEV, \& Security: atomic composability creates both opportunities and systemic risks};
   \end{tikzpicture}
 
-  \vspace{3mm}
+  \vspace{2mm}
   \begin{beamercolorbox}[sep=6pt,center,rounded=true,shadow=true]{palette quaternary}
     {\bfseries Course Complete --- DeFi Fundamentals: A Quantitative Deep Dive}\\[2pt]
     {\small 5 Sections $|$ 55 Frames $|$ Prof.\ Dr.\ Joerg Osterrieder}

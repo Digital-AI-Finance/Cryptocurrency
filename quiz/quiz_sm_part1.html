@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SM-1: Smart Contract Foundations | Build Your Own Cryptocurrency</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --mlpurple: #3333B2;
+            --mlblue: #0066CC;
+            --quiz-accent: #d946ef;
+            --quiz-light: #fae8ff;
+            --correct: #22c55e;
+            --correct-bg: #dcfce7;
+            --incorrect: #ef4444;
+            --incorrect-bg: #fee2e2;
+            --bg: #f6f8fa;
+            --card-bg: #ffffff;
+            --text: #24292e;
+            --text-secondary: #586069;
+            --border: #e1e4e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, var(--mlpurple), var(--mlblue));
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-title { font-weight: 600; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .quiz-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .quiz-title { font-size: 16px; font-weight: 600; color: var(--mlpurple); }
+        .quiz-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .stat-progress { background: var(--quiz-light); color: var(--quiz-accent); }
+        .stat-score { background: var(--correct-bg); color: var(--correct); }
+
+        .progress-bar-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--quiz-accent);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Three-column layout */
+        .questions-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            min-height: 280px;
+        }
+
+        .question-card.answered { opacity: 0.7; }
+
+        .question-card.correct-card {
+            border: 2px solid var(--correct);
+            background: linear-gradient(to bottom, var(--correct-bg), var(--card-bg));
+        }
+
+        .question-card.incorrect-card {
+            border: 2px solid var(--incorrect);
+            background: linear-gradient(to bottom, var(--incorrect-bg), var(--card-bg));
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .q-number {
+            background: var(--quiz-light);
+            color: var(--quiz-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .q-status { font-size: 14px; }
+
+        .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex-grow: 0;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--quiz-accent);
+            background: var(--quiz-light);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background: var(--correct-bg);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background: var(--incorrect-bg);
+        }
+
+        .option-btn.disabled { cursor: default; }
+
+        .option-letter {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .option-text { flex: 1; }
+
+        .feedback {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: var(--correct-bg); color: #166534; }
+        .feedback.incorrect { background: var(--incorrect-bg); color: #991b1b; }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            display: none;
+        }
+        .results-card.show { display: block; }
+        .results-icon { font-size: 48px; margin-bottom: 8px; }
+        .results-score { font-size: 36px; font-weight: 700; color: var(--quiz-accent); }
+        .results-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .results-grade {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fed7aa; color: #9a3412; }
+        .grade-f { background: #fee2e2; color: #991b1b; }
+
+        .results-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--quiz-accent); color: white; }
+        .btn-primary:hover { background: #c026d3; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* Next button container */
+        .next-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn-next {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--quiz-accent);
+            color: white;
+            transition: all 0.2s;
+            display: none;
+        }
+        .btn-next:hover { background: #c026d3; transform: scale(1.02); }
+        .btn-next.show { display: inline-block; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            .questions-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .questions-row { grid-template-columns: 1fr; }
+            .question-card { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-title">Quiz SM-1: Smart Contract Foundations</div>
+        <div class="nav-links">
+            <a href="quiz_sm_part1.html">SM-1</a>
+            <a href="quiz_sm_part2.html">SM-2</a>
+            <a href="quiz_sm_part3.html">SM-3</a>
+            <a href="quiz_sm_part4.html">SM-4</a>
+            <a href="../index.html">Dashboard</a>
+            <a href="https://github.com/Digital-AI-Finance/Cryptocurrency" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <main class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-title">Quiz SM-1: Smart Contract Foundations</div>
+            <div class="quiz-stats">
+                <span class="stat-badge stat-progress" id="progressBadge">0/20</span>
+                <span class="stat-badge stat-score" id="scoreBadge">Score: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="questions-row" id="questionsRow"></div>
+
+        <div class="next-btn-container">
+            <button class="btn-next" id="nextBtn" onclick="loadNextQuestions()">Next</button>
+        </div>
+
+        <div class="results-card" id="resultsCard">
+            <div class="results-icon" id="resultsIcon"></div>
+            <div class="results-score" id="resultsScore"></div>
+            <div class="results-label">Correct Answers</div>
+            <div class="results-grade" id="resultsGrade"></div>
+            <div class="results-buttons">
+                <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+                <a href="../index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = {
+            questions: [
+                {
+                    "id": 1,
+                    "question": "Who coined the term 'smart contract' and in what year?",
+                    "options": {
+                        "A": "Vitalik Buterin in 2013, when he published the Ethereum whitepaper proposing programmable blockchain transactions",
+                        "B": "Nick Szabo in 1994, describing self-executing contracts with terms written into code, long before blockchain technology existed",
+                        "C": "Satoshi Nakamoto in 2008, as part of the Bitcoin whitepaper's description of programmable money transfers",
+                        "D": "Gavin Wood in 2014, when he designed the Ethereum Virtual Machine to execute on-chain programs"
+                    },
+                    "correct": "B",
+                    "explanation": "Nick Szabo, a computer scientist and cryptographer, coined the term 'smart contract' in 1994 in his paper 'Smart Contracts: Building Blocks for Digital Markets.' He envisioned self-executing agreements embedded in digital systems. Importantly, this predated Bitcoin by 14 years and Ethereum by over 20 years. Szabo's early work laid the conceptual groundwork, but it was not until Ethereum launched in 2015 that a general-purpose platform for smart contracts became widely available."
+                },
+                {
+                    "id": 2,
+                    "question": "Nick Szabo famously used a vending machine as an analogy for smart contracts. What does this analogy illustrate?",
+                    "options": {
+                        "A": "That smart contracts require physical hardware to function, just as a vending machine needs a physical enclosure to dispense products",
+                        "B": "That smart contracts are limited to simple transactions involving fixed prices and cannot handle complex conditional logic",
+                        "C": "That smart contracts automatically execute predefined terms when conditions are met -- you insert a coin and the machine delivers the product without needing a shopkeeper or intermediary",
+                        "D": "That smart contracts can only process one transaction at a time, similar to how a vending machine serves one customer before the next"
+                    },
+                    "correct": "C",
+                    "explanation": "Szabo's vending machine analogy captures the core concept of smart contracts: automatic execution based on predefined conditions. When you insert the correct amount, the machine dispenses the product without any human intermediary deciding whether to honor the transaction. The 'contract' (price and product selection) is embedded in the machine's logic. Similarly, a smart contract on a blockchain automatically executes its coded terms when the specified conditions are satisfied, removing the need for trusted third parties to enforce the agreement."
+                },
+                {
+                    "id": 3,
+                    "question": "Which of the following is the most accurate definition of a smart contract in the blockchain context?",
+                    "options": {
+                        "A": "A legal document stored on a blockchain that courts can enforce in the same way as a traditional paper contract",
+                        "B": "A self-executing program deployed on a blockchain that automatically enforces the terms of an agreement when predefined conditions are met, without requiring intermediaries",
+                        "C": "An artificial intelligence system that reads natural language contracts and decides how to execute their terms fairly for all parties",
+                        "D": "A digital signature scheme that proves both parties have agreed to the terms of a traditional contract before funds are released"
+                    },
+                    "correct": "B",
+                    "explanation": "A smart contract is a self-executing program stored and run on a blockchain. Its code defines the rules and conditions of an agreement, and when those conditions are triggered (such as receiving a payment), the contract automatically executes the corresponding actions (such as transferring ownership). The key innovation is that no intermediary, court, or trusted third party is needed to enforce compliance. The blockchain's consensus mechanism ensures the contract runs exactly as written, making the outcome deterministic and tamper-resistant."
+                },
+                {
+                    "id": 4,
+                    "question": "Which of the following is NOT a key property of smart contracts?",
+                    "options": {
+                        "A": "Deterministic -- given the same inputs, they always produce the same outputs regardless of which node executes them",
+                        "B": "Self-executing -- they automatically carry out their logic when conditions are met without manual intervention",
+                        "C": "Adaptive -- they learn from past transactions and automatically update their rules to improve future outcomes",
+                        "D": "Trustless -- parties can interact and transact without needing to trust each other, relying instead on the code and blockchain"
+                    },
+                    "correct": "C",
+                    "explanation": "Smart contracts are deterministic, self-executing, trustless, and immutable, but they are not adaptive or self-learning. A deployed smart contract runs exactly the code that was written; it does not modify its own logic based on past results. This determinism is essential because every node on the network must reach the same result when executing the contract. If contracts could change their own rules unpredictably, nodes would disagree on outcomes, breaking blockchain consensus. Any changes to a smart contract's behavior require deploying a new version or using an upgrade pattern."
+                },
+                {
+                    "id": 5,
+                    "question": "How do smart contracts differ from traditional legal contracts in terms of enforcement?",
+                    "options": {
+                        "A": "Traditional contracts are enforced by courts and legal systems after a dispute arises, while smart contracts enforce their terms automatically through code execution on the blockchain, preventing disputes from occurring in the first place",
+                        "B": "There is no real difference -- both types of contracts rely on courts for enforcement, but smart contracts simply store the evidence on a blockchain for easier retrieval",
+                        "C": "Smart contracts are enforced by a decentralized panel of arbitrators who vote on outcomes, whereas traditional contracts use a single judge",
+                        "D": "Traditional contracts execute faster because lawyers can immediately enforce terms, while smart contracts must wait for blockchain confirmation"
+                    },
+                    "correct": "A",
+                    "explanation": "The fundamental difference is the enforcement mechanism. Traditional contracts are enforced retroactively: if a party breaches, the other party must go to court, prove the breach, and seek a remedy, which can take months or years and cost significant legal fees. Smart contracts enforce proactively: the code executes automatically when conditions are met, making breach essentially impossible for the on-chain terms. For example, an escrow smart contract releases funds only when both parties confirm delivery; neither party can unilaterally take the funds. This shift from reactive legal enforcement to proactive code enforcement is one of the most significant innovations of blockchain technology."
+                },
+                {
+                    "id": 6,
+                    "question": "What role does blockchain technology play in enabling smart contracts to function?",
+                    "options": {
+                        "A": "Blockchain is optional -- smart contracts can run equally well on centralized servers, and blockchain only adds unnecessary complexity",
+                        "B": "Blockchain provides the decentralized, immutable, and transparent infrastructure that ensures smart contracts execute exactly as written, without any single party being able to alter or censor the code after deployment",
+                        "C": "Blockchain is used solely to store a backup copy of the smart contract code in case the main server fails",
+                        "D": "Blockchain encrypts the smart contract code so that no one can read it, ensuring complete privacy of all contract terms and transactions"
+                    },
+                    "correct": "B",
+                    "explanation": "Blockchain provides three critical properties that make smart contracts viable. First, decentralization means no single entity controls execution, so no one can censor or manipulate the contract. Second, immutability ensures that once deployed, the contract code cannot be altered, giving all parties confidence in what will execute. Third, transparency means anyone can inspect the contract code and verify its behavior, creating trust through openness rather than through relying on a third party. Without these properties, a 'smart contract' on a centralized server would just be a program that the server operator could change at will."
+                },
+                {
+                    "id": 7,
+                    "question": "When did Ethereum launch, and why was it significant for smart contract development?",
+                    "options": {
+                        "A": "Ethereum launched in 2009 and was the first blockchain to support any kind of digital transaction",
+                        "B": "Ethereum launched in 2015 and was the first general-purpose blockchain platform with a Turing-complete programming language, enabling developers to build complex smart contracts and decentralized applications beyond simple value transfers",
+                        "C": "Ethereum launched in 2017 and was important mainly because it introduced the first cryptocurrency token that could be traded on exchanges",
+                        "D": "Ethereum launched in 2013 and was significant because it replaced Bitcoin's proof-of-work with proof-of-stake from the very beginning"
+                    },
+                    "correct": "B",
+                    "explanation": "Ethereum launched on July 30, 2015, and represented a paradigm shift in blockchain technology. While Bitcoin's scripting language was intentionally limited to simple transaction logic, Ethereum introduced the Ethereum Virtual Machine (EVM) with a Turing-complete language (Solidity). This meant developers could write arbitrarily complex programs that run on the blockchain, opening the door to DeFi, NFTs, DAOs, and countless other applications. Ethereum remains the largest smart contract platform by developer activity, total value locked, and number of deployed contracts."
+                },
+                {
+                    "id": 8,
+                    "question": "What is the Ethereum Virtual Machine (EVM)?",
+                    "options": {
+                        "A": "A physical computer located at the Ethereum Foundation headquarters that processes all smart contract transactions",
+                        "B": "A runtime environment that exists across all Ethereum nodes, executing smart contract bytecode in a sandboxed, deterministic manner so that every node reaches the same result",
+                        "C": "A cloud computing service that Ethereum rents from Amazon Web Services to run smart contracts at scale",
+                        "D": "A specialized graphics processing unit designed to mine Ethereum blocks faster than standard hardware"
+                    },
+                    "correct": "B",
+                    "explanation": "The EVM is a decentralized computation engine that runs on every Ethereum node worldwide. When a smart contract is deployed, its Solidity source code is compiled into bytecode that the EVM can execute. Every node independently runs this bytecode and must arrive at the exact same result, which is how the network reaches consensus on the new state. The EVM is sandboxed, meaning smart contracts cannot access the host system's files or network, and it is deterministic, meaning the same inputs always produce the same outputs. This design makes Ethereum function as a shared 'world computer.'"
+                },
+                {
+                    "id": 9,
+                    "question": "Besides Ethereum, which of the following is a competing smart contract platform, and what distinguishes it?",
+                    "options": {
+                        "A": "Bitcoin Cash, which supports smart contracts through its extended scripting language and processes them at 100,000 transactions per second",
+                        "B": "Solana, which achieves high throughput (thousands of transactions per second) and low fees through its Proof of History consensus mechanism, though it trades some decentralization for speed",
+                        "C": "Litecoin, which is the second-largest smart contract platform after Ethereum and uses the Move programming language",
+                        "D": "Dogecoin, which supports complex DeFi applications and has surpassed Ethereum in total value locked"
+                    },
+                    "correct": "B",
+                    "explanation": "Solana is a prominent Ethereum competitor that launched in 2020. It uses a unique Proof of History mechanism combined with Proof of Stake to achieve very high throughput (theoretically up to 65,000 TPS, practically several thousand) with sub-second finality and transaction costs often below one cent. This makes it attractive for applications requiring high speed and low cost, such as decentralized exchanges and gaming. However, Solana has faced criticism for network outages and a more centralized validator set compared to Ethereum. Other notable competitors include Cardano, Polkadot, and Avalanche, each with different design tradeoffs."
+                },
+                {
+                    "id": 10,
+                    "question": "When comparing smart contract platforms, which factors matter most for developers choosing where to deploy?",
+                    "options": {
+                        "A": "Only the price of the platform's native token matters, because a higher token price means the platform is more secure and reliable",
+                        "B": "Transaction throughput (TPS), transaction fees, programming language, ecosystem size (developer tools, existing protocols, user base), and the platform's security and decentralization tradeoffs",
+                        "C": "Only the programming language matters, because all platforms offer identical performance, fees, and security guarantees",
+                        "D": "The physical location of the platform's servers is the primary factor, since regulations require smart contracts to run in specific geographic jurisdictions"
+                    },
+                    "correct": "B",
+                    "explanation": "Developers evaluate multiple factors when selecting a smart contract platform. Transaction throughput determines how many operations the chain can handle. Fees affect user experience and application viability, especially for small transactions. Programming language matters because Solidity (Ethereum), Rust (Solana), and Haskell (Cardano) require different expertise. Ecosystem size is critical because a larger ecosystem means more composable protocols, better developer tooling, and a bigger user base. Security and decentralization tradeoffs affect trust assumptions. No single platform excels at everything, which is why the multi-chain ecosystem exists."
+                },
+                {
+                    "id": 11,
+                    "question": "What is the current legal status of smart contracts in most jurisdictions?",
+                    "options": {
+                        "A": "Smart contracts are universally recognized as legally binding contracts in every country, with dedicated courts for blockchain dispute resolution",
+                        "B": "Smart contracts are explicitly banned in all major economies because they circumvent existing contract law requirements",
+                        "C": "The legal status is evolving and varies by jurisdiction -- most countries do not have specific smart contract legislation, and questions remain about enforceability, liability, and how existing contract law applies to code-based agreements",
+                        "D": "Smart contracts automatically replace all traditional contracts under international law as of 2023, making paper contracts obsolete"
+                    },
+                    "correct": "C",
+                    "explanation": "The legal landscape for smart contracts remains fragmented and uncertain. Most jurisdictions have not enacted specific legislation addressing smart contracts. Core legal questions include: Does a smart contract satisfy the writing requirement for certain contracts? Who is liable when a smart contract has a bug? Can a smart contract constitute a legally binding 'meeting of the minds'? Some jurisdictions have taken steps -- for example, several US states recognize smart contracts as valid electronic records. However, the gap between 'code execution' and 'legal enforceability' remains significant in most places, creating uncertainty for businesses relying on smart contracts for high-value transactions."
+                },
+                {
+                    "id": 12,
+                    "question": "What is a Ricardian contract, and how does it relate to smart contracts?",
+                    "options": {
+                        "A": "A Ricardian contract is a purely technical specification for programming smart contracts in the Rust language",
+                        "B": "A Ricardian contract is a document that is both human-readable (like a traditional legal contract) and machine-readable (executable as code), bridging the gap between legal agreements and smart contract automation",
+                        "C": "A Ricardian contract is a type of smart contract that was invented by David Ricardo, the classical economist, in the 19th century",
+                        "D": "A Ricardian contract is a blockchain consensus mechanism that replaces proof-of-work with legal arbitration"
+                    },
+                    "correct": "B",
+                    "explanation": "A Ricardian contract, proposed by Ian Grigg in 1996, attempts to bridge the gap between the legal world and the technical world. It is designed to be readable by both humans (in plain language describing rights and obligations) and machines (with structured data that software can parse and execute). This dual nature helps address a key limitation of pure smart contracts: while code executes automatically, it does not carry legal weight on its own. A Ricardian contract links the legal intent to the programmatic execution, potentially giving the smart contract legal enforceability while retaining its automated properties."
+                },
+                {
+                    "id": 13,
+                    "question": "How has the European Union approached smart contract regulation through its MiCA framework?",
+                    "options": {
+                        "A": "MiCA bans all smart contracts within the EU and requires all crypto transactions to go through licensed banks",
+                        "B": "MiCA (Markets in Crypto-Assets) provides a comprehensive regulatory framework for crypto-assets in the EU, including provisions that affect smart contract-based services such as stablecoins, token issuance, and crypto-asset service providers, creating clearer rules for businesses operating in the space",
+                        "C": "MiCA is a technical standard for smart contract programming that all EU developers must follow, specifying exact coding patterns",
+                        "D": "MiCA applies only to Bitcoin and has no relevance to smart contracts or other blockchain-based applications"
+                    },
+                    "correct": "B",
+                    "explanation": "The EU's MiCA regulation, which began taking effect in 2024, represents one of the most comprehensive regulatory frameworks for crypto-assets globally. While it does not regulate smart contract code directly, it creates rules for services built on smart contracts, including requirements for stablecoin issuers, token offerings, and crypto-asset service providers. This approach regulates the applications and services rather than the underlying technology. MiCA provides regulatory clarity that many in the industry welcomed, as it creates a predictable legal environment for businesses using smart contracts within the EU single market."
+                },
+                {
+                    "id": 14,
+                    "question": "What is the 'oracle problem' in smart contracts?",
+                    "options": {
+                        "A": "The oracle problem refers to the difficulty of hiring enough software developers who are skilled at writing secure smart contract code",
+                        "B": "The oracle problem is about the high electricity costs of running blockchain nodes that execute smart contracts",
+                        "C": "The oracle problem is that smart contracts on a blockchain cannot natively access real-world data (like stock prices, weather, or sports scores), so they need external services called oracles to feed this information on-chain, introducing a trust dependency on the oracle's accuracy and honesty",
+                        "D": "The oracle problem is the challenge of making smart contracts run faster than centralized databases"
+                    },
+                    "correct": "C",
+                    "explanation": "The oracle problem is one of the most fundamental challenges in smart contract design. Blockchains are isolated environments: a smart contract can only access data that exists on-chain. But many useful applications require real-world information. An insurance contract that pays out during a drought needs weather data. A derivatives contract needs asset prices. A supply chain contract needs shipping status. Oracles bridge this gap by bringing off-chain data on-chain, but they introduce a trust assumption: if the oracle provides incorrect data, the smart contract will execute incorrectly. This is often summarized as 'garbage in, garbage out,' and it means the security of the entire system depends on the reliability of the oracle."
+                },
+                {
+                    "id": 15,
+                    "question": "How does Chainlink address the oracle problem?",
+                    "options": {
+                        "A": "Chainlink eliminates oracles entirely by allowing smart contracts to directly query any website or API on the internet",
+                        "B": "Chainlink uses a single trusted data provider selected by the Ethereum Foundation to deliver all off-chain data to smart contracts",
+                        "C": "Chainlink provides a decentralized network of independent oracle nodes that aggregate data from multiple sources, using economic incentives and reputation systems to ensure data accuracy and resist manipulation",
+                        "D": "Chainlink is a centralized company that manually enters data into smart contracts after verifying it through a team of human auditors"
+                    },
+                    "correct": "C",
+                    "explanation": "Chainlink addresses the oracle problem through decentralization at the oracle layer. Instead of relying on a single data source (which would be a single point of failure), Chainlink aggregates data from multiple independent oracle nodes, each pulling from different data sources. Nodes are incentivized through LINK token rewards to provide accurate data and are penalized for inaccurate or malicious submissions. The aggregation mechanism (typically taking a median value) makes it economically impractical for any single node to manipulate the final result. This approach mirrors how blockchain itself solves the trust problem: through decentralization, redundancy, and economic incentives rather than trusting any single entity."
+                },
+                {
+                    "id": 16,
+                    "question": "What is a key limitation of smart contract immutability?",
+                    "options": {
+                        "A": "Immutability is not actually a limitation -- it is purely beneficial because it ensures contracts can never be changed, which is always desirable",
+                        "B": "Once deployed, a smart contract's code cannot be changed, which means bugs, security vulnerabilities, or flawed business logic are permanently locked in unless the contract was designed with upgrade mechanisms from the start",
+                        "C": "Immutability only applies to the first 24 hours after deployment; after that, any developer can modify the contract freely",
+                        "D": "Immutability means the contract can only be used once and then becomes permanently inactive"
+                    },
+                    "correct": "B",
+                    "explanation": "While immutability is a strength (it provides certainty that the rules will not change), it is also a significant limitation. If a deployed smart contract contains a bug or security vulnerability, it cannot simply be patched like traditional software. The flawed code remains on the blockchain forever, potentially putting user funds at risk. This is why smart contract audits are critical before deployment, and why upgrade patterns (such as proxy contracts) have been developed to allow logic changes while preserving the contract address and state. The tradeoff between immutability and upgradability remains one of the central design tensions in smart contract development."
+                },
+                {
+                    "id": 17,
+                    "question": "What is the scalability challenge faced by smart contract platforms?",
+                    "options": {
+                        "A": "Scalability is not a challenge -- current smart contract platforms can already process more transactions than Visa and Mastercard combined",
+                        "B": "The scalability challenge is that every node in the network must execute every smart contract transaction, which limits throughput compared to centralized systems and leads to high fees during periods of heavy usage",
+                        "C": "Scalability refers only to the physical size of smart contract code, which is limited to 100 bytes on most platforms",
+                        "D": "The scalability problem is that smart contracts can only be written in one programming language, limiting the number of developers who can contribute"
+                    },
+                    "correct": "B",
+                    "explanation": "Scalability is one of the biggest challenges facing smart contract platforms, particularly Ethereum. Because blockchain requires consensus, every full node must independently execute and validate every transaction. This redundancy is essential for security and decentralization, but it inherently limits throughput. Ethereum's base layer processes roughly 15-30 transactions per second, compared to Visa's approximately 65,000 TPS capacity. During periods of high demand, this limited capacity leads to competition for block space, driving up transaction fees (gas prices). Solutions being developed include Layer 2 scaling (rollups), sharding, and alternative consensus mechanisms."
+                },
+                {
+                    "id": 18,
+                    "question": "What are Layer 2 solutions, and how do they address smart contract scalability?",
+                    "options": {
+                        "A": "Layer 2 solutions are completely separate blockchains that have no connection to Ethereum and require users to abandon the Ethereum ecosystem entirely",
+                        "B": "Layer 2 solutions process transactions off the main blockchain (Layer 1) and periodically submit compressed proofs or summaries back to Layer 1, inheriting its security while dramatically increasing throughput and reducing fees",
+                        "C": "Layer 2 refers to a second copy of the Ethereum blockchain that runs in parallel, doubling the network's capacity by duplicating all transactions",
+                        "D": "Layer 2 solutions replace smart contracts with traditional database queries, sacrificing decentralization entirely for speed"
+                    },
+                    "correct": "B",
+                    "explanation": "Layer 2 (L2) solutions are one of the most important developments in smart contract scalability. They work by moving transaction execution off the main chain (Layer 1) while still relying on Layer 1 for security guarantees. Popular approaches include Optimistic Rollups (like Arbitrum and Optimism), which assume transactions are valid and only verify them if challenged, and ZK-Rollups (like zkSync and StarkNet), which use zero-knowledge proofs to cryptographically verify transaction batches. Both approaches can increase throughput by orders of magnitude while reducing per-transaction costs to fractions of a cent, making smart contracts practical for a much wider range of applications."
+                },
+                {
+                    "id": 19,
+                    "question": "What is the potential role of cross-chain interoperability in the future of smart contracts?",
+                    "options": {
+                        "A": "Cross-chain interoperability is unnecessary because all smart contracts should eventually migrate to a single dominant blockchain",
+                        "B": "Cross-chain interoperability would allow smart contracts on different blockchains to communicate and transact with each other, enabling assets and data to flow between platforms and creating a more connected decentralized ecosystem",
+                        "C": "Cross-chain technology only applies to transferring cryptocurrency between exchanges and has no relevance to smart contracts",
+                        "D": "Cross-chain interoperability means running the same smart contract on multiple blockchains simultaneously, which is already standard practice"
+                    },
+                    "correct": "B",
+                    "explanation": "Cross-chain interoperability is widely considered essential for the future of smart contracts. Currently, smart contracts on Ethereum cannot directly interact with those on Solana, Cardano, or other platforms, creating isolated ecosystems. Interoperability protocols (such as Polkadot's bridges, Cosmos IBC, and various bridge protocols) aim to enable seamless communication between chains. This would allow, for example, a DeFi protocol on Ethereum to use collateral locked on Solana, or an NFT to move between chains. However, cross-chain bridges have also been major targets for hackers, with billions of dollars lost through bridge exploits, highlighting the significant security challenges involved."
+                },
+                {
+                    "id": 20,
+                    "question": "How might artificial intelligence (AI) integration shape the future development of smart contracts?",
+                    "options": {
+                        "A": "AI has no potential application in the smart contract space because blockchains cannot run machine learning models",
+                        "B": "AI will completely replace smart contracts within five years, making blockchain technology obsolete for automated agreements",
+                        "C": "AI could enhance smart contracts through automated code auditing, natural language to code translation, intelligent oracle data validation, and AI-powered governance decision support, though combining AI's probabilistic nature with blockchain's deterministic requirements presents technical challenges",
+                        "D": "AI integration means that smart contracts will gain consciousness and be able to negotiate terms with humans autonomously"
+                    },
+                    "correct": "C",
+                    "explanation": "The intersection of AI and smart contracts is an active area of exploration with several promising directions. AI could help audit smart contract code to find vulnerabilities before deployment. Natural language processing could translate human-readable contract terms into smart contract code, lowering the barrier to entry. AI agents could serve as more intelligent oracles, validating and interpreting complex off-chain data. However, a fundamental tension exists: smart contracts require deterministic, reproducible execution, while AI models are probabilistic and can produce different outputs for the same input. Resolving this tension, perhaps through verifiable AI computation or constrained AI models, is an open research challenge."
+                }
+            ]
+        };
+
+        const state = {
+            currentIndex: 0,
+            answers: {},
+            score: 0,
+            displayedQuestions: [],
+            pendingSlots: []
+        };
+
+        const questionsRow = document.getElementById('questionsRow');
+        const progressBar = document.getElementById('progressBar');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultsCard = document.getElementById('resultsCard');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function initQuiz() {
+            state.currentIndex = 0;
+            state.answers = {};
+            state.score = 0;
+            state.displayedQuestions = [];
+            state.pendingSlots = [];
+
+            resultsCard.classList.remove('show');
+            questionsRow.style.display = 'grid';
+            nextBtn.classList.remove('show');
+
+            // Show first 3 questions
+            for (let i = 0; i < 3 && i < quizData.questions.length; i++) {
+                state.displayedQuestions.push(i);
+            }
+            state.currentIndex = Math.min(3, quizData.questions.length);
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function renderQuestions() {
+            questionsRow.innerHTML = '';
+
+            state.displayedQuestions.forEach((qIdx, slot) => {
+                const q = quizData.questions[qIdx];
+                const answered = state.answers[q.id] !== undefined;
+                const isCorrect = answered && state.answers[q.id] === q.correct;
+                const isIncorrect = answered && state.answers[q.id] !== q.correct;
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                if (isCorrect) card.classList.add('correct-card', 'answered');
+                if (isIncorrect) card.classList.add('incorrect-card', 'answered');
+
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span class="q-number">Q${qIdx + 1}</span>
+                        ${answered ? `<span class="q-status">${isCorrect ? '&#10004;' : '&#10008;'}</span>` : ''}
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options" data-qid="${q.id}" data-slot="${slot}">
+                        ${['A','B','C','D'].map(letter => {
+                            let optClass = 'option-btn';
+                            if (answered) {
+                                optClass += ' disabled';
+                                if (letter === q.correct) optClass += ' correct';
+                                else if (letter === state.answers[q.id]) optClass += ' incorrect';
+                            }
+                            return `
+                                <button class="${optClass}" data-letter="${letter}" ${answered ? 'disabled' : ''}>
+                                    <span class="option-letter">${letter}</span>
+                                    <span class="option-text">${q.options[letter]}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="feedback ${answered ? 'show' : ''} ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${answered ? (isCorrect ? '&#10004; ' : `&#10008; Answer: ${q.correct}. `) + q.explanation : ''}
+                    </div>
+                `;
+
+                // Add click handlers
+                if (!answered) {
+                    card.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.addEventListener('click', () => handleAnswer(qIdx, slot, btn.dataset.letter));
+                    });
+                }
+
+                questionsRow.appendChild(card);
+            });
+
+            renderMath();
+        }
+
+        function handleAnswer(qIdx, slot, letter) {
+            const q = quizData.questions[qIdx];
+            state.answers[q.id] = letter;
+
+            if (letter === q.correct) state.score++;
+
+            // Track this slot as pending replacement
+            if (!state.pendingSlots.includes(slot)) {
+                state.pendingSlots.push(slot);
+            }
+
+            updateStats();
+            renderQuestions();
+
+            // Check if all questions answered
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                // Short delay then show results
+                setTimeout(showResults, 800);
+            } else if (state.currentIndex < quizData.questions.length && state.pendingSlots.length > 0) {
+                // Show Next button if there are more questions and pending slots
+                nextBtn.classList.add('show');
+            }
+        }
+
+        function loadNextQuestions() {
+            // Replace pending slots with new questions
+            while (state.pendingSlots.length > 0 && state.currentIndex < quizData.questions.length) {
+                const slot = state.pendingSlots.shift();
+                state.displayedQuestions[slot] = state.currentIndex;
+                state.currentIndex++;
+            }
+
+            // Hide Next button
+            nextBtn.classList.remove('show');
+
+            renderQuestions();
+
+            // Check if quiz is complete (all displayed questions answered)
+            const answered = Object.keys(state.answers).length;
+            if (answered >= quizData.questions.length) {
+                setTimeout(showResults, 500);
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(state.answers).length;
+            const total = quizData.questions.length;
+
+            progressBar.style.width = `${(answered / total) * 100}%`;
+            progressBadge.textContent = `${answered}/${total}`;
+            scoreBadge.textContent = `Score: ${state.score}`;
+        }
+
+        function showResults() {
+            questionsRow.style.display = 'none';
+            nextBtn.classList.remove('show');
+            resultsCard.classList.add('show');
+
+            const total = quizData.questions.length;
+            const percentage = Math.round((state.score / total) * 100);
+
+            document.getElementById('resultsScore').textContent = `${state.score}/${total}`;
+
+            let grade, gradeClass, icon;
+            if (percentage >= 90) { grade = 'Excellent! A'; gradeClass = 'grade-a'; icon = '&#127942;'; }
+            else if (percentage >= 80) { grade = 'Great! B'; gradeClass = 'grade-b'; icon = '&#11088;'; }
+            else if (percentage >= 70) { grade = 'Good! C'; gradeClass = 'grade-c'; icon = '&#128077;'; }
+            else if (percentage >= 60) { grade = 'Pass - D'; gradeClass = 'grade-d'; icon = '&#128221;'; }
+            else { grade = 'Keep practicing'; gradeClass = 'grade-f'; icon = '&#128218;'; }
+
+            document.getElementById('resultsIcon').innerHTML = icon;
+            const gradeEl = document.getElementById('resultsGrade');
+            gradeEl.textContent = `${grade} (${percentage}%)`;
+            gradeEl.className = `results-grade ${gradeClass}`;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+            setTimeout(renderMath, 100);
+        });
+    </script>
+</body>
+</html>
