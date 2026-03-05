@@ -136,6 +136,13 @@ By the end of this lecture, you will be able to:
 %% ============================================================
 \section{ZK Proof Foundations \& Mathematical Basics}
 
+\begin{frame}{}
+\begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
+{\Large\bfseries Section 1: ZK Proof Foundations \& Mathematical Basics}\\[6pt]
+{\normalsize Zero-knowledge concepts, interactive proofs, and mathematical foundations}
+\end{beamercolorbox}
+\end{frame}
+
 % Frame 4: Historical Context
 \begin{frame}{Historical Context: The GMR Paper (1985)}
 \begin{columns}[T]
@@ -678,6 +685,13 @@ $\Rightarrow$ \textbf{Proof Systems:} Groth16, PLONK, STARKs, Bulletproofs -- ho
 %% ============================================================
 \section{Proof Systems -- SNARKs, STARKs, Bulletproofs}
 
+\begin{frame}{}
+\begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
+{\Large\bfseries Section 2: Proof Systems --- SNARKs, STARKs, Bulletproofs}\\[6pt]
+{\normalsize Comparing proof systems: setup, verification, proof size, and trade-offs}
+\end{beamercolorbox}
+\end{frame}
+
 % Frame 15: Taxonomy
 \begin{frame}{Taxonomy of ZK Proof Systems}
 \begin{center}
@@ -706,6 +720,7 @@ $\Rightarrow$ \textbf{Proof Systems:} Groth16, PLONK, STARKs, Bulletproofs -- ho
 \end{center}
 \vspace{1mm}
 \footnotesize
+\adjustbox{max width=\textwidth}{%
 \begin{tabular}{lcccl}
 \toprule
 \textbf{Key Differentiator} & \textbf{SNARKs} & \textbf{STARKs} & \textbf{Bulletproofs} & \textbf{Trade-off} \\
@@ -715,7 +730,8 @@ Proof Size & \textasciitilde200B & \textasciitilde45KB & \textasciitilde1.5KB & 
 Verification & O(1) & O(log$^2$ n) & O(n) & On-chain cost \\
 Post-Quantum & No & Yes & No & Future-proofing \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \bottomnote{No single system dominates -- each makes different trade-offs between trust, size, and quantum resistance}
 \end{frame}
 
@@ -1037,7 +1053,8 @@ Prove $v \in [0, 2^n)$ without revealing $v$:
 % Frame 22: Comparison Table
 \begin{frame}{Proof Systems Comparison}
 \footnotesize
-\begin{tabular}{lccccc}
+\adjustbox{max width=\textwidth}{%
+\begin{tabular}{lcccc}
 \toprule
 \textbf{Property} & \textbf{Groth16} & \textbf{PLONK} & \textbf{STARKs} & \textbf{Bulletproofs} \\
 \midrule
@@ -1050,7 +1067,8 @@ Assumptions & q-type & AGM + ROM & CRHF only & DLog \\
 \midrule
 Used By & Zcash, Filecoin & Aztec, Scroll & StarkNet, dYdX & Monero, Grin \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \vspace{3mm}
 \begin{columns}[T]
 \column{0.5\textwidth}
@@ -1204,6 +1222,13 @@ $\Rightarrow$ \textbf{Privacy Coins:} How Monero and Zcash use these proof syste
 
 %% ===== SECTION 3: Privacy Coins -- Monero, Zcash, Comparison =====
 \section{Privacy Coins}
+
+\begin{frame}{}
+\begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
+{\Large\bfseries Section 3: Privacy Coins}\\[6pt]
+{\normalsize Monero, Zcash, and privacy-preserving transaction mechanisms}
+\end{beamercolorbox}
+\end{frame}
 
 % Frame 26: Pseudonymity vs Anonymity
 \begin{frame}{The Privacy Spectrum in Blockchain}
@@ -1409,6 +1434,7 @@ $\mathcal{O}(\log n)$ proof size vs $\mathcal{O}(n)$ for na\"ive approach.
 % Frame 30: Monero Architecture
 \begin{frame}{Monero: Privacy by Default}
 \begin{center}
+\adjustbox{max width=\textwidth}{%
 \begin{tikzpicture}[scale=0.75, every node/.style={font=\tiny},
   layer/.style={rounded corners, draw=mlpurple, minimum width=10cm, minimum height=0.9cm, align=center, line width=0.5pt}]
 % Stack
@@ -1425,7 +1451,8 @@ $\mathcal{O}(\log n)$ proof size vs $\mathcal{O}(n)$ for na\"ive approach.
 \node[right=0.3cm, mlblue, font=\tiny\itshape, align=left] at (l4.east) {Sender\\privacy};
 \node[right=0.3cm, mlgreen, font=\tiny\itshape, align=left] at (l3.east) {Receiver\\privacy};
 \node[right=0.3cm, mlorange, font=\tiny\itshape, align=left] at (l2.east) {Amount\\privacy};
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \end{center}
 \vspace{0.1cm}
 \begin{columns}[T]
@@ -1759,6 +1786,13 @@ $\Rightarrow$ \textbf{ZK Applications:} Rollups, identity, voting, and private D
 
 %% ===== SECTION 4: ZK Applications -- Rollups, Identity, Voting, DeFi =====
 \section{ZK Applications}
+
+\begin{frame}{}
+\begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
+{\Large\bfseries Section 4: ZK Applications}\\[6pt]
+{\normalsize ZK-rollups, identity systems, voting, and real-world deployments}
+\end{beamercolorbox}
+\end{frame}
 
 % Frame 37: ZK-Rollup Architecture
 \begin{frame}{ZK-Rollups: Architecture Overview}
@@ -2355,6 +2389,13 @@ $\Rightarrow$ \textbf{Advanced Topics:} Hardware acceleration, post-quantum, reg
 
 %% ===== SECTION 5: Advanced Topics & Future Directions =====
 \section{Advanced Topics \& Future}
+
+\begin{frame}{}
+\begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
+{\Large\bfseries Section 5: Advanced Topics \& Future}\\[6pt]
+{\normalsize Recursive proofs, cross-chain privacy, regulation, and emerging trends}
+\end{beamercolorbox}
+\end{frame}
 
 % Frame 48: Proving System Frontiers
 \begin{frame}{Proving System Frontiers: Next-Generation ZK}

@@ -254,6 +254,7 @@ A \textbf{stablecoin} is a cryptographic token designed to maintain a stable val
 
 % Frame 7: Stablecoin Taxonomy
 \begin{frame}{Stablecoin Taxonomy}
+\adjustbox{max width=\textwidth}{%
 \begin{tikzpicture}[
   root/.style={draw=mlpurple, fill=mlpurple!20, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm, align=center, font=\scriptsize\bfseries}
 ]
@@ -288,11 +289,13 @@ A \textbf{stablecoin} is a cryptographic token designed to maintain a stable val
   \node[font=\tiny, text=mlorange, align=center] at (7.5,0.4) {Seigniorage or\\rebasing supply};
   \node[font=\tiny, text=mlred, align=center] at (10.5,0.4) {Physical or\\tokenised commodity};
 \end{tikzpicture}
+}%
 \bottomnote{Four primary design categories | Fiat-backed dominates with $>$85\% market share | Each category presents distinct risk--trust trade-offs}
 \end{frame}
 
 % Frame 8: Peg Mechanism Overview
 \begin{frame}{Peg Mechanism Overview}
+\adjustbox{max width=\textwidth}{%
 \begin{tikzpicture}
   % Panel 1: Redemption
   \node[draw=mlblue, fill=mlblue!10, rounded corners=4pt, minimum width=3.5cm, minimum height=3.8cm, align=center] (p1) at (1.9,2.0) {};
@@ -331,6 +334,7 @@ A \textbf{stablecoin} is a cryptographic token designed to maintain a stable val
   \node[font=\tiny\bfseries, text=mlgreen] at (6.0,0.3) {Risk: collateral volatility};
   \node[font=\tiny\bfseries, text=mlorange] at (10.1,0.3) {Risk: death spiral};
 \end{tikzpicture}
+}%
 \bottomnote{Collateralisation ratio (CR) = collateral value / stablecoin value | Algorithmic designs depend on reflexive demand assumptions}
 \end{frame}
 
@@ -920,6 +924,7 @@ interface IStablecoin {
 
 % Frame 23: Liquidation Process
 \begin{frame}{Liquidation Process}
+\adjustbox{max width=\textwidth}{%
 \begin{tikzpicture}
   %% Step boxes
   \node[draw=mlred, fill=mlred!15, rounded corners=4pt, minimum width=2.4cm, minimum height=1.0cm, align=center, font=\tiny\bfseries]     (s1) at (0.8,3.8)  {Oracle\\Price Feed\\Reports Drop};
@@ -957,6 +962,7 @@ interface IStablecoin {
   \node[draw=mlred, fill=mlred!12, rounded corners=3pt, minimum width=11.0cm, minimum height=0.7cm, align=center, font=\tiny\bfseries] at (5.6,0.8)
     {Black Swan Risk: ETH drops $>$33\% in one block --- collateral insufficient to cover debt --- Protocol Bad Debt (covered by MKR dilution)};
 \end{tikzpicture}
+}%
 \bottomnote{MakerDAO liquidations: \$240M+ in March 2020 ``Black Thursday'' | Keeper network monitors $\approx$50{,}000 vaults | Clip auction system introduced in MCD upgrade 2021}
 \end{frame}
 
@@ -1310,6 +1316,7 @@ contract TerraSwap {
 
 % Frame 32: Terra/LUNA Collapse Timeline
 \begin{frame}{Terra/LUNA Collapse Timeline: May 2022}
+\adjustbox{max width=\textwidth}{%
 \begin{tikzpicture}
   %% Timeline spine
   \draw[line width=2pt, mlgray!50] (0.5,0.4) -- (0.5,5.6);
@@ -1352,6 +1359,7 @@ contract TerraSwap {
   \textcolor{mlred}{$\bullet$ Chain halt}\\[6pt]
   Total loss:\\[-1pt]\$60B+};
 \end{tikzpicture}
+}%
 \bottomnote{Total value destroyed: \$60B+ | LUNA: \$119 peak (Apr 5) to \$0.0002 (May 13) | UST: \$18.7B supply to \$0 | Do Kwon indicted by US DOJ (2023) | Largest crypto collapse in history}
 \end{frame}
 
@@ -1682,6 +1690,7 @@ contract TerraSwap {
 \scriptsize A CBDC is \emph{not} a stablecoin. It is issued by the state, carries no counterparty risk relative to the issuer, and may not use public blockchain infrastructure.
 \end{alertblock}
 \column{0.56\textwidth}
+\adjustbox{max width=\linewidth}{%
 \begin{tikzpicture}[
   lhdr/.style={font=\tiny\bfseries, text=mlpurple, align=center}
 ]
@@ -1722,6 +1731,7 @@ contract TerraSwap {
 
   \node[font=\tiny\bfseries, text=mlpurple, align=center] at (6.5,1.5) {Comparison: Four monetary instruments across four dimensions};
 \end{tikzpicture}
+}%
 \end{columns}
 \bottomnote{BIS definition: CBDC is a digital form of CB money, different from existing reserves | IMF: 100+ countries in various stages of CBDC exploration | First live CBDC: Bahamas Sand Dollar, Oct 2020}
 \end{frame}
@@ -1874,6 +1884,7 @@ interface IAccountCBDC {
 
 % Frame 45: Global CBDC Landscape
 \begin{frame}{Global CBDC Landscape}
+\adjustbox{max width=\textwidth}{%
 \begin{tikzpicture}
   %% Launched column
   \node[draw=mlgreen, fill=mlgreen!70, rounded corners=3pt, minimum width=3.2cm, minimum height=0.65cm, align=center, font=\scriptsize\bfseries, text=white]  at (1.8,5.5) {Launched};
@@ -1903,6 +1914,7 @@ interface IAccountCBDC {
 
   \node[font=\tiny, text=mlgray, align=center] at (6.7,1.3) {Source: Atlantic Council CBDC Tracker 2024 | 130+ countries at various stages};
 \end{tikzpicture}
+}%
 \bottomnote{Atlantic Council CBDC Tracker: 130 countries in some stage of CBDC | G7: all have active research programs | BIS mBridge: 26 observing members | eNaira adoption challenged by low uptake; only 0.5\% of Nigerians used it by 2023}
 \end{frame}
 
@@ -2078,6 +2090,7 @@ interface IAccountCBDC {
 
 % Frame 50: Regulatory Landscape
 \begin{frame}{Global Regulatory Landscape for Stablecoins}
+\adjustbox{max width=\textwidth}{%
 \begin{tikzpicture}[
   lhdr/.style={font=\tiny\bfseries, text=mlpurple, align=center}
 ]
@@ -2119,6 +2132,7 @@ interface IAccountCBDC {
 
   \node[font=\tiny, text=mlgray, align=center] at (6.35,0.7) {Japan PSA (2023): stablecoins must be issued by banks, trust cos., or fund transfer businesses};
 \end{tikzpicture}
+}%
 \bottomnote{MiCA: Art.\ 17--49 cover ARTs and EMTs | USDC compliant with MiCA; Tether (USDT) not compliant as of mid-2024 | FSB: Cross-border regulatory coordination framework 2023 | G20: stablecoin regulation a priority since 2021}
 \end{frame}
 
@@ -2201,6 +2215,7 @@ interface IStableLend {
 
 % Frame 53: Cross-Border Payments Revolution
 \begin{frame}{Cross-Border Payments Revolution}
+\adjustbox{max width=\textwidth}{%
 \begin{tikzpicture}
   %% Traditional (left column)
   \node[draw=mlred, fill=mlred!70, rounded corners=4pt, minimum width=4.8cm, minimum height=0.75cm, align=center, font=\scriptsize\bfseries, text=white] at (2.8,5.5) {Traditional SWIFT};
@@ -2231,6 +2246,7 @@ interface IStableLend {
   %% Headline stat
   \node[draw=mlorange, fill=mlorange!10, rounded corners=3pt, minimum width=12.5cm, minimum height=0.7cm, align=center, font=\tiny\bfseries] at (6.5,0.3) {Global remittances: \$860B/year (2023) | Average cost via SWIFT: 6.2\% | Via stablecoin: $<$1\% | Potential saving: \$45B+ annually};
 \end{tikzpicture}
+}%
 \bottomnote{World Bank: remittances exceeded \$860B in 2023 | Stellar USDC: sub-second settlement, \$0.00001 fee | mBridge: live multi-CBDC corridor since 2022 | Ripple ODL (On-Demand Liquidity): XRP bridge for cross-border USD settlement}
 \end{frame}
 
