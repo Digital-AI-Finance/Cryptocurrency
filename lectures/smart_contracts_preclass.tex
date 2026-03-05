@@ -1,0 +1,187 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm, top=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+% Course color palette
+\definecolor{mlblue}{HTML}{0066CC}
+\definecolor{mlpurple}{HTML}{3333B2}
+\definecolor{mllavender}{HTML}{ADADE0}
+\definecolor{mllavender2}{HTML}{C1C1E8}
+\definecolor{mllavender3}{HTML}{CCCCEB}
+\definecolor{mllavender4}{HTML}{D6D6EF}
+\definecolor{mlorange}{HTML}{FF7F0E}
+\definecolor{mlgreen}{HTML}{2CA02C}
+\definecolor{mlred}{HTML}{D62728}
+\definecolor{mlgray}{HTML}{7F7F7F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{midgray}{HTML}{B4B4B4}
+
+% Section heading colors
+\titleformat{\section}{\large\bfseries\color{mlpurple}}{}{0em}{}[\vspace{-4pt}\textcolor{mllavender}{\rule{\linewidth}{1pt}}\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mlblue}}{}{0em}{\textbullet~}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{mllavender}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{mlpurple}\textbf{Introduction to Smart Contracts} \textcolor{mlgray}{|} Lesson 14 \textcolor{mlgray}{|} Pre-Class Discovery Handout}
+\fancyhead[R]{\small\color{mlgray}Prof.\ Dr.\ Joerg Osterrieder}
+\fancyfoot[C]{\small\color{mlgray}\thepage}
+
+% Compact list spacing
+\setlist[itemize]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.4em}
+\setlist[enumerate]{nosep, topsep=2pt, partopsep=0pt, leftmargin=1.6em}
+
+% Activity box helper
+\newcommand{\activitybox}[3]{%
+  \noindent\colorbox{mllavender4}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+    \textbf{\color{mlpurple}#1}\hfill\textcolor{mlgray}{\small #2}\\[2pt]#3%
+  }}\par\vspace{4pt}%
+}
+
+% Thin ruled cell for fill-in tables
+\newcommand{\fillcell}{\rule{2.2cm}{0.3pt}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\color{mlpurple}\textbf{Introduction to Smart Contracts}}\\[4pt]
+{\large\color{mlblue}Pre-Class Discovery Handout}\\[2pt]
+{\small\color{mlgray}Lesson 14 $\cdot$ Complete before class $\cdot$ 25--30 minutes}
+\end{center}
+\vspace{4pt}
+
+% -- Activity 1 ----------------------------------------------------------------
+\activitybox{Activity 1: Explore a Smart Contract on Etherscan}{10 min $\cdot$ Individual}{%
+Visit \href{https://etherscan.io}{etherscan.io} and navigate to a well-known smart contract such as the USDC token contract (address: \texttt{0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48}). Explore the contract page and answer:
+\begin{enumerate}
+\item How many transactions has this contract processed? What is the total number of token holders?
+\item Click the ``Contract'' tab and then ``Read Contract.'' Find the \texttt{name()}, \texttt{symbol()}, and \texttt{decimals()} functions. What values do they return?
+\item Click ``Write Contract.'' What functions are available? Why would you need to connect a wallet to use them?
+\item Look at the ``Events'' tab. What event is emitted most frequently? What information does a \texttt{Transfer} event contain (from, to, value)?
+\end{enumerate}
+\textbf{Bonus:} Find another smart contract (e.g., Uniswap Router) and compare its complexity (number of functions, transaction volume) to the USDC contract.
+}
+
+\vspace{2pt}
+
+% -- Activity 2 ----------------------------------------------------------------
+\activitybox{Activity 2: The Vending Machine Analogy}{5 min $\cdot$ Pairs}{%
+Nick Szabo described a vending machine as the simplest form of a smart contract: you insert money, the machine checks the amount, and it dispenses the product---no negotiation, no trust, no intermediary.
+\begin{enumerate}
+\item List three real-world processes (besides vending machines) that work like a smart contract: deterministic input, automatic verification, guaranteed output.
+\item For each process, identify: (a) what is the ``input,'' (b) what condition is checked, and (c) what is the automatic output.
+\item Which of your examples could actually be implemented as a blockchain smart contract? What would be gained or lost?
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}p{3.0cm}p{3.0cm}p{3.0cm}p{3.5cm}@{}}
+\toprule
+\textbf{Process} & \textbf{Input} & \textbf{Condition Checked} & \textbf{Automatic Output} \\
+\midrule
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 3 ----------------------------------------------------------------
+\activitybox{Activity 3: Compare Smart Contract Platforms}{10 min $\cdot$ Small Groups}{%
+Research and compare three smart contract platforms: Ethereum, Solana, and one platform of your choice (e.g., Cardano, Polkadot, Avalanche, or Arbitrum). Answer:
+\begin{enumerate}
+\item What programming language does each platform use for smart contracts?
+\item What is the approximate transaction speed (TPS) and average transaction cost for each?
+\item What consensus mechanism does each use? How does this affect security and decentralization?
+\item Which platform would you choose to deploy a high-frequency trading DApp? A community governance DAO? Justify each choice.
+\end{enumerate}
+\vspace{4pt}
+{\footnotesize\renewcommand{\arraystretch}{1.35}%
+\setlength{\tabcolsep}{5pt}%
+\begin{tabular}{@{}p{2.4cm}p{2.4cm}p{2.4cm}p{2.0cm}p{2.8cm}@{}}
+\toprule
+\textbf{Platform} & \textbf{Language} & \textbf{TPS / Cost} & \textbf{Consensus} & \textbf{Best For} \\
+\midrule
+Ethereum         & \fillcell & \fillcell & \fillcell & \fillcell \\
+Solana           & \fillcell & \fillcell & \fillcell & \fillcell \\
+\fillcell        & \fillcell & \fillcell & \fillcell & \fillcell \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+}
+
+\vspace{2pt}
+
+% -- Activity 4 ----------------------------------------------------------------
+\activitybox{Activity 4: Smart Contract Use Case Design}{5 min $\cdot$ Individual}{%
+Design a simple smart contract for one of the following scenarios (or invent your own):
+\begin{itemize}
+\item A crowdfunding contract that refunds donors if a goal is not met by a deadline
+\item An escrow contract for freelance work that releases payment upon delivery confirmation
+\item A lottery contract where participants buy tickets and a winner is selected
+\end{itemize}
+\begin{enumerate}
+\item What \textbf{state variables} would your contract need? (e.g., owner address, balance, deadline)
+\item What \textbf{functions} would users call? (e.g., \texttt{contribute()}, \texttt{withdraw()}, \texttt{refund()})
+\item What \textbf{conditions} must be checked before executing each function? (e.g., ``deadline has not passed,'' ``caller is the owner'')
+\item What could go wrong? Identify at least one security risk and how you would mitigate it.
+\end{enumerate}
+\vspace{4pt}
+\noindent
+\textbf{Contract name:}~\fillcell\quad
+\textbf{Number of functions:}~\fillcell\quad
+\textbf{Main security risk:}~\fillcell
+\vspace{2pt}
+}
+
+\vspace{4pt}
+
+% -- Glossary ------------------------------------------------------------------
+\section{Key Terms}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabular}{@{}p{3.6cm}p{11.0cm}@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\textbf{Smart Contract}  & A self-executing program stored on a blockchain that automatically enforces the terms of an agreement when predetermined conditions are met, without requiring intermediaries. \\
+\textbf{Solidity}         & The most widely used programming language for writing smart contracts on Ethereum and EVM-compatible blockchains. Statically typed, influenced by JavaScript and C++. \\
+\textbf{EVM}              & Ethereum Virtual Machine. The runtime environment that executes smart contract bytecode on every node in the Ethereum network, ensuring deterministic computation. \\
+\textbf{Gas}              & A unit measuring the computational effort required to execute operations on Ethereum. Users pay gas fees (in ETH) to compensate validators for processing transactions. \\
+\textbf{Gwei}             & A denomination of ETH equal to $10^{-9}$ ETH (one billionth). Gas prices are typically quoted in Gwei (e.g., 20 Gwei per unit of gas). \\
+\textbf{Transaction}      & A signed message sent from an externally owned account to the blockchain. Transactions can transfer ETH, deploy contracts, or call contract functions. \\
+\textbf{Block}            & A batch of validated transactions bundled together and appended to the blockchain. Each block references the previous block's hash, forming an immutable chain. \\
+\textbf{Wallet}           & Software (e.g., MetaMask) or hardware (e.g., Ledger) that manages a user's private keys and enables signing transactions to interact with the blockchain. \\
+\textbf{Private Key}      & A secret 256-bit number that proves ownership of a blockchain address and authorizes transactions. Must never be shared; loss means permanent loss of funds. \\
+\textbf{Address}          & A 20-byte (160-bit) identifier derived from a public key, used to send and receive ETH and interact with smart contracts. Displayed as a 42-character hexadecimal string (0x\ldots). \\
+\textbf{Deploy}           & The process of sending a transaction containing compiled smart contract bytecode to the blockchain, creating a new contract instance at a unique address. \\
+\textbf{ABI}              & Application Binary Interface. A JSON specification describing a smart contract's functions, inputs, outputs, and events, enabling external applications to interact with it. \\
+\textbf{DApp}             & Decentralized Application. A front-end application (web or mobile) that interacts with one or more smart contracts on a blockchain instead of a centralized server. \\
+\textbf{Oracle}           & A service (e.g., Chainlink) that feeds external, off-chain data (prices, weather, sports scores) into smart contracts, which cannot natively access data outside the blockchain. \\
+\textbf{Immutable}        & The property that once a smart contract is deployed to the blockchain, its code cannot be modified or deleted, ensuring permanence but requiring careful pre-deployment testing. \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\noindent\textcolor{mlgray}{\small\textit{Prepared by Prof.\ Dr.\ Joerg Osterrieder \,\textbullet\, Introduction to Smart Contracts --- Lesson 14 \,\textbullet\, Pre-Class Discovery Handout}}
+
+\end{document}

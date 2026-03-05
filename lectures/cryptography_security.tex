@@ -222,6 +222,18 @@
 \bottomnote{Prerequisites: modular arithmetic, basic group theory, probability}
 \end{frame}
 
+\begin{frame}{Learning Objectives}
+By the end of this lecture, you will be able to:
+\begin{enumerate}
+\item \textbf{Explain} the mathematical properties of cryptographic hash functions (preimage, collision, avalanche)
+\item \textbf{Compare} symmetric and asymmetric encryption schemes and their performance trade-offs
+\item \textbf{Analyze} ECDSA signing and verification using elliptic curve arithmetic
+\item \textbf{Evaluate} wallet security architectures (HD wallets, BIP-32/39/44 derivation paths)
+\item \textbf{Assess} quantum computing threats and post-quantum cryptography migration strategies
+\end{enumerate}
+\bottomnote{Bloom's taxonomy levels: Remember $\rightarrow$ Understand $\rightarrow$ Apply $\rightarrow$ Analyze $\rightarrow$ Evaluate $\rightarrow$ Create}
+\end{frame}
+
 \section{Hash Functions Deep Dive}
 
 %--- FRAME 6: Hash Function Formal Properties ---
@@ -1685,6 +1697,59 @@ Pairing-free & \checkmark & \checkmark & \checkmark & \textcolor{mlred}{\texttim
 \bottomnote{BLS signatures enable $n$ validator signatures to aggregate into a single 48-byte proof -- essential for PoS scalability}
 \end{frame}
 
+%--- FRAME 32: Threshold Signatures (TSS) ---
+\begin{frame}{Threshold Signatures (TSS)}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{tikzpicture}[font=\tiny,scale=0.85]
+  % Key generation phase
+  \node[font=\small\bfseries,mlpurple] at (3.5,5.5) {Distributed Key Generation (DKG)};
+  \node[draw,circle,fill=mlblue!20,minimum size=0.8cm,font=\tiny\bfseries] (p1) at (0.5,4.2) {$P_1$};
+  \node[draw,circle,fill=mlgreen!20,minimum size=0.8cm,font=\tiny\bfseries] (p2) at (3.5,4.2) {$P_2$};
+  \node[draw,circle,fill=mlorange!20,minimum size=0.8cm,font=\tiny\bfseries] (p3) at (6.5,4.2) {$P_3$};
+  % Key shares
+  \node[draw,fill=mllavender4,rounded corners,font=\tiny] (s1) at (0.5,3.0) {share $s_1$};
+  \node[draw,fill=mllavender4,rounded corners,font=\tiny] (s2) at (3.5,3.0) {share $s_2$};
+  \node[draw,fill=mllavender4,rounded corners,font=\tiny] (s3) at (6.5,3.0) {share $s_3$};
+  \draw[->,mlpurple] (p1)--(s1);
+  \draw[->,mlpurple] (p2)--(s2);
+  \draw[->,mlpurple] (p3)--(s3);
+  % Signing
+  \node[draw,fill=mllavender3,rounded corners,minimum width=5cm,align=center] (sign) at (3.5,1.5) {TSS Protocol: any 2 of 3\\produce valid signature $\sigma$};
+  \draw[->,mlgreen,thick] (s1)--(sign);
+  \draw[->,mlgreen,thick] (s2)--(sign);
+  % Output
+  \node[draw,fill=mlgreen!30,rounded corners,minimum width=3cm,font=\tiny\bfseries] (sig) at (3.5,0.2) {Standard ECDSA signature};
+  \draw[->,mlpurple,thick] (sign)--(sig);
+  \node[font=\tiny,mlgray] at (3.5,-0.4) {Indistinguishable from single-signer};
+\end{tikzpicture}
+\column{0.48\textwidth}
+\begin{block}{TSS vs.\ Multisig}
+\scriptsize
+\begin{tabular}{lll}
+\toprule
+& \textbf{TSS} & \textbf{Multisig}\\
+\midrule
+On-chain footprint & Single sig & $t$ sigs + script\\
+Privacy & Hidden $t$-of-$n$ & Visible on-chain\\
+Gas cost & Standard tx & Higher (more data)\\
+Key rotation & Re-share (no tx) & New address\\
+Chain support & Any ECDSA chain & Chain-specific\\
+\bottomrule
+\end{tabular}
+\end{block}
+\vspace{2mm}
+\begin{block}{Mathematical Foundation}
+\small Private key $d$ is \textbf{never reconstructed}. Each party holds Shamir share $s_i$ such that $d = \sum_{i \in S} \lambda_i s_i$ (Lagrange coefficients). Signing uses MPC protocol where each party contributes partial signature.
+\end{block}
+\vspace{2mm}
+\begin{alertblock}{Adoption}\small
+Fireblocks, ZenGo, Binance custody -- all use TSS for institutional key management.
+\end{alertblock}
+\end{columns}
+\bottomnote{TSS provides multisig security with single-signature efficiency -- the private key never exists in one place}
+\end{frame}
+
 \section{Key Management \& Wallets}
 
 %--- FRAME 32: BIP-39 Mnemonic Seeds ---
@@ -2011,6 +2076,50 @@ Side-channel & Secure element hardening \\
 \end{block}
 \end{columns}
 \bottomnote{Shamir (1979): $t$-of-$n$ secret sharing is information-theoretically secure -- no computational assumptions needed}
+\end{frame}
+
+%--- FRAME 38: Multi-Party Computation (MPC) Wallets ---
+\begin{frame}{Multi-Party Computation (MPC) Wallets}
+\begin{columns}
+\column{0.48\textwidth}
+\begin{block}{\textcolor{mlblue}{How MPC Signing Works}}
+\begin{enumerate}\small
+  \item \textbf{Key generation}: $n$ parties jointly generate key shares $k_1, \ldots, k_n$ via distributed key generation (DKG)
+  \item \textbf{No single key}: the private key $sk$ is \emph{never} assembled on any device
+  \item \textbf{Threshold signing}: $t$-of-$n$ parties run interactive protocol producing a single valid ECDSA/EdDSA signature
+  \item \textbf{On-chain}: appears as a standard single-signature transaction
+\end{enumerate}
+\end{block}
+\vspace{2mm}
+\begin{alertblock}{Key Advantage over Multisig}
+\small MPC is \textbf{protocol-agnostic}: works on any chain without native multisig support. Gas cost equals a single-sig tx.
+\end{alertblock}
+\column{0.48\textwidth}
+\begin{block}{\textcolor{mlpurple}{MPC vs.\ Multisig vs.\ Shamir}}
+\scriptsize
+\begin{tabular}{llll}
+\toprule
+\textbf{Property} & \textbf{MPC} & \textbf{Multisig} & \textbf{Shamir} \\
+\midrule
+Key assembly & Never & N/A & At signing \\
+On-chain cost & 1-sig & $t$-sig & 1-sig \\
+Chain support & Any & Chain-specific & Any \\
+Key rotation & Yes & New address & Re-share \\
+Privacy & High & Visible on-chain & High \\
+\bottomrule
+\end{tabular}
+\end{block}
+\vspace{2mm}
+\begin{block}{Institutional MPC Providers}
+\begin{itemize}\small
+  \item \textbf{Fireblocks}: institutional custody, \$6T+ transferred
+  \item \textbf{ZenGo}: consumer MPC wallet (2-of-2)
+  \item \textbf{Coinbase WaaS}: MPC-based wallet-as-a-service
+  \item \textbf{Lit Protocol}: decentralized MPC key management
+\end{itemize}
+\end{block}
+\end{columns}
+\bottomnote{MPC wallets eliminate single points of failure without on-chain overhead; dominant institutional custody model since 2022}
 \end{frame}
 
 \section{Cryptographic Protocols}
@@ -2513,7 +2622,59 @@ Fully (FHE) & Both, & TFHE, \\
 \bottomnote{Side-channels attack the \emph{implementation}, not the \emph{algorithm} -- correct code with wrong timing is still broken}
 \end{frame}
 
-%--- FRAME 47: Quantum Computing: Shor's Algorithm ---
+%--- FRAME 48: Social Engineering Attacks ---
+\begin{frame}{Social Engineering Attacks on Crypto Users}
+\begin{center}
+\begin{tikzpicture}[font=\small,scale=0.78,
+  attack/.style={draw,rounded corners,fill=mlred!15,minimum width=3.5cm,minimum height=2.2cm,align=center}]
+  % Four attack panels
+  \node[attack] (p1) at (0,0) {};
+  \node[font=\scriptsize\bfseries,mlred] at (0,1.2) {Phishing};
+  \node[font=\tiny,align=center] at (0,0.2) {Fake wallet sites\\clone MetaMask UI\\steal seed phrase\\approval scams};
+  \node[font=\tiny,mlgray] at (0,-0.7) {\$1B+ lost (2023)};
+
+  \node[attack] (p2) at (4.5,0) {};
+  \node[font=\scriptsize\bfseries,mlred] at (4.5,1.2) {SIM Swap};
+  \node[font=\tiny,align=center] at (4.5,0.2) {Port victim's phone\\intercept SMS 2FA\\access exchange accts\\social engineer carrier};
+  \node[font=\tiny,mlgray] at (4.5,-0.7) {FBI: \$72M in 2023};
+
+  \node[attack] (p3) at (9,0) {};
+  \node[font=\scriptsize\bfseries,mlred] at (9,1.2) {Clipboard Hijack};
+  \node[font=\tiny,align=center] at (9,0.2) {Malware replaces\\copied addresses\\victim sends to\\attacker's wallet};
+  \node[font=\tiny,mlgray] at (9,-0.7) {Undetectable visually};
+
+  \node[attack] (p4) at (13.5,0) {};
+  \node[font=\scriptsize\bfseries,mlred] at (13.5,1.2) {Ice Phishing};
+  \node[font=\tiny,align=center] at (13.5,0.2) {Trick user into signing\\token approval tx\\drain via transferFrom\\no seed phrase needed};
+  \node[font=\tiny,mlgray] at (13.5,-0.7) {Top DeFi attack vector};
+\end{tikzpicture}
+\end{center}
+\vspace{2mm}
+\begin{columns}
+\column{0.48\textwidth}
+\begin{block}{Why Crypto Users Are Targets}
+\begin{itemize}\small
+  \item Irreversible transactions (no chargeback)
+  \item Pseudonymous: attacker hard to trace
+  \item Self-custody: no bank fraud department
+  \item High value per compromise
+\end{itemize}
+\end{block}
+\column{0.48\textwidth}
+\begin{block}{Defense Strategies}
+\begin{itemize}\small
+  \item \textbf{Hardware wallet}: signs offline, immune to phishing
+  \item \textbf{Address whitelisting}: only send to verified addresses
+  \item \textbf{FIDO2/WebAuthn}: phishing-resistant 2FA (not SMS)
+  \item \textbf{Approval hygiene}: revoke unused token approvals
+  \item \textbf{Verify on device}: confirm address on hardware screen
+\end{itemize}
+\end{block}
+\end{columns}
+\bottomnote{Social engineering bypasses all cryptographic security -- the human is always the weakest link in the system}
+\end{frame}
+
+%--- FRAME 49: Quantum Computing: Shor's Algorithm ---
 \begin{frame}{Quantum Threat: Shor's Algorithm}
 \begin{center}
 \begin{tikzpicture}

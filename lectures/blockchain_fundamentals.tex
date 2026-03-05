@@ -193,6 +193,18 @@ Trustless, Byzantine fault tolerant, censorship-resistant. But: slower, complex.
 \bottomnote{Prerequisites: probability theory, basic cryptography, graph theory}
 \end{frame}
 
+\begin{frame}{Learning Objectives}
+By the end of this lecture, you will be able to:
+\begin{enumerate}
+\item \textbf{Explain} the double-spending problem and how blockchain provides a trustless solution
+\item \textbf{Describe} the internal structure of a block (header, body, Merkle root, hash pointers)
+\item \textbf{Compare} Proof of Work and Proof of Stake consensus mechanisms quantitatively
+\item \textbf{Analyze} the security guarantees of hash-chain immutability and collision resistance
+\item \textbf{Evaluate} trade-offs in the blockchain trilemma (scalability, security, decentralization)
+\end{enumerate}
+\bottomnote{Bloom's taxonomy levels: Remember $\rightarrow$ Understand $\rightarrow$ Apply $\rightarrow$ Analyze $\rightarrow$ Evaluate $\rightarrow$ Create}
+\end{frame}
+
 \section{Block Anatomy}
 
 %--- FRAME 6: Block Data Structure ---
@@ -1395,7 +1407,52 @@ Under Casper FFG: two conflicting checkpoints \emph{cannot both be finalized} un
 \bottomnote{Casper FFG (Buterin \& Griffith, 2017): first formal finality gadget with accountable safety}
 \end{frame}
 
-%--- FRAME 35: Staking Economics ---
+%--- FRAME 35: Block Finality ---
+\begin{frame}{Block Finality: Probabilistic vs.\ Deterministic}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{tikzpicture}[font=\tiny,scale=0.9]
+  % Probabilistic finality (PoW)
+  \node[font=\small\bfseries,mlpurple] at (3,5.5) {Probabilistic (PoW)};
+  \foreach \i/\x/\op in {1/0/100, 2/1.3/80, 3/2.6/60, 4/3.9/40, 5/5.2/20}{
+    \draw[fill=mllavender3,draw=mlpurple,rounded corners,opacity=\op/100] (\x,4.0) rectangle (\x+1.1,4.8);
+    \node[font=\tiny] at (\x+0.55,4.4) {Block \i};
+  }
+  \draw[->,mlred,thick] (0.55,3.7) -- (5.75,3.7) node[right,font=\tiny]{reorg risk $\downarrow$};
+  \node[font=\tiny,mlgray] at (3,3.3) {Never 100\% final; risk decays exponentially};
+  % Deterministic finality (PoS)
+  \node[font=\small\bfseries,mlgreen!80!black] at (3,2.5) {Deterministic (PoS/BFT)};
+  \foreach \i/\x in {1/0, 2/1.3, 3/2.6}{
+    \draw[fill=mllavender4,draw=mlpurple,rounded corners] (\x,1.2) rectangle (\x+1.1,2.0);
+    \node[font=\tiny] at (\x+0.55,1.6) {Block \i};
+  }
+  \node[draw,fill=mlgreen!30,rounded corners,font=\tiny\bfseries] at (4.5,1.6) {FINALIZED};
+  \draw[->,mlgreen,thick] (3.8,1.6) -- (3.95,1.6);
+  \node[font=\tiny,mlgray] at (3,0.8) {After 2/3+ validator attestation: irreversible};
+\end{tikzpicture}
+\column{0.48\textwidth}
+\begin{block}{Probabilistic Finality (Bitcoin)}
+\begin{itemize}\small
+  \item Confidence grows with each confirmation
+  \item After $z$ blocks: $P(\text{reorg}) = (q/(1-q))^z$
+  \item 6 confirmations: $\sim$60 min, $P < 0.001$
+  \item Never mathematically ``final''
+\end{itemize}
+\end{block}
+\vspace{2mm}
+\begin{block}{Deterministic Finality (Ethereum)}
+\begin{itemize}\small
+  \item Casper FFG: finalized after 2 epochs ($\sim$13 min)
+  \item Reversal requires slashing $\geq 1/3$ of total stake
+  \item At 30M ETH staked: attack cost $>\$10$B
+  \item Tendermint (Cosmos): single-slot finality ($\sim$6s)
+\end{itemize}
+\end{block}
+\end{columns}
+\bottomnote{Finality type determines confirmation time: PoW chains need minutes; BFT chains can finalize in seconds}
+\end{frame}
+
+%--- FRAME 36: Staking Economics ---
 \begin{frame}{Staking Economics: Yield Curve}
 \begin{columns}
 \column{0.55\textwidth}
@@ -1679,7 +1736,51 @@ $\text{HHI} = 3\times(33)^2/100 = 3267$ (concentrated)
 \bottomnote{Decentralization is multidimensional; no single metric captures all aspects of blockchain security}
 \end{frame}
 
-%--- FRAME 42: Full Nodes vs Light Clients ---
+%--- FRAME 43: Blockchain Governance Models ---
+\begin{frame}{Blockchain Governance Models}
+\begin{center}
+\begin{tikzpicture}[font=\small,scale=0.85]
+  % On-chain governance
+  \node[draw,fill=mllavender2,rounded corners,minimum width=5cm,minimum height=1.0cm,align=center] (onchain) at (3.5,5.0) {\textbf{On-Chain Governance}};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=2cm,font=\tiny,align=center] (prop) at (1,3.5) {Proposal\\submitted};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=2cm,font=\tiny,align=center] (vote) at (3.5,3.5) {Token holders\\vote on-chain};
+  \node[draw,fill=mlgreen!30,rounded corners,minimum width=2cm,font=\tiny,align=center] (exec) at (6,3.5) {Auto-execute\\if passed};
+  \draw[->,mlpurple,thick] (prop)--(vote);
+  \draw[->,mlpurple,thick] (vote)--(exec);
+  % Off-chain governance
+  \node[draw,fill=mllavender2,rounded corners,minimum width=5cm,minimum height=1.0cm,align=center] (offchain) at (11.5,5.0) {\textbf{Off-Chain Governance}};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=2cm,font=\tiny,align=center] (bip) at (9.5,3.5) {BIP / EIP\\discussion};
+  \node[draw,fill=mllavender4,rounded corners,minimum width=2cm,font=\tiny,align=center] (rough) at (11.5,3.5) {Rough\\consensus};
+  \node[draw,fill=mlorange!30,rounded corners,minimum width=2cm,font=\tiny,align=center] (fork) at (13.5,3.5) {Hard/soft\\fork};
+  \draw[->,mlpurple,thick] (bip)--(rough);
+  \draw[->,mlpurple,thick] (rough)--(fork);
+\end{tikzpicture}
+\end{center}
+\vspace{2mm}
+\begin{columns}
+\column{0.48\textwidth}
+\begin{block}{On-Chain (Tezos, Polkadot)}
+\begin{itemize}\small
+  \item Protocol upgrades via token voting
+  \item Automatic enactment after threshold
+  \item DAOs: Decentralized Autonomous Organizations
+  \item Risk: plutocracy (rich dominate votes)
+\end{itemize}
+\end{block}
+\column{0.48\textwidth}
+\begin{block}{Off-Chain (Bitcoin, Ethereum)}
+\begin{itemize}\small
+  \item BIPs/EIPs: formal improvement proposals
+  \item Core devs, miners, users signal support
+  \item Contentious changes $\to$ hard fork (e.g., BCH 2017)
+  \item Slower but more conservative; ``code is not law''
+\end{itemize}
+\end{block}
+\end{columns}
+\bottomnote{Governance determines how blockchains evolve; no perfect model -- trade-off between speed and decentralization}
+\end{frame}
+
+%--- FRAME 44: Full Nodes vs Light Clients ---
 \begin{frame}{Node Types: Full Nodes vs.\ Light Clients}
 \begin{tikzpicture}[font=\small]
   \node[draw,fill=mllavender2,rounded corners,minimum width=4cm,minimum height=1.0cm,align=center] (arch) at (5,4.8) {\textbf{Archive Node}\\Full history + all states (12+ TB)};
@@ -2005,7 +2106,135 @@ Bridges hold \$billions in TVL and are prime hack targets:
 \bottomnote{Total bridge hacks (2021--2024): $>\$2$B; bridges are the weakest link in multi-chain ecosystems}
 \end{frame}
 
-%--- FRAME 50: Summary ---
+%--- FRAME 51: Blockchain Interoperability ---
+\begin{frame}{Blockchain Interoperability}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{tikzpicture}[font=\tiny,scale=0.85]
+  \node[draw,circle,fill=mlblue!20,minimum size=1.2cm,font=\tiny\bfseries] (btc) at (0,3.5) {Bitcoin};
+  \node[draw,circle,fill=mlpurple!20,minimum size=1.2cm,font=\tiny\bfseries] (eth) at (4,3.5) {Ethereum};
+  \node[draw,circle,fill=mlgreen!20,minimum size=1.2cm,font=\tiny\bfseries] (sol) at (2,0.5) {Solana};
+  \node[draw,circle,fill=mlorange!20,minimum size=1.2cm,font=\tiny\bfseries] (dot) at (6,0.5) {Polkadot};
+  % Interop methods
+  \draw[mlpurple,thick,<->] (btc)--(eth) node[midway,above,font=\tiny]{WBTC / tBTC};
+  \draw[mlgreen,thick,<->] (eth)--(sol) node[midway,left,font=\tiny]{Wormhole};
+  \draw[mlblue,thick,<->] (btc)--(sol) node[midway,left,font=\tiny]{Atomic Swap};
+  \draw[mlorange,thick,<->] (eth)--(dot) node[midway,right,font=\tiny]{XCM / Bridge};
+  \draw[mlgray,dashed,<->] (sol)--(dot) node[midway,below,font=\tiny]{IBC relay};
+  % Hub
+  \node[draw,fill=mllavender3,rounded corners,minimum width=1.5cm,font=\tiny,align=center] at (2,2.2) {Relay\\Hub};
+\end{tikzpicture}
+\column{0.48\textwidth}
+\begin{block}{Interoperability Mechanisms}
+\begin{itemize}\small
+  \item \textbf{Atomic Swaps}: HTLC-based trustless exchange across chains
+  \item \textbf{Wrapped Tokens}: custodial (WBTC) or decentralized (tBTC)
+  \item \textbf{Relay Chains}: Polkadot parachains, Cosmos IBC
+  \item \textbf{Message Passing}: LayerZero, Axelar, Chainlink CCIP
+\end{itemize}
+\end{block}
+\vspace{2mm}
+\begin{block}{Atomic Swap Protocol (HTLC)}
+\begin{enumerate}\small
+  \item Alice creates hash lock $h = H(s)$ on Chain A
+  \item Bob locks funds with same $h$ on Chain B
+  \item Alice reveals secret $s$ to claim on Chain B
+  \item Bob uses $s$ to claim on Chain A
+  \item Timeout: refund if incomplete
+\end{enumerate}
+\end{block}
+\end{columns}
+\bottomnote{Interoperability is the ``TCP/IP moment'' for blockchains -- enabling composability across isolated networks}
+\end{frame}
+
+%--- FRAME 52: Smart Contract Platforms Comparison ---
+\begin{frame}{Smart Contract Platforms Comparison}
+\begin{center}
+\small
+\begin{tabular}{lllll}
+\toprule
+\textbf{Feature} & \textbf{Ethereum} & \textbf{Solana} & \textbf{Cardano} & \textbf{Polkadot} \\
+\midrule
+\textbf{Consensus} & PoS (Casper) & PoH + Tower BFT & Ouroboros PoS & NPoS (GRANDPA) \\
+\textbf{TPS (L1)} & $\sim$15--30 & $\sim$4{,}000+ & $\sim$250 & $\sim$1{,}000 \\
+\textbf{Finality} & $\sim$12 min & $\sim$0.4 s & $\sim$20 s & $\sim$12--60 s \\
+\textbf{VM / Lang} & EVM / Solidity & SVM / Rust & Plutus / Haskell & Wasm / Rust \\
+\textbf{Fee model} & EIP-1559 (dynamic) & Fixed low fees & Predictable & Weight-based \\
+\textbf{Smart contract} & Account-based & Account-based & eUTXO-based & Pallet-based \\
+\textbf{Validator count} & $\sim$900{,}000+ & $\sim$1{,}900 & $\sim$3{,}200 & $\sim$300 \\
+\textbf{Scaling} & L2 rollups & Firedancer & Hydra (L2) & Parachains \\
+\textbf{TVL (2024)} & $\sim$\$60B & $\sim$\$5B & $\sim$\$500M & $\sim$\$300M \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{2mm}
+\begin{columns}
+\column{0.48\textwidth}
+\begin{block}{\textcolor{mlblue}{Design Philosophy Tradeoffs}}
+\begin{itemize}\small
+  \item \textbf{Ethereum}: maximum decentralization, L2-centric roadmap
+  \item \textbf{Solana}: raw throughput via hardware requirements
+  \item \textbf{Cardano}: formal verification, peer-reviewed research
+  \item \textbf{Polkadot}: shared security via relay chain
+\end{itemize}
+\end{block}
+\column{0.48\textwidth}
+\begin{block}{\textcolor{mlpurple}{Blockchain Trilemma Position}}
+\begin{itemize}\small
+  \item All platforms trade off \textbf{decentralization}, \textbf{security}, and \textbf{scalability}
+  \item Ethereum favors decentralization + security
+  \item Solana favors scalability + security
+  \item No platform achieves all three at L1
+\end{itemize}
+\end{block}
+\end{columns}
+\bottomnote{Platform choice depends on application requirements; Ethereum dominates by TVL and developer ecosystem (2024)}
+\end{frame}
+
+%--- FRAME 53: Real-World Blockchain Applications in Finance ---
+\begin{frame}{Real-World Blockchain Applications in Finance}
+\begin{columns}
+\column{0.48\textwidth}
+\begin{block}{Central Bank Digital Currencies (CBDCs)}
+\begin{itemize}\small
+  \item \textbf{Digital Yuan (e-CNY)}: live since 2022, 260M+ users
+  \item \textbf{Digital Euro}: ECB piloting (2024--2025)
+  \item Wholesale vs.\ retail CBDC designs
+  \item Programmable money: conditional payments, expiry
+\end{itemize}
+\end{block}
+\vspace{2mm}
+\begin{block}{Decentralized Finance (DeFi)}
+\begin{itemize}\small
+  \item \textbf{DEXs}: Uniswap, Curve -- \$billions daily volume
+  \item \textbf{Lending}: Aave, Compound -- algorithmic interest rates
+  \item \textbf{Stablecoins}: USDC, DAI -- \$150B+ market cap
+  \item Total DeFi TVL: $\sim$\$90B (2024)
+\end{itemize}
+\end{block}
+\column{0.48\textwidth}
+\begin{block}{Tokenization of Real-World Assets (RWA)}
+\begin{itemize}\small
+  \item \textbf{Securities}: tokenized bonds (EIB, Goldman Sachs)
+  \item \textbf{Real estate}: fractional ownership via NFTs
+  \item \textbf{Commodities}: Paxos Gold (PAXG), tokenized carbon credits
+  \item BlackRock BUIDL fund: \$500M+ tokenized treasuries
+\end{itemize}
+\end{block}
+\vspace{2mm}
+\begin{block}{Institutional Adoption}
+\begin{itemize}\small
+  \item Bitcoin ETFs: \$50B+ AUM (approved Jan 2024)
+  \item JPMorgan Onyx: blockchain-based payments
+  \item SWIFT: CBDC interoperability experiments
+  \item BIS Innovation Hub: Project mBridge (multi-CBDC)
+\end{itemize}
+\end{block}
+\end{columns}
+\bottomnote{Blockchain in finance: from fringe experiment to institutional infrastructure; RWA tokenization projected at \$16T by 2030}
+\end{frame}
+
+%--- FRAME 53: Summary ---
 \begin{frame}{Summary: Key Formulas Reference Sheet}
 \begin{columns}
 \column{0.5\textwidth}
