@@ -338,244 +338,244 @@
         const quizData = {
             questions: [
                 {
-                    id: "zk1_q1",
-                    question: "What is the core informal definition of a zero-knowledge proof?",
-                    options: {
-                        A: "A proof that reveals the exact solution to a problem so the verifier can independently check every step",
-                        B: "A proof that convinces a verifier that a statement is true without revealing any information beyond the truth of the statement itself",
-                        C: "A cryptographic hash that commits to a value without allowing the prover to change it later",
-                        D: "An interactive protocol where the verifier learns the witness after the proof succeeds"
+                    "id": "zk1_q1",
+                    "question": "What is the core informal definition of a zero-knowledge proof?",
+                    "options": {
+                        "A": "A proof that reveals the exact solution to a problem so the verifier can independently check every step",
+                        "B": "A proof that convinces a verifier that a statement is true without revealing any information beyond the truth of the statement itself",
+                        "C": "A cryptographic hash that commits to a value without allowing the prover to change it later",
+                        "D": "An interactive protocol where the verifier learns the witness after the proof succeeds"
                     },
-                    correct: "B",
-                    explanation: "A zero-knowledge proof allows a prover to convince a verifier that a statement is true (e.g., 'I know a secret x') while revealing nothing about x beyond the fact that it satisfies the claimed relation. This separates knowledge of a fact from the ability to verify the fact."
+                    "correct": "B",
+                    "explanation": "A zero-knowledge proof allows a prover to convince a verifier that a statement is true (e.g., 'I know a secret x') while revealing nothing about x beyond the fact that it satisfies the claimed relation. This separates knowledge of a fact from the ability to verify the fact."
                 },
                 {
-                    id: "zk1_q2",
-                    question: "Which of the three core properties of a zero-knowledge proof ensures that a cheating prover cannot convince the verifier of a false statement?",
-                    options: {
-                        A: "Completeness",
-                        B: "Zero-knowledge",
-                        C: "Soundness",
-                        D: "Succinctness"
+                    "id": "zk1_q2",
+                    "question": "Which of the three core properties of a zero-knowledge proof ensures that a cheating prover cannot convince the verifier of a false statement?",
+                    "options": {
+                        "A": "Completeness",
+                        "B": "Zero-knowledge",
+                        "C": "Soundness",
+                        "D": "Succinctness"
                     },
-                    correct: "C",
-                    explanation: "Soundness guarantees that a cheating prover cannot convince an honest verifier of a false statement, except with negligible probability (the soundness error). Completeness ensures an honest prover can always convince the verifier of a true statement. Zero-knowledge ensures no extra information leaks."
+                    "correct": "C",
+                    "explanation": "Soundness guarantees that a cheating prover cannot convince an honest verifier of a false statement, except with negligible probability (the soundness error). Completeness ensures an honest prover can always convince the verifier of a true statement. Zero-knowledge ensures no extra information leaks."
                 },
                 {
-                    id: "zk1_q3",
-                    question: "The completeness property of a zero-knowledge proof system states that:",
-                    options: {
-                        A: "If the statement is false, no cheating prover can convince the verifier it is true",
-                        B: "If the statement is true and both parties are honest, the verifier will accept with high probability",
-                        C: "The verifier learns nothing from the interaction beyond the validity of the statement",
-                        D: "The proof can be verified without any interaction between prover and verifier"
+                    "id": "zk1_q3",
+                    "question": "The completeness property of a zero-knowledge proof system states that:",
+                    "options": {
+                        "A": "If the statement is false, no cheating prover can convince the verifier it is true",
+                        "B": "If the statement is true and both parties are honest, the verifier will accept with high probability",
+                        "C": "The verifier learns nothing from the interaction beyond the validity of the statement",
+                        "D": "The proof can be verified without any interaction between prover and verifier"
                     },
-                    correct: "B",
-                    explanation: "Completeness says that for any true statement, an honest prover who knows the witness can always convince an honest verifier to accept. Perfect completeness means acceptance probability is exactly 1; statistical completeness allows a negligible failure probability. This is the counterpart to soundness."
+                    "correct": "B",
+                    "explanation": "Completeness says that for any true statement, an honest prover who knows the witness can always convince an honest verifier to accept. Perfect completeness means acceptance probability is exactly 1; statistical completeness allows a negligible failure probability. This is the counterpart to soundness."
                 },
                 {
-                    id: "zk1_q4",
-                    question: "What is the key structural difference between an interactive zero-knowledge proof and a non-interactive zero-knowledge (NIZK) proof?",
-                    options: {
-                        A: "Interactive proofs use public-key cryptography; NIZK proofs use symmetric cryptography",
-                        B: "Interactive proofs require multiple rounds of challenge and response; NIZK proofs produce a single string that any verifier can check without interaction",
-                        C: "Interactive proofs are computationally sound; NIZK proofs are information-theoretically sound",
-                        D: "Interactive proofs only work for NP problems; NIZK proofs work for any complexity class"
+                    "id": "zk1_q4",
+                    "question": "What is the key structural difference between an interactive zero-knowledge proof and a non-interactive zero-knowledge (NIZK) proof?",
+                    "options": {
+                        "A": "Interactive proofs use public-key cryptography; NIZK proofs use symmetric cryptography",
+                        "B": "Interactive proofs require multiple rounds of challenge and response; NIZK proofs produce a single string that any verifier can check without interaction",
+                        "C": "Interactive proofs are computationally sound; NIZK proofs are information-theoretically sound",
+                        "D": "Interactive proofs only work for NP problems; NIZK proofs work for any complexity class"
                     },
-                    correct: "B",
-                    explanation: "Interactive proofs require the verifier to send random challenges during the protocol, and the prover responds. This interaction makes the proof convincing. NIZK proofs replace interaction with a single proof string (often using a common reference string or the Fiat-Shamir transform), allowing offline verification by anyone."
+                    "correct": "B",
+                    "explanation": "Interactive proofs require the verifier to send random challenges during the protocol, and the prover responds. This interaction makes the proof convincing. NIZK proofs replace interaction with a single proof string (often using a common reference string or the Fiat-Shamir transform), allowing offline verification by anyone."
                 },
                 {
-                    id: "zk1_q5",
-                    question: "In a commitment scheme, the hiding property ensures:",
-                    options: {
-                        A: "The committer cannot change the committed value after sending the commitment",
-                        B: "The commitment reveals no information about the committed value to anyone who sees it",
-                        C: "The commitment can be opened by anyone with the public key",
-                        D: "The commitment is computationally infeasible to compute"
+                    "id": "zk1_q5",
+                    "question": "In a commitment scheme, the hiding property ensures:",
+                    "options": {
+                        "A": "The committer cannot change the committed value after sending the commitment",
+                        "B": "The commitment reveals no information about the committed value to anyone who sees it",
+                        "C": "The commitment can be opened by anyone with the public key",
+                        "D": "The commitment is computationally infeasible to compute"
                     },
-                    correct: "B",
-                    explanation: "A commitment scheme has two properties: hiding (the commitment reveals nothing about the value -- the adversary cannot distinguish commitments to different values) and binding (the committer cannot open the commitment to a different value than originally committed). Hiding is the confidentiality property; binding is the integrity property."
+                    "correct": "B",
+                    "explanation": "A commitment scheme has two properties: hiding (the commitment reveals nothing about the value -- the adversary cannot distinguish commitments to different values) and binding (the committer cannot open the commitment to a different value than originally committed). Hiding is the confidentiality property; binding is the integrity property."
                 },
                 {
-                    id: "zk1_q6",
-                    question: "A Pedersen commitment to a value v using randomness r is computed as $C = g^v h^r$ in a group of prime order q. What makes this commitment perfectly hiding?",
-                    options: {
-                        A: "The discrete logarithm of h base g is publicly known",
-                        B: "For any value v, there exists a randomness r such that the commitment equals any target group element, so the commitment distribution is uniform regardless of v",
-                        C: "The commitment is a one-way function so v cannot be recovered",
-                        D: "The group order q is a 256-bit prime making brute force infeasible"
+                    "id": "zk1_q6",
+                    "question": "A Pedersen commitment to a value v using randomness r is computed as $C = g^v h^r$ in a group of prime order q. What makes this commitment perfectly hiding?",
+                    "options": {
+                        "A": "The discrete logarithm of h base g is publicly known",
+                        "B": "For any value v, there exists a randomness r such that the commitment equals any target group element, so the commitment distribution is uniform regardless of v",
+                        "C": "The commitment is a one-way function so v cannot be recovered",
+                        "D": "The group order q is a 256-bit prime making brute force infeasible"
                     },
-                    correct: "B",
-                    explanation: "Pedersen commitments are perfectly hiding because for any commitment C and any value v', there exists an r' such that C = g^(v') h^(r'). This means the commitment is statistically identical regardless of which value was committed, providing information-theoretic hiding. Binding holds computationally because opening to two different values would break discrete log."
+                    "correct": "B",
+                    "explanation": "Pedersen commitments are perfectly hiding because for any commitment C and any value v', there exists an r' such that C = g^(v') h^(r'). This means the commitment is statistically identical regardless of which value was committed, providing information-theoretic hiding. Binding holds computationally because opening to two different values would break discrete log."
                 },
                 {
-                    id: "zk1_q7",
-                    question: "The Schnorr identification protocol is a sigma protocol for proving knowledge of a discrete logarithm. In the three-move structure, what are the three moves in order?",
-                    options: {
-                        A: "Challenge, Commitment, Response",
-                        B: "Commitment (announcement), Challenge, Response",
-                        C: "Response, Commitment, Verification",
-                        D: "Public key, Signature, Verification"
+                    "id": "zk1_q7",
+                    "question": "The Schnorr identification protocol is a sigma protocol for proving knowledge of a discrete logarithm. In the three-move structure, what are the three moves in order?",
+                    "options": {
+                        "A": "Challenge, Commitment, Response",
+                        "B": "Commitment (announcement), Challenge, Response",
+                        "C": "Response, Commitment, Verification",
+                        "D": "Public key, Signature, Verification"
                     },
-                    correct: "B",
-                    explanation: "A sigma protocol has exactly three moves: (1) the prover sends a commitment (announcement) R = g^k for random k; (2) the verifier sends a random challenge c; (3) the prover sends a response s = k - cx mod q. The verifier checks g^s * X^c = R. This structure -- commit, challenge, respond -- is the defining pattern of sigma protocols."
+                    "correct": "B",
+                    "explanation": "A sigma protocol has exactly three moves: (1) the prover sends a commitment (announcement) R = g^k for random k; (2) the verifier sends a random challenge c; (3) the prover sends a response s = k - cx mod q. The verifier checks g^s * X^c = R. This structure -- commit, challenge, respond -- is the defining pattern of sigma protocols."
                 },
                 {
-                    id: "zk1_q8",
-                    question: "What is a sigma protocol, and what special property distinguishes it from arbitrary interactive proofs?",
-                    options: {
-                        A: "A sigma protocol is any two-party protocol with perfect secrecy and uses sigma notation from statistics",
-                        B: "A sigma protocol is a three-move public-coin protocol that is complete, special-sound (2-special-sound), and honest-verifier zero-knowledge",
-                        C: "A sigma protocol requires a trusted third party to generate the challenge and runs in constant rounds",
-                        D: "A sigma protocol is a non-interactive proof that uses the Fiat-Shamir heuristic by default"
+                    "id": "zk1_q8",
+                    "question": "What is a sigma protocol, and what special property distinguishes it from arbitrary interactive proofs?",
+                    "options": {
+                        "A": "A sigma protocol is any two-party protocol with perfect secrecy and uses sigma notation from statistics",
+                        "B": "A sigma protocol is a three-move public-coin protocol that is complete, special-sound (2-special-sound), and honest-verifier zero-knowledge",
+                        "C": "A sigma protocol requires a trusted third party to generate the challenge and runs in constant rounds",
+                        "D": "A sigma protocol is a non-interactive proof that uses the Fiat-Shamir heuristic by default"
                     },
-                    correct: "B",
-                    explanation: "Sigma protocols are three-move (commit-challenge-respond) honest-verifier zero-knowledge proofs of knowledge. Special soundness means that from any two accepting transcripts with the same commitment but different challenges, one can extract the witness efficiently. This extractability is what makes them proofs of knowledge, not just proofs of truth."
+                    "correct": "B",
+                    "explanation": "Sigma protocols are three-move (commit-challenge-respond) honest-verifier zero-knowledge proofs of knowledge. Special soundness means that from any two accepting transcripts with the same commitment but different challenges, one can extract the witness efficiently. This extractability is what makes them proofs of knowledge, not just proofs of truth."
                 },
                 {
-                    id: "zk1_q9",
-                    question: "The Fiat-Shamir heuristic transforms an interactive sigma protocol into a non-interactive proof. How does it replace the verifier's random challenge?",
-                    options: {
-                        A: "By using a trusted third party to generate and certify the challenge",
-                        B: "By replacing the verifier's random challenge with a cryptographic hash of the prover's commitment and statement",
-                        C: "By publishing the challenge in advance on a public bulletin board before the proof begins",
-                        D: "By using a pseudorandom number generator seeded with the current block hash"
+                    "id": "zk1_q9",
+                    "question": "The Fiat-Shamir heuristic transforms an interactive sigma protocol into a non-interactive proof. How does it replace the verifier's random challenge?",
+                    "options": {
+                        "A": "By using a trusted third party to generate and certify the challenge",
+                        "B": "By replacing the verifier's random challenge with a cryptographic hash of the prover's commitment and statement",
+                        "C": "By publishing the challenge in advance on a public bulletin board before the proof begins",
+                        "D": "By using a pseudorandom number generator seeded with the current block hash"
                     },
-                    correct: "B",
-                    explanation: "The Fiat-Shamir heuristic makes the challenge a hash of (statement, commitment) -- i.e., c = H(stmt, R). Since the prover cannot predict H's output before committing, this simulates a random challenge in the random oracle model. The resulting proof is a single string (R, s) that anyone can verify without interaction."
+                    "correct": "B",
+                    "explanation": "The Fiat-Shamir heuristic makes the challenge a hash of (statement, commitment) -- i.e., c = H(stmt, R). Since the prover cannot predict H's output before committing, this simulates a random challenge in the random oracle model. The resulting proof is a single string (R, s) that anyone can verify without interaction."
                 },
                 {
-                    id: "zk1_q10",
-                    question: "In the context of zero-knowledge proofs, what is a 'witness'?",
-                    options: {
-                        A: "A third party who observes the proof interaction and attests to its validity",
-                        B: "The secret information the prover knows that satisfies the relation being proved, such as a private key or solution",
-                        C: "The verifier's random tape used to generate challenges during the protocol",
-                        D: "A public parameter published by a trusted setup ceremony"
+                    "id": "zk1_q10",
+                    "question": "In the context of zero-knowledge proofs, what is a 'witness'?",
+                    "options": {
+                        "A": "A third party who observes the proof interaction and attests to its validity",
+                        "B": "The secret information the prover knows that satisfies the relation being proved, such as a private key or solution",
+                        "C": "The verifier's random tape used to generate challenges during the protocol",
+                        "D": "A public parameter published by a trusted setup ceremony"
                     },
-                    correct: "B",
-                    explanation: "In the language of NP relations, a witness w is the secret input that, together with the public statement x, satisfies the relation R(x, w) = 1. For example, in proving knowledge of a discrete log, the public statement is X = g^x and the witness is x itself. The prover knows w; the verifier knows only x."
+                    "correct": "B",
+                    "explanation": "In the language of NP relations, a witness w is the secret input that, together with the public statement x, satisfies the relation R(x, w) = 1. For example, in proving knowledge of a discrete log, the public statement is X = g^x and the witness is x itself. The prover knows w; the verifier knows only x."
                 },
                 {
-                    id: "zk1_q11",
-                    question: "What is the simulation paradigm in zero-knowledge, and why is it the formal definition used?",
-                    options: {
-                        A: "It defines zero-knowledge by requiring the prover to simulate the verifier's behavior before sending any messages",
-                        B: "It states a proof is zero-knowledge if there exists a simulator that can produce transcripts indistinguishable from real proof transcripts without knowing the witness",
-                        C: "It requires that all proofs be simulated in software before deployment to check for information leakage",
-                        D: "It defines zero-knowledge operationally as any protocol where the verifier's view has entropy equal to the witness"
+                    "id": "zk1_q11",
+                    "question": "What is the simulation paradigm in zero-knowledge, and why is it the formal definition used?",
+                    "options": {
+                        "A": "It defines zero-knowledge by requiring the prover to simulate the verifier's behavior before sending any messages",
+                        "B": "It states a proof is zero-knowledge if there exists a simulator that can produce transcripts indistinguishable from real proof transcripts without knowing the witness",
+                        "C": "It requires that all proofs be simulated in software before deployment to check for information leakage",
+                        "D": "It defines zero-knowledge operationally as any protocol where the verifier's view has entropy equal to the witness"
                     },
-                    correct: "B",
-                    explanation: "The simulation paradigm defines zero-knowledge by asking: is there an efficient simulator that, given only the statement (not the witness), can produce a probability distribution over transcripts that is computationally (or statistically, or perfectly) indistinguishable from real proof transcripts? If yes, the verifier learns nothing useful from interacting with the real prover."
+                    "correct": "B",
+                    "explanation": "The simulation paradigm defines zero-knowledge by asking: is there an efficient simulator that, given only the statement (not the witness), can produce a probability distribution over transcripts that is computationally (or statistically, or perfectly) indistinguishable from real proof transcripts? If yes, the verifier learns nothing useful from interacting with the real prover."
                 },
                 {
-                    id: "zk1_q12",
-                    question: "What distinguishes information-theoretic security from computational security in zero-knowledge proofs?",
-                    options: {
-                        A: "Information-theoretically secure proofs are faster to verify; computationally secure proofs have shorter proof sizes",
-                        B: "Information-theoretic security holds against adversaries with unlimited computational power; computational security only holds against polynomial-time adversaries",
-                        C: "Information-theoretic proofs require a trusted setup; computational proofs do not",
-                        D: "Information-theoretic security requires a hash function; computational security uses elliptic curves"
+                    "id": "zk1_q12",
+                    "question": "What distinguishes information-theoretic security from computational security in zero-knowledge proofs?",
+                    "options": {
+                        "A": "Information-theoretically secure proofs are faster to verify; computationally secure proofs have shorter proof sizes",
+                        "B": "Information-theoretic security holds against adversaries with unlimited computational power; computational security only holds against polynomial-time adversaries",
+                        "C": "Information-theoretic proofs require a trusted setup; computational proofs do not",
+                        "D": "Information-theoretic security requires a hash function; computational security uses elliptic curves"
                     },
-                    correct: "B",
-                    explanation: "Information-theoretic (statistical) security provides guarantees even against adversaries with unlimited computing power, based purely on probability theory. Computational security relies on hardness assumptions (like discrete log or factoring) and only holds against efficient (polynomial-time) adversaries. Pedersen commitments are information-theoretically hiding but only computationally binding."
+                    "correct": "B",
+                    "explanation": "Information-theoretic (statistical) security provides guarantees even against adversaries with unlimited computing power, based purely on probability theory. Computational security relies on hardness assumptions (like discrete log or factoring) and only holds against efficient (polynomial-time) adversaries. Pedersen commitments are information-theoretically hiding but only computationally binding."
                 },
                 {
-                    id: "zk1_q13",
-                    question: "What is a Common Reference String (CRS) in the context of non-interactive zero-knowledge proofs?",
-                    options: {
-                        A: "A shared public blockchain state that both prover and verifier can access",
-                        B: "A public string generated (possibly with a trusted setup) before the protocol runs, used as a shared parameter by both prover and verifier",
-                        C: "The concatenation of the prover's commitment and the verifier's challenge",
-                        D: "A unique identifier for each proof instance stored on-chain"
+                    "id": "zk1_q13",
+                    "question": "What is a Common Reference String (CRS) in the context of non-interactive zero-knowledge proofs?",
+                    "options": {
+                        "A": "A shared public blockchain state that both prover and verifier can access",
+                        "B": "A public string generated (possibly with a trusted setup) before the protocol runs, used as a shared parameter by both prover and verifier",
+                        "C": "The concatenation of the prover's commitment and the verifier's challenge",
+                        "D": "A unique identifier for each proof instance stored on-chain"
                     },
-                    correct: "B",
-                    explanation: "The CRS model allows NIZK proofs by providing a shared public string that both parties can reference. The CRS is generated before any proofs are made, often via a trusted setup or multi-party computation ceremony. Systems like Groth16 require a structured reference string (SRS) specific to the circuit, while others like PLONK use a universal SRS."
+                    "correct": "B",
+                    "explanation": "The CRS model allows NIZK proofs by providing a shared public string that both parties can reference. The CRS is generated before any proofs are made, often via a trusted setup or multi-party computation ceremony. Systems like Groth16 require a structured reference string (SRS) specific to the circuit, while others like PLONK use a universal SRS."
                 },
                 {
-                    id: "zk1_q14",
-                    question: "The GMR paper by Goldwasser, Micali, and Rackoff (1985) is foundational to zero-knowledge proofs. What was its primary contribution?",
-                    options: {
-                        A: "It introduced the first practical zkSNARK construction using elliptic curve pairings",
-                        B: "It formally defined interactive proof systems and introduced the concept of zero-knowledge, showing that proving quadratic residuosity leaks no information",
-                        C: "It proved that all NP problems have polynomial-time zero-knowledge proofs assuming one-way functions",
-                        D: "It introduced the Fiat-Shamir heuristic for transforming interactive proofs to non-interactive ones"
+                    "id": "zk1_q14",
+                    "question": "The GMR paper by Goldwasser, Micali, and Rackoff (1985) is foundational to zero-knowledge proofs. What was its primary contribution?",
+                    "options": {
+                        "A": "It introduced the first practical zkSNARK construction using elliptic curve pairings",
+                        "B": "It formally defined interactive proof systems and introduced the concept of zero-knowledge, showing that proving quadratic residuosity leaks no information",
+                        "C": "It proved that all NP problems have polynomial-time zero-knowledge proofs assuming one-way functions",
+                        "D": "It introduced the Fiat-Shamir heuristic for transforming interactive proofs to non-interactive ones"
                     },
-                    correct: "B",
-                    explanation: "The 1985 GMR paper by Goldwasser, Micali, and Rackoff introduced interactive proof systems and formally defined zero-knowledge using the simulation paradigm. They demonstrated it with the quadratic residuosity problem, showing a proof where the verifier learns nothing beyond the truth of the statement. This paper earned the 2012 Turing Award."
+                    "correct": "B",
+                    "explanation": "The 1985 GMR paper by Goldwasser, Micali, and Rackoff introduced interactive proof systems and formally defined zero-knowledge using the simulation paradigm. They demonstrated it with the quadratic residuosity problem, showing a proof where the verifier learns nothing beyond the truth of the statement. This paper earned the 2012 Turing Award."
                 },
                 {
-                    id: "zk1_q15",
-                    question: "Which of the following correctly describes the prover-verifier model in a zero-knowledge proof system?",
-                    options: {
-                        A: "Both prover and verifier are trusted; the protocol is used only for efficiency, not privacy",
-                        B: "The prover is computationally unbounded and always honest; the verifier may be malicious",
-                        C: "The prover knows a secret witness and tries to convince the verifier of a statement; the verifier may be honest or malicious, and the proof must be sound even against a cheating prover",
-                        D: "The verifier generates the proof and the prover checks it, reversing the usual roles to save computation"
+                    "id": "zk1_q15",
+                    "question": "Which of the following correctly describes the prover-verifier model in a zero-knowledge proof system?",
+                    "options": {
+                        "A": "Both prover and verifier are trusted; the protocol is used only for efficiency, not privacy",
+                        "B": "The prover is computationally unbounded and always honest; the verifier may be malicious",
+                        "C": "The prover knows a secret witness and tries to convince the verifier of a statement; the verifier may be honest or malicious, and the proof must be sound even against a cheating prover",
+                        "D": "The verifier generates the proof and the prover checks it, reversing the usual roles to save computation"
                     },
-                    correct: "C",
-                    explanation: "In the standard model, the prover holds a witness and wishes to convince the verifier that a statement is true. Soundness protects against cheating provers (who may not have a valid witness). Zero-knowledge protects against malicious verifiers (who might try to extract the witness). The proof must be convincing to all honest verifiers while leaking nothing to any verifier."
+                    "correct": "C",
+                    "explanation": "In the standard model, the prover holds a witness and wishes to convince the verifier that a statement is true. Soundness protects against cheating provers (who may not have a valid witness). Zero-knowledge protects against malicious verifiers (who might try to extract the witness). The proof must be convincing to all honest verifiers while leaking nothing to any verifier."
                 },
                 {
-                    id: "zk1_q16",
-                    question: "A polynomial commitment scheme allows a prover to commit to a polynomial and later prove evaluations. What is the key property that makes it useful in ZK proof systems?",
-                    options: {
-                        A: "It allows the prover to commit to a polynomial of unbounded degree with a constant-size commitment",
-                        B: "It allows the prover to commit to a polynomial f and later prove f(z) = y for any point z without revealing the full polynomial, with the commitment being binding",
-                        C: "It provides perfect zero-knowledge regardless of the hash function used",
-                        D: "It allows the verifier to evaluate the polynomial at any point without the prover's participation"
+                    "id": "zk1_q16",
+                    "question": "A polynomial commitment scheme allows a prover to commit to a polynomial and later prove evaluations. What is the key property that makes it useful in ZK proof systems?",
+                    "options": {
+                        "A": "It allows the prover to commit to a polynomial of unbounded degree with a constant-size commitment",
+                        "B": "It allows the prover to commit to a polynomial f and later prove f(z) = y for any point z without revealing the full polynomial, with the commitment being binding",
+                        "C": "It provides perfect zero-knowledge regardless of the hash function used",
+                        "D": "It allows the verifier to evaluate the polynomial at any point without the prover's participation"
                     },
-                    correct: "B",
-                    explanation: "Polynomial commitment schemes (like KZG / Kate commitments) let a prover commit to a polynomial f with a short commitment C, then later prove an evaluation f(z) = y with a short proof. The commitment is binding (prover cannot change f after committing) and hiding (commitment reveals nothing about f). This is a core building block for modern zkSNARKs."
+                    "correct": "B",
+                    "explanation": "Polynomial commitment schemes (like KZG / Kate commitments) let a prover commit to a polynomial f with a short commitment C, then later prove an evaluation f(z) = y with a short proof. The commitment is binding (prover cannot change f after committing) and hiding (commitment reveals nothing about f). This is a core building block for modern zkSNARKs."
                 },
                 {
-                    id: "zk1_q17",
-                    question: "An arithmetic circuit over a finite field encodes a computation. What role does it play in constructing zkSNARKs?",
-                    options: {
-                        A: "It provides an optimized assembly-level representation of the computation for hardware acceleration",
-                        B: "It converts the computation into a sequence of addition and multiplication gates over a field, enabling the statement to be expressed as a satisfiability problem that the ZK proof can target",
-                        C: "It eliminates the need for a trusted setup by replacing the structured reference string",
-                        D: "It compresses the witness into a constant-size commitment using hash functions"
+                    "id": "zk1_q17",
+                    "question": "An arithmetic circuit over a finite field encodes a computation. What role does it play in constructing zkSNARKs?",
+                    "options": {
+                        "A": "It provides an optimized assembly-level representation of the computation for hardware acceleration",
+                        "B": "It converts the computation into a sequence of addition and multiplication gates over a field, enabling the statement to be expressed as a satisfiability problem that the ZK proof can target",
+                        "C": "It eliminates the need for a trusted setup by replacing the structured reference string",
+                        "D": "It compresses the witness into a constant-size commitment using hash functions"
                     },
-                    correct: "B",
-                    explanation: "Any NP computation can be expressed as an arithmetic circuit -- a directed acyclic graph of addition and multiplication gates over a finite field. Circuit satisfiability (does there exist a witness that satisfies all gate constraints?) is an NP-complete problem that ZK proofs target. The circuit encodes 'what computation was done correctly.'"
+                    "correct": "B",
+                    "explanation": "Any NP computation can be expressed as an arithmetic circuit -- a directed acyclic graph of addition and multiplication gates over a finite field. Circuit satisfiability (does there exist a witness that satisfies all gate constraints?) is an NP-complete problem that ZK proofs target. The circuit encodes 'what computation was done correctly.'"
                 },
                 {
-                    id: "zk1_q18",
-                    question: "R1CS (Rank-1 Constraint System) is an intermediate representation used in many ZK proof systems. What form do R1CS constraints take?",
-                    options: {
-                        A: "Linear constraints of the form Ax + b = 0 over a prime field",
-                        B: "Constraints of the form (A dot w) * (B dot w) = (C dot w), encoding one multiplication gate per constraint",
-                        C: "Polynomial equations of degree at most 3 relating the witness variables",
-                        D: "Boolean satisfiability clauses in conjunctive normal form"
+                    "id": "zk1_q18",
+                    "question": "R1CS (Rank-1 Constraint System) is an intermediate representation used in many ZK proof systems. What form do R1CS constraints take?",
+                    "options": {
+                        "A": "Linear constraints of the form Ax + b = 0 over a prime field",
+                        "B": "Constraints of the form (A dot w) * (B dot w) = (C dot w), encoding one multiplication gate per constraint",
+                        "C": "Polynomial equations of degree at most 3 relating the witness variables",
+                        "D": "Boolean satisfiability clauses in conjunctive normal form"
                     },
-                    correct: "B",
-                    explanation: "An R1CS constraint has the form (A * w) dot (B * w) = C * w, where A, B, C are matrices and w is the witness vector. Each constraint encodes a single multiplication gate (with linear combinations of witness variables on each side). Addition gates are 'free' (handled within the linear combinations). R1CS is the standard format compiled into by tools like Circom."
+                    "correct": "B",
+                    "explanation": "An R1CS constraint has the form (A * w) dot (B * w) = C * w, where A, B, C are matrices and w is the witness vector. Each constraint encodes a single multiplication gate (with linear combinations of witness variables on each side). Addition gates are 'free' (handled within the linear combinations). R1CS is the standard format compiled into by tools like Circom."
                 },
                 {
-                    id: "zk1_q19",
-                    question: "QAP (Quadratic Arithmetic Program) is used in the Groth16 proof system. What is the key transformation from R1CS to QAP?",
-                    options: {
-                        A: "R1CS constraints are converted to Boolean gates using binary decomposition",
-                        B: "The constraint matrices are encoded as polynomials using Lagrange interpolation, transforming constraint satisfaction into polynomial divisibility",
-                        C: "Each R1CS constraint is hashed and the QAP is a Merkle tree of those hashes",
-                        D: "The R1CS witness is encrypted using the verifier's public key to form the QAP"
+                    "id": "zk1_q19",
+                    "question": "QAP (Quadratic Arithmetic Program) is used in the Groth16 proof system. What is the key transformation from R1CS to QAP?",
+                    "options": {
+                        "A": "R1CS constraints are converted to Boolean gates using binary decomposition",
+                        "B": "The constraint matrices are encoded as polynomials using Lagrange interpolation, transforming constraint satisfaction into polynomial divisibility",
+                        "C": "Each R1CS constraint is hashed and the QAP is a Merkle tree of those hashes",
+                        "D": "The R1CS witness is encrypted using the verifier's public key to form the QAP"
                     },
-                    correct: "B",
-                    explanation: "In a QAP, each column of the R1CS constraint matrices is interpolated into a polynomial using Lagrange interpolation over a set of points. The R1CS is satisfied iff a specific 'H polynomial' exists such that A(x)*B(x) - C(x) = H(x)*T(x), where T(x) is the vanishing polynomial. Groth16 uses pairings to check this polynomial identity efficiently."
+                    "correct": "B",
+                    "explanation": "In a QAP, each column of the R1CS constraint matrices is interpolated into a polynomial using Lagrange interpolation over a set of points. The R1CS is satisfied iff a specific 'H polynomial' exists such that A(x)*B(x) - C(x) = H(x)*T(x), where T(x) is the vanishing polynomial. Groth16 uses pairings to check this polynomial identity efficiently."
                 },
                 {
-                    id: "zk1_q20",
-                    question: "Zero-knowledge proofs can be applied to any language in NP. What does this mean practically for blockchain applications?",
-                    options: {
-                        A: "Only problems solvable in linear time can be proven in zero-knowledge",
-                        B: "Any computation whose correct execution can be verified efficiently (i.e., an NP witness exists) can in principle be proven in zero-knowledge, enabling private smart contracts, rollups, and identity proofs",
-                        C: "ZK proofs can only be used for mathematical statements, not for program execution",
-                        D: "NP completeness implies that ZK proofs for blockchain applications will always be exponentially slow"
+                    "id": "zk1_q20",
+                    "question": "Zero-knowledge proofs can be applied to any language in NP. What does this mean practically for blockchain applications?",
+                    "options": {
+                        "A": "Only problems solvable in linear time can be proven in zero-knowledge",
+                        "B": "Any computation whose correct execution can be verified efficiently (i.e., an NP witness exists) can in principle be proven in zero-knowledge, enabling private smart contracts, rollups, and identity proofs",
+                        "C": "ZK proofs can only be used for mathematical statements, not for program execution",
+                        "D": "NP completeness implies that ZK proofs for blockchain applications will always be exponentially slow"
                     },
-                    correct: "B",
-                    explanation: "Since all NP languages have zero-knowledge proofs (assuming one-way functions), any computation with an efficiently checkable witness can be proven privately. This means blockchain applications can prove 'I executed this transaction correctly' or 'I know a valid private key' without revealing the transaction details or the key itself -- the foundation of ZK-rollups, private DeFi, and ZK identity."
+                    "correct": "B",
+                    "explanation": "Since all NP languages have zero-knowledge proofs (assuming one-way functions), any computation with an efficiently checkable witness can be proven privately. This means blockchain applications can prove 'I executed this transaction correctly' or 'I know a valid private key' without revealing the transaction details or the key itself -- the foundation of ZK-rollups, private DeFi, and ZK identity."
                 }
             ]
         };

@@ -338,244 +338,244 @@
         const quizData = {
             questions: [
                 {
-                    id: "zk2_q1",
-                    question: "Groth16 is a widely used zkSNARK construction. What is its primary advantage over earlier proof systems?",
-                    options: {
-                        A: "It requires no trusted setup and produces proofs that are secure against quantum computers",
-                        B: "It produces the smallest proofs (only 3 group elements) and has the fastest verification time of any pairing-based SNARK",
-                        C: "It supports universal circuits of any size without recompiling the proving key",
-                        D: "It uses only symmetric-key primitives, making it much faster to prove than other systems"
+                    "id": "zk2_q1",
+                    "question": "Groth16 is a widely used zkSNARK construction. What is its primary advantage over earlier proof systems?",
+                    "options": {
+                        "A": "It requires no trusted setup and produces proofs that are secure against quantum computers",
+                        "B": "It produces the smallest proofs (only 3 group elements) and has the fastest verification time of any pairing-based SNARK",
+                        "C": "It supports universal circuits of any size without recompiling the proving key",
+                        "D": "It uses only symmetric-key primitives, making it much faster to prove than other systems"
                     },
-                    correct: "B",
-                    explanation: "Groth16 (2016) achieves remarkably small proofs -- just 3 group elements (about 192 bytes on BN254) -- and very fast verification (3 pairing operations). This makes it ideal for on-chain verification where calldata cost and computation gas dominate. The tradeoff is a circuit-specific trusted setup, meaning a new ceremony is needed for each new circuit."
+                    "correct": "B",
+                    "explanation": "Groth16 (2016) achieves remarkably small proofs -- just 3 group elements (about 192 bytes on BN254) -- and very fast verification (3 pairing operations). This makes it ideal for on-chain verification where calldata cost and computation gas dominate. The tradeoff is a circuit-specific trusted setup, meaning a new ceremony is needed for each new circuit."
                 },
                 {
-                    id: "zk2_q2",
-                    question: "What is 'toxic waste' in the context of a Groth16 trusted setup ceremony?",
-                    options: {
-                        A: "The computational overhead from unused circuit wires that slows down proving",
-                        B: "The secret randomness used during the setup that must be destroyed; if it survives, a dishonest party can forge proofs",
-                        C: "The portion of the structured reference string that is never used by the prover",
-                        D: "The hash collisions that occur when the circuit size exceeds the field characteristic"
+                    "id": "zk2_q2",
+                    "question": "What is 'toxic waste' in the context of a Groth16 trusted setup ceremony?",
+                    "options": {
+                        "A": "The computational overhead from unused circuit wires that slows down proving",
+                        "B": "The secret randomness used during the setup that must be destroyed; if it survives, a dishonest party can forge proofs",
+                        "C": "The portion of the structured reference string that is never used by the prover",
+                        "D": "The hash collisions that occur when the circuit size exceeds the field characteristic"
                     },
-                    correct: "B",
-                    explanation: "During a Groth16 trusted setup, secret random values (often called tau, alpha, beta) are used to generate the structured reference string (SRS). These values must be permanently destroyed after the ceremony. If any participant keeps them ('toxic waste survives'), they could use the trapdoor to generate fake proofs for any statement -- a catastrophic break of soundness."
+                    "correct": "B",
+                    "explanation": "During a Groth16 trusted setup, secret random values (often called tau, alpha, beta) are used to generate the structured reference string (SRS). These values must be permanently destroyed after the ceremony. If any participant keeps them ('toxic waste survives'), they could use the trapdoor to generate fake proofs for any statement -- a catastrophic break of soundness."
                 },
                 {
-                    id: "zk2_q3",
-                    question: "PLONK introduced a universal and updatable SRS (structured reference string). What does 'universal' mean in this context?",
-                    options: {
-                        A: "The SRS is compatible with all cryptographic curves and all hash functions simultaneously",
-                        B: "A single SRS ceremony supports all circuits up to a maximum size, so new circuits do not require new trusted setup ceremonies",
-                        C: "The SRS is generated publicly without any secret randomness, removing trust requirements entirely",
-                        D: "The SRS can be used for both proving and verification across different blockchains"
+                    "id": "zk2_q3",
+                    "question": "PLONK introduced a universal and updatable SRS (structured reference string). What does 'universal' mean in this context?",
+                    "options": {
+                        "A": "The SRS is compatible with all cryptographic curves and all hash functions simultaneously",
+                        "B": "A single SRS ceremony supports all circuits up to a maximum size, so new circuits do not require new trusted setup ceremonies",
+                        "C": "The SRS is generated publicly without any secret randomness, removing trust requirements entirely",
+                        "D": "The SRS can be used for both proving and verification across different blockchains"
                     },
-                    correct: "B",
-                    explanation: "PLONK's universal SRS means that one trusted setup ceremony (powers of tau) suffices for any circuit up to a fixed maximum size. This eliminates the need for per-circuit ceremonies required by Groth16. The updatable property means new participants can contribute to the ceremony after it ends, progressively reducing trust requirements."
+                    "correct": "B",
+                    "explanation": "PLONK's universal SRS means that one trusted setup ceremony (powers of tau) suffices for any circuit up to a fixed maximum size. This eliminates the need for per-circuit ceremonies required by Groth16. The updatable property means new participants can contribute to the ceremony after it ends, progressively reducing trust requirements."
                 },
                 {
-                    id: "zk2_q4",
-                    question: "STARKs (Scalable Transparent ARguments of Knowledge) are considered 'transparent.' What does transparency mean for a STARK?",
-                    options: {
-                        A: "The proof is human-readable and does not use any cryptographic obfuscation",
-                        B: "STARKs require no trusted setup; all public parameters are generated deterministically from public randomness with no secret trapdoor",
-                        C: "The prover's computation is publicly visible on-chain during proof generation",
-                        D: "STARKs use transparent (cleartext) arithmetic rather than encrypted field operations"
+                    "id": "zk2_q4",
+                    "question": "STARKs (Scalable Transparent ARguments of Knowledge) are considered 'transparent.' What does transparency mean for a STARK?",
+                    "options": {
+                        "A": "The proof is human-readable and does not use any cryptographic obfuscation",
+                        "B": "STARKs require no trusted setup; all public parameters are generated deterministically from public randomness with no secret trapdoor",
+                        "C": "The prover's computation is publicly visible on-chain during proof generation",
+                        "D": "STARKs use transparent (cleartext) arithmetic rather than encrypted field operations"
                     },
-                    correct: "B",
-                    explanation: "Transparency in the STARK context means no trusted setup is required. All parameters are derived from public coin randomness (e.g., hash function outputs), so there is no toxic waste or trusted party needed. This is a major advantage over Groth16 and even PLONK. The tradeoff is larger proof sizes (tens to hundreds of KB vs. hundreds of bytes for SNARKs)."
+                    "correct": "B",
+                    "explanation": "Transparency in the STARK context means no trusted setup is required. All parameters are derived from public coin randomness (e.g., hash function outputs), so there is no toxic waste or trusted party needed. This is a major advantage over Groth16 and even PLONK. The tradeoff is larger proof sizes (tens to hundreds of KB vs. hundreds of bytes for SNARKs)."
                 },
                 {
-                    id: "zk2_q5",
-                    question: "The FRI (Fast Reed-Solomon Interactive Oracle Proof of Proximity) protocol is a core component of STARKs. What is its primary purpose?",
-                    options: {
-                        A: "It provides a fast method for generating elliptic curve pairings needed in STARK verification",
-                        B: "It allows a prover to demonstrate that a committed function is close to a low-degree polynomial, enabling efficient polynomial commitment without pairings",
-                        C: "It is the encryption scheme used to hide the witness from the verifier in STARK proofs",
-                        D: "It is a hash function specifically designed for arithmetic circuits over large prime fields"
+                    "id": "zk2_q5",
+                    "question": "The FRI (Fast Reed-Solomon Interactive Oracle Proof of Proximity) protocol is a core component of STARKs. What is its primary purpose?",
+                    "options": {
+                        "A": "It provides a fast method for generating elliptic curve pairings needed in STARK verification",
+                        "B": "It allows a prover to demonstrate that a committed function is close to a low-degree polynomial, enabling efficient polynomial commitment without pairings",
+                        "C": "It is the encryption scheme used to hide the witness from the verifier in STARK proofs",
+                        "D": "It is a hash function specifically designed for arithmetic circuits over large prime fields"
                     },
-                    correct: "B",
-                    explanation: "FRI is an Interactive Oracle Proof (IOP) that lets a prover convince a verifier that a committed function is within Hamming distance delta of a polynomial of degree at most d. By repeatedly halving the domain, FRI achieves logarithmic proof size and verifier cost. It replaces pairing-based polynomial commitments in STARKs with hash-based cryptography, achieving post-quantum security."
+                    "correct": "B",
+                    "explanation": "FRI is an Interactive Oracle Proof (IOP) that lets a prover convince a verifier that a committed function is within Hamming distance delta of a polynomial of degree at most d. By repeatedly halving the domain, FRI achieves logarithmic proof size and verifier cost. It replaces pairing-based polynomial commitments in STARKs with hash-based cryptography, achieving post-quantum security."
                 },
                 {
-                    id: "zk2_q6",
-                    question: "Bulletproofs are a proof system notable for their application to range proofs. What is their key advantage and disadvantage compared to Groth16 SNARKs?",
-                    options: {
-                        A: "Bulletproofs have shorter proofs but require a trusted setup; Groth16 has longer proofs but no trusted setup",
-                        B: "Bulletproofs require no trusted setup and have logarithmic proof size, but verification time scales linearly with the proof size (not constant)",
-                        C: "Bulletproofs use symmetric cryptography only and are therefore quantum-safe; Groth16 is vulnerable to quantum attacks",
-                        D: "Bulletproofs support arbitrary circuits but have exponential prover time; Groth16 has polynomial prover time"
+                    "id": "zk2_q6",
+                    "question": "Bulletproofs are a proof system notable for their application to range proofs. What is their key advantage and disadvantage compared to Groth16 SNARKs?",
+                    "options": {
+                        "A": "Bulletproofs have shorter proofs but require a trusted setup; Groth16 has longer proofs but no trusted setup",
+                        "B": "Bulletproofs require no trusted setup and have logarithmic proof size, but verification time scales linearly with the proof size (not constant)",
+                        "C": "Bulletproofs use symmetric cryptography only and are therefore quantum-safe; Groth16 is vulnerable to quantum attacks",
+                        "D": "Bulletproofs support arbitrary circuits but have exponential prover time; Groth16 has polynomial prover time"
                     },
-                    correct: "B",
-                    explanation: "Bulletproofs (Bunz et al. 2018) require no trusted setup and achieve O(log n) proof size using an inner product argument. However, verification requires O(n) work (not constant), making them slower to verify than SNARKs. They are used in Monero for confidential transactions and are excellent for range proofs where on-chain verification cost is acceptable."
+                    "correct": "B",
+                    "explanation": "Bulletproofs (Bunz et al. 2018) require no trusted setup and achieve O(log n) proof size using an inner product argument. However, verification requires O(n) work (not constant), making them slower to verify than SNARKs. They are used in Monero for confidential transactions and are excellent for range proofs where on-chain verification cost is acceptable."
                 },
                 {
-                    id: "zk2_q7",
-                    question: "The Powers of Tau ceremony is used to generate a universal SRS. How does a multi-party computation (MPC) ceremony make the setup trustworthy?",
-                    options: {
-                        A: "Each participant independently verifies all previous contributions, requiring unanimous consensus before the SRS is finalized",
-                        B: "Each participant adds their own secret randomness to the SRS and then destroys it; as long as at least one participant honestly destroys their secret, the setup is sound",
-                        C: "The ceremony uses a threshold signature scheme where a majority of participants must sign off on the final SRS",
-                        D: "All participants contribute equal shares using secret sharing, and any quorum of participants can reconstruct the SRS if needed"
+                    "id": "zk2_q7",
+                    "question": "The Powers of Tau ceremony is used to generate a universal SRS. How does a multi-party computation (MPC) ceremony make the setup trustworthy?",
+                    "options": {
+                        "A": "Each participant independently verifies all previous contributions, requiring unanimous consensus before the SRS is finalized",
+                        "B": "Each participant adds their own secret randomness to the SRS and then destroys it; as long as at least one participant honestly destroys their secret, the setup is sound",
+                        "C": "The ceremony uses a threshold signature scheme where a majority of participants must sign off on the final SRS",
+                        "D": "All participants contribute equal shares using secret sharing, and any quorum of participants can reconstruct the SRS if needed"
                     },
-                    correct: "B",
-                    explanation: "In a Powers of Tau MPC ceremony, each participant receives the current SRS, multiplies the toxic waste values by their own random secret, and passes it on. The final SRS contains all secrets combined. If even a single participant honestly destroys their randomness, the combined trapdoor is unknown to any adversary. This 1-of-N trust model makes large ceremonies with hundreds of participants extremely trustworthy."
+                    "correct": "B",
+                    "explanation": "In a Powers of Tau MPC ceremony, each participant receives the current SRS, multiplies the toxic waste values by their own random secret, and passes it on. The final SRS contains all secrets combined. If even a single participant honestly destroys their randomness, the combined trapdoor is unknown to any adversary. This 1-of-N trust model makes large ceremonies with hundreds of participants extremely trustworthy."
                 },
                 {
-                    id: "zk2_q8",
-                    question: "In pairing-based proof systems like Groth16, what is a bilinear pairing and why is it essential?",
-                    options: {
-                        A: "A pairing is a hash function that maps two field elements to a curve point; it is essential for committing to polynomials",
-                        B: "A pairing is a bilinear map e: G1 x G2 -> GT that allows the verifier to check multiplicative relationships between committed values without knowing them, enabling efficient SNARK verification",
-                        C: "A pairing is a symmetric encryption scheme that allows the prover and verifier to establish a shared key for secure proof transmission",
-                        D: "A pairing is a randomness beacon that generates the verifier's challenges without interaction in the SNARK model"
+                    "id": "zk2_q8",
+                    "question": "In pairing-based proof systems like Groth16, what is a bilinear pairing and why is it essential?",
+                    "options": {
+                        "A": "A pairing is a hash function that maps two field elements to a curve point; it is essential for committing to polynomials",
+                        "B": "A pairing is a bilinear map e: G1 x G2 -> GT that allows the verifier to check multiplicative relationships between committed values without knowing them, enabling efficient SNARK verification",
+                        "C": "A pairing is a symmetric encryption scheme that allows the prover and verifier to establish a shared key for secure proof transmission",
+                        "D": "A pairing is a randomness beacon that generates the verifier's challenges without interaction in the SNARK model"
                     },
-                    correct: "B",
-                    explanation: "A bilinear pairing e: G1 x G2 -> GT satisfies e(aP, bQ) = e(P, Q)^(ab). In Groth16, the verifier uses pairings to check that the prover correctly evaluated a polynomial relation without knowing the underlying values. Specifically, it checks A*B = C*delta + alpha*beta in the exponent -- impossible to verify with just discrete log but checkable with pairings."
+                    "correct": "B",
+                    "explanation": "A bilinear pairing e: G1 x G2 -> GT satisfies e(aP, bQ) = e(P, Q)^(ab). In Groth16, the verifier uses pairings to check that the prover correctly evaluated a polynomial relation without knowing the underlying values. Specifically, it checks A*B = C*delta + alpha*beta in the exponent -- impossible to verify with just discrete log but checkable with pairings."
                 },
                 {
-                    id: "zk2_q9",
-                    question: "What is the KZG polynomial commitment scheme (Kate-Zaverucha-Goldberg), and what enables its constant-size evaluation proofs?",
-                    options: {
-                        A: "KZG uses Merkle trees to commit to polynomial coefficients; constant-size proofs come from logarithmic path lengths",
-                        B: "KZG commits to a polynomial f(x) as f(tau)*G using a secret tau from trusted setup; an evaluation proof for f(z)=y is a single group element proving divisibility of (f(x)-y) by (x-z)",
-                        C: "KZG uses FRI to prove low-degree bounds; constant size comes from the logarithmic FRI reduction",
-                        D: "KZG stores polynomial coefficients encrypted with the verifier's public key; constant size comes from key compression"
+                    "id": "zk2_q9",
+                    "question": "What is the KZG polynomial commitment scheme (Kate-Zaverucha-Goldberg), and what enables its constant-size evaluation proofs?",
+                    "options": {
+                        "A": "KZG uses Merkle trees to commit to polynomial coefficients; constant-size proofs come from logarithmic path lengths",
+                        "B": "KZG commits to a polynomial f(x) as f(tau)*G using a secret tau from trusted setup; an evaluation proof for f(z)=y is a single group element proving divisibility of (f(x)-y) by (x-z)",
+                        "C": "KZG uses FRI to prove low-degree bounds; constant size comes from the logarithmic FRI reduction",
+                        "D": "KZG stores polynomial coefficients encrypted with the verifier's public key; constant size comes from key compression"
                     },
-                    correct: "B",
-                    explanation: "In KZG, the commitment C = [f(tau)]G where tau is the trusted setup secret. To prove f(z) = y, the prover computes a quotient polynomial q(x) = (f(x)-y)/(x-z) and sends pi = [q(tau)]G. The verifier checks with one pairing: e(C - [y]G, G2) = e(pi, [tau-z]G2). The proof is always one group element regardless of polynomial degree."
+                    "correct": "B",
+                    "explanation": "In KZG, the commitment C = [f(tau)]G where tau is the trusted setup secret. To prove f(z) = y, the prover computes a quotient polynomial q(x) = (f(x)-y)/(x-z) and sends pi = [q(tau)]G. The verifier checks with one pairing: e(C - [y]G, G2) = e(pi, [tau-z]G2). The proof is always one group element regardless of polynomial degree."
                 },
                 {
-                    id: "zk2_q10",
-                    question: "PLONK uses a permutation argument to enforce copy constraints (wiring constraints). What problem does the permutation argument solve?",
-                    options: {
-                        A: "It ensures that the polynomial representing the trace has no repeated roots, preventing the prover from using the same wire twice",
-                        B: "It proves that certain wire values at different gate positions are equal (e.g., the output of one gate equals the input of another), without explicitly listing equality constraints",
-                        C: "It randomizes the order of constraints to prevent the prover from learning the circuit topology",
-                        D: "It encodes the circuit's multiplication gates as permutations of the addition gates to reduce constraint count"
+                    "id": "zk2_q10",
+                    "question": "PLONK uses a permutation argument to enforce copy constraints (wiring constraints). What problem does the permutation argument solve?",
+                    "options": {
+                        "A": "It ensures that the polynomial representing the trace has no repeated roots, preventing the prover from using the same wire twice",
+                        "B": "It proves that certain wire values at different gate positions are equal (e.g., the output of one gate equals the input of another), without explicitly listing equality constraints",
+                        "C": "It randomizes the order of constraints to prevent the prover from learning the circuit topology",
+                        "D": "It encodes the circuit's multiplication gates as permutations of the addition gates to reduce constraint count"
                     },
-                    correct: "B",
-                    explanation: "In PLONK, the execution trace is a table of wire values. Copy constraints say 'the value at position i must equal the value at position j' (e.g., output of gate 3 is input of gate 7). Rather than adding equality constraints one by one, PLONK uses a grand product argument (a Sigma product) to efficiently prove that two vectors are permutations of each other, encoding all copy constraints at once."
+                    "correct": "B",
+                    "explanation": "In PLONK, the execution trace is a table of wire values. Copy constraints say 'the value at position i must equal the value at position j' (e.g., output of gate 3 is input of gate 7). Rather than adding equality constraints one by one, PLONK uses a grand product argument (a Sigma product) to efficiently prove that two vectors are permutations of each other, encoding all copy constraints at once."
                 },
                 {
-                    id: "zk2_q11",
-                    question: "What are 'custom gates' in PLONK and why do they improve prover efficiency?",
-                    options: {
-                        A: "Custom gates are application-specific hardware accelerators that speed up proof generation on dedicated chips",
-                        B: "Custom gates extend PLONK's gate set beyond addition and multiplication, allowing common operations (e.g., range checks, hash rounds) to be expressed in fewer constraints",
-                        C: "Custom gates are special circuit inputs that allow the prover to skip verification of certain constraints",
-                        D: "Custom gates define the permutation structure, replacing the need for a copy constraint argument"
+                    "id": "zk2_q11",
+                    "question": "What are 'custom gates' in PLONK and why do they improve prover efficiency?",
+                    "options": {
+                        "A": "Custom gates are application-specific hardware accelerators that speed up proof generation on dedicated chips",
+                        "B": "Custom gates extend PLONK's gate set beyond addition and multiplication, allowing common operations (e.g., range checks, hash rounds) to be expressed in fewer constraints",
+                        "C": "Custom gates are special circuit inputs that allow the prover to skip verification of certain constraints",
+                        "D": "Custom gates define the permutation structure, replacing the need for a copy constraint argument"
                     },
-                    correct: "B",
-                    explanation: "Vanilla PLONK has addition and multiplication gates. Custom gates add new gate types (e.g., a Poseidon hash round gate, a range check gate) that encode complex operations in a single constraint rather than many basic gates. This dramatically reduces circuit size for operations that appear frequently, cutting prover time proportionally."
+                    "correct": "B",
+                    "explanation": "Vanilla PLONK has addition and multiplication gates. Custom gates add new gate types (e.g., a Poseidon hash round gate, a range check gate) that encode complex operations in a single constraint rather than many basic gates. This dramatically reduces circuit size for operations that appear frequently, cutting prover time proportionally."
                 },
                 {
-                    id: "zk2_q12",
-                    question: "Lookup arguments (e.g., PlonKup, cq) allow a prover to show that a value belongs to a precomputed table. What is the main benefit for ZK applications?",
-                    options: {
-                        A: "They replace the need for polynomial commitments entirely by indexing all circuit wires in a hash table",
-                        B: "They allow non-arithmetic operations (like bitwise operations, hash functions, range checks) to be proved efficiently by looking up results in a predefined table rather than computing them gate-by-gate",
-                        C: "They reduce the trusted setup size by replacing the SRS with a public lookup table",
-                        D: "They enable the verifier to run in O(1) time regardless of table size"
+                    "id": "zk2_q12",
+                    "question": "Lookup arguments (e.g., PlonKup, cq) allow a prover to show that a value belongs to a precomputed table. What is the main benefit for ZK applications?",
+                    "options": {
+                        "A": "They replace the need for polynomial commitments entirely by indexing all circuit wires in a hash table",
+                        "B": "They allow non-arithmetic operations (like bitwise operations, hash functions, range checks) to be proved efficiently by looking up results in a predefined table rather than computing them gate-by-gate",
+                        "C": "They reduce the trusted setup size by replacing the SRS with a public lookup table",
+                        "D": "They enable the verifier to run in O(1) time regardless of table size"
                     },
-                    correct: "B",
-                    explanation: "Many operations (bitwise AND/XOR, byte lookups, SHA256 round operations) are expensive to express as arithmetic constraints. Lookup arguments let the prover claim 'this value is in this table' with logarithmic overhead rather than encoding the entire operation arithmetically. This is crucial for zkEVMs where EVM opcodes like BYTE and AND appear frequently."
+                    "correct": "B",
+                    "explanation": "Many operations (bitwise AND/XOR, byte lookups, SHA256 round operations) are expensive to express as arithmetic constraints. Lookup arguments let the prover claim 'this value is in this table' with logarithmic overhead rather than encoding the entire operation arithmetically. This is crucial for zkEVMs where EVM opcodes like BYTE and AND appear frequently."
                 },
                 {
-                    id: "zk2_q13",
-                    question: "Recursive proof composition allows a proof to verify another proof inside it. What is the primary use case in blockchain contexts?",
-                    options: {
-                        A: "Recursive proofs allow the prover to verify their own proof before submitting it, catching errors early",
-                        B: "Recursive proofs enable proof aggregation, where a single proof verifies many other proofs (e.g., aggregating hundreds of transaction proofs into one rollup proof)",
-                        C: "Recursive proofs allow the verifier to delegate proof checking to a third-party oracle contract",
-                        D: "Recursive proofs compress the witness so the prover needs less memory to generate large proofs"
+                    "id": "zk2_q13",
+                    "question": "Recursive proof composition allows a proof to verify another proof inside it. What is the primary use case in blockchain contexts?",
+                    "options": {
+                        "A": "Recursive proofs allow the prover to verify their own proof before submitting it, catching errors early",
+                        "B": "Recursive proofs enable proof aggregation, where a single proof verifies many other proofs (e.g., aggregating hundreds of transaction proofs into one rollup proof)",
+                        "C": "Recursive proofs allow the verifier to delegate proof checking to a third-party oracle contract",
+                        "D": "Recursive proofs compress the witness so the prover needs less memory to generate large proofs"
                     },
-                    correct: "B",
-                    explanation: "Recursive proof composition lets a circuit include a verifier for another proof system, so one proof can attest to the validity of many sub-proofs. In ZK-rollups, this means aggregating thousands of transaction proofs into a single constant-size proof. Projects like Aztec, zkSync, and StarkNet use recursion to scale throughput dramatically while maintaining constant on-chain verification cost."
+                    "correct": "B",
+                    "explanation": "Recursive proof composition lets a circuit include a verifier for another proof system, so one proof can attest to the validity of many sub-proofs. In ZK-rollups, this means aggregating thousands of transaction proofs into a single constant-size proof. Projects like Aztec, zkSync, and StarkNet use recursion to scale throughput dramatically while maintaining constant on-chain verification cost."
                 },
                 {
-                    id: "zk2_q14",
-                    question: "Nova is a folding scheme for incrementally verifiable computation (IVC). How does folding differ from traditional recursive proof composition?",
-                    options: {
-                        A: "Folding uses hash functions instead of pairings, making it post-quantum secure where recursion is not",
-                        B: "Folding accumulates instances into a single running instance by linearly combining them without generating an explicit proof at each step, dramatically reducing prover overhead per step",
-                        C: "Folding verifies each step independently and stores only the final proof, discarding intermediate states",
-                        D: "Folding uses a trusted setup to pre-compute the recursion circuit, while traditional recursion requires no setup"
+                    "id": "zk2_q14",
+                    "question": "Nova is a folding scheme for incrementally verifiable computation (IVC). How does folding differ from traditional recursive proof composition?",
+                    "options": {
+                        "A": "Folding uses hash functions instead of pairings, making it post-quantum secure where recursion is not",
+                        "B": "Folding accumulates instances into a single running instance by linearly combining them without generating an explicit proof at each step, dramatically reducing prover overhead per step",
+                        "C": "Folding verifies each step independently and stores only the final proof, discarding intermediate states",
+                        "D": "Folding uses a trusted setup to pre-compute the recursion circuit, while traditional recursion requires no setup"
                     },
-                    correct: "B",
-                    explanation: "Nova's folding scheme takes two instances of the same relation and folds them into one using a random linear combination (controlled by a Fiat-Shamir challenge). The prover only needs to check a single relaxed R1CS instance at each step rather than running a full SNARK verifier circuit. This makes prover work per step proportional to the step function size, not the accumulated proof size."
+                    "correct": "B",
+                    "explanation": "Nova's folding scheme takes two instances of the same relation and folds them into one using a random linear combination (controlled by a Fiat-Shamir challenge). The prover only needs to check a single relaxed R1CS instance at each step rather than running a full SNARK verifier circuit. This makes prover work per step proportional to the step function size, not the accumulated proof size."
                 },
                 {
-                    id: "zk2_q15",
-                    question: "Comparing pairing-based SNARKs (e.g., Groth16) to hash-based systems (e.g., STARKs), which statement about post-quantum security is correct?",
-                    options: {
-                        A: "Both are equally vulnerable to quantum attacks because they both rely on the discrete logarithm problem",
-                        B: "Pairing-based SNARKs rely on hardness of discrete log in elliptic curve groups, which quantum computers can break with Shor's algorithm; hash-based STARKs rely only on collision resistance of hash functions, which are quantum-resistant",
-                        C: "STARKs are more vulnerable because their larger proof sizes give quantum computers more data to analyze",
-                        D: "Pairing-based SNARKs are quantum-resistant because bilinear pairings cannot be efficiently computed on quantum hardware"
+                    "id": "zk2_q15",
+                    "question": "Comparing pairing-based SNARKs (e.g., Groth16) to hash-based systems (e.g., STARKs), which statement about post-quantum security is correct?",
+                    "options": {
+                        "A": "Both are equally vulnerable to quantum attacks because they both rely on the discrete logarithm problem",
+                        "B": "Pairing-based SNARKs rely on hardness of discrete log in elliptic curve groups, which quantum computers can break with Shor's algorithm; hash-based STARKs rely only on collision resistance of hash functions, which are quantum-resistant",
+                        "C": "STARKs are more vulnerable because their larger proof sizes give quantum computers more data to analyze",
+                        "D": "Pairing-based SNARKs are quantum-resistant because bilinear pairings cannot be efficiently computed on quantum hardware"
                     },
-                    correct: "B",
-                    explanation: "Shor's algorithm efficiently solves discrete logarithm problems on quantum computers, breaking elliptic curve cryptography and thus pairing-based SNARKs. Hash-based proof systems (STARKs, Ligero, etc.) rely on hash function collision resistance, which requires only doubling key sizes against Grover's algorithm. This makes STARKs a natural candidate for post-quantum ZK proofs."
+                    "correct": "B",
+                    "explanation": "Shor's algorithm efficiently solves discrete logarithm problems on quantum computers, breaking elliptic curve cryptography and thus pairing-based SNARKs. Hash-based proof systems (STARKs, Ligero, etc.) rely on hash function collision resistance, which requires only doubling key sizes against Grover's algorithm. This makes STARKs a natural candidate for post-quantum ZK proofs."
                 },
                 {
-                    id: "zk2_q16",
-                    question: "What determines the 'prover complexity' of a zkSNARK system, and why does it matter for practical deployments?",
-                    options: {
-                        A: "Prover complexity is determined by the verifier's hash rate and is irrelevant to the actual proving computation",
-                        B: "Prover complexity (typically O(N log N) to O(N) in the number of constraints N) determines how long it takes to generate a proof; high complexity makes real-time proving for mobile or embedded devices impractical",
-                        C: "Prover complexity is constant for all SNARKs because they all use the same FFT algorithm",
-                        D: "Prover complexity measures how hard it is for an adversary to forge a proof, not how hard honest proving is"
+                    "id": "zk2_q16",
+                    "question": "What determines the 'prover complexity' of a zkSNARK system, and why does it matter for practical deployments?",
+                    "options": {
+                        "A": "Prover complexity is determined by the verifier's hash rate and is irrelevant to the actual proving computation",
+                        "B": "Prover complexity (typically O(N log N) to O(N) in the number of constraints N) determines how long it takes to generate a proof; high complexity makes real-time proving for mobile or embedded devices impractical",
+                        "C": "Prover complexity is constant for all SNARKs because they all use the same FFT algorithm",
+                        "D": "Prover complexity measures how hard it is for an adversary to forge a proof, not how hard honest proving is"
                     },
-                    correct: "B",
-                    explanation: "Prover time scales with circuit size, typically as O(N log N) for FFT-based systems. For large circuits (e.g., zkEVM with millions of constraints), proving takes minutes to hours even on powerful hardware. This makes client-side proving (on phones) impractical with current systems, driving research into faster proof systems and specialized hardware accelerators (GPUs, FPGAs, ASICs)."
+                    "correct": "B",
+                    "explanation": "Prover time scales with circuit size, typically as O(N log N) for FFT-based systems. For large circuits (e.g., zkEVM with millions of constraints), proving takes minutes to hours even on powerful hardware. This makes client-side proving (on phones) impractical with current systems, driving research into faster proof systems and specialized hardware accelerators (GPUs, FPGAs, ASICs)."
                 },
                 {
-                    id: "zk2_q17",
-                    question: "What is 'proof size' in a zkSNARK, and how does it compare across Groth16, PLONK, and STARKs?",
-                    options: {
-                        A: "Proof size is the memory required during proving; Groth16 uses the most memory, STARKs use the least",
-                        B: "Groth16 has the smallest proof (~200 bytes), PLONK proofs are larger (a few KB), and STARK proofs are largest (tens to hundreds of KB) due to hash-based commitments",
-                        C: "All three systems have identical proof sizes because they all prove the same NP statements",
-                        D: "STARK proofs are the smallest because they use binary fields instead of prime fields"
+                    "id": "zk2_q17",
+                    "question": "What is 'proof size' in a zkSNARK, and how does it compare across Groth16, PLONK, and STARKs?",
+                    "options": {
+                        "A": "Proof size is the memory required during proving; Groth16 uses the most memory, STARKs use the least",
+                        "B": "Groth16 has the smallest proof (~200 bytes), PLONK proofs are larger (a few KB), and STARK proofs are largest (tens to hundreds of KB) due to hash-based commitments",
+                        "C": "All three systems have identical proof sizes because they all prove the same NP statements",
+                        "D": "STARK proofs are the smallest because they use binary fields instead of prime fields"
                     },
-                    correct: "B",
-                    explanation: "Groth16 achieves ~192 bytes (3 group elements on BN254). PLONK proofs are roughly 500 bytes to a few KB depending on circuit complexity. STARK proofs are much larger -- typically 40-200 KB -- because they use hash-based Merkle commitments and FRI queries. On-chain, proof size directly impacts gas cost, making Groth16 and PLONK attractive for Ethereum and STARK attractive where post-quantum security matters."
+                    "correct": "B",
+                    "explanation": "Groth16 achieves ~192 bytes (3 group elements on BN254). PLONK proofs are roughly 500 bytes to a few KB depending on circuit complexity. STARK proofs are much larger -- typically 40-200 KB -- because they use hash-based Merkle commitments and FRI queries. On-chain, proof size directly impacts gas cost, making Groth16 and PLONK attractive for Ethereum and STARK attractive where post-quantum security matters."
                 },
                 {
-                    id: "zk2_q18",
-                    question: "Verification time for a zkSNARK is described as 'succinct.' What does succinctness mean formally, and why is it critical for blockchains?",
-                    options: {
-                        A: "Succinctness means the proof is written in a compressed encoding format like zlib or LZ4",
-                        B: "Succinctness means verification time (and proof size) is sublinear in the witness size -- ideally O(log N) or O(1) -- so verifying a proof of a million-constraint computation takes the same time as verifying a ten-constraint computation",
-                        C: "Succinctness means the proof can be generated in under one second regardless of circuit size",
-                        D: "Succinctness means the proof uses a fixed number of bits regardless of the security parameter"
+                    "id": "zk2_q18",
+                    "question": "Verification time for a zkSNARK is described as 'succinct.' What does succinctness mean formally, and why is it critical for blockchains?",
+                    "options": {
+                        "A": "Succinctness means the proof is written in a compressed encoding format like zlib or LZ4",
+                        "B": "Succinctness means verification time (and proof size) is sublinear in the witness size -- ideally O(log N) or O(1) -- so verifying a proof of a million-constraint computation takes the same time as verifying a ten-constraint computation",
+                        "C": "Succinctness means the proof can be generated in under one second regardless of circuit size",
+                        "D": "Succinctness means the proof uses a fixed number of bits regardless of the security parameter"
                     },
-                    correct: "B",
-                    explanation: "The 'S' in SNARK stands for Succinct: the proof is short and verification is fast relative to the computation being proved. For Groth16, verification is 3 pairings regardless of circuit size. This is essential for blockchains because every node must verify every transaction -- if verification scaled linearly with computation, ZK-rollups would provide no scalability benefit."
+                    "correct": "B",
+                    "explanation": "The 'S' in SNARK stands for Succinct: the proof is short and verification is fast relative to the computation being proved. For Groth16, verification is 3 pairings regardless of circuit size. This is essential for blockchains because every node must verify every transaction -- if verification scaled linearly with computation, ZK-rollups would provide no scalability benefit."
                 },
                 {
-                    id: "zk2_q19",
-                    question: "Incrementally Verifiable Computation (IVC) allows proving long computations step by step. What is the defining property of an IVC scheme?",
-                    options: {
-                        A: "Each step produces a fresh proof from scratch, and only the final proof is retained",
-                        B: "After each step, there exists a short proof that the current state is the correct result of applying the step function to the previous state, and this proof can be extended efficiently without re-proving all prior steps",
-                        C: "IVC requires a trusted coordinator who checkpoints the computation and vouches for intermediate states",
-                        D: "IVC is only applicable to sequential computations; it cannot handle branching or conditional logic"
+                    "id": "zk2_q19",
+                    "question": "Incrementally Verifiable Computation (IVC) allows proving long computations step by step. What is the defining property of an IVC scheme?",
+                    "options": {
+                        "A": "Each step produces a fresh proof from scratch, and only the final proof is retained",
+                        "B": "After each step, there exists a short proof that the current state is the correct result of applying the step function to the previous state, and this proof can be extended efficiently without re-proving all prior steps",
+                        "C": "IVC requires a trusted coordinator who checkpoints the computation and vouches for intermediate states",
+                        "D": "IVC is only applicable to sequential computations; it cannot handle branching or conditional logic"
                     },
-                    correct: "B",
-                    explanation: "IVC produces a proof pi_i that attests 'state z_i is the result of applying F exactly i times starting from z_0.' Crucially, pi_(i+1) is produced from pi_i without re-proving the first i steps. This enables verifiable long-running computations (like a blockchain state machine) where the proof grows at most logarithmically with the number of steps."
+                    "correct": "B",
+                    "explanation": "IVC produces a proof pi_i that attests 'state z_i is the result of applying F exactly i times starting from z_0.' Crucially, pi_(i+1) is produced from pi_i without re-proving the first i steps. This enables verifiable long-running computations (like a blockchain state machine) where the proof grows at most logarithmically with the number of steps."
                 },
                 {
-                    id: "zk2_q20",
-                    question: "Why does the inner product argument in Bulletproofs achieve logarithmic proof size, and what is the computational cost of this compression?",
-                    options: {
-                        A: "It uses a binary tree to split the inner product recursively in half, halving the proof size each round; verification requires re-expanding the tree, taking O(n) work",
-                        B: "It uses fast Fourier transforms to compress the vectors, and decompression takes O(n log n) time",
-                        C: "It commits to the vectors using KZG and the logarithmic size comes from the opening proof; verification is O(1) pairings",
-                        D: "It uses random sampling to compress the vectors probabilistically, and verification repeats sampling to reduce error"
+                    "id": "zk2_q20",
+                    "question": "Why does the inner product argument in Bulletproofs achieve logarithmic proof size, and what is the computational cost of this compression?",
+                    "options": {
+                        "A": "It uses a binary tree to split the inner product recursively in half, halving the proof size each round; verification requires re-expanding the tree, taking O(n) work",
+                        "B": "It uses fast Fourier transforms to compress the vectors, and decompression takes O(n log n) time",
+                        "C": "It commits to the vectors using KZG and the logarithmic size comes from the opening proof; verification is O(1) pairings",
+                        "D": "It uses random sampling to compress the vectors probabilistically, and verification repeats sampling to reduce error"
                     },
-                    correct: "A",
-                    explanation: "The Bulletproofs inner product argument recursively halves the problem: given vectors a, b of length n, compute a challenge, collapse each into length n/2, and recurse. After log n rounds the proof contains 2 log n group elements. However, verification must reconstruct the final check from all log n rounds, requiring O(n) multi-scalar multiplications -- linear work. This is why Bulletproof verification is slower than SNARK verification."
+                    "correct": "A",
+                    "explanation": "The Bulletproofs inner product argument recursively halves the problem: given vectors a, b of length n, compute a challenge, collapse each into length n/2, and recurse. After log n rounds the proof contains 2 log n group elements. However, verification must reconstruct the final check from all log n rounds, requiring O(n) multi-scalar multiplications -- linear work. This is why Bulletproof verification is slower than SNARK verification."
                 }
             ]
         };

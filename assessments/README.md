@@ -5,8 +5,8 @@ This folder contains the assessment materials for the cryptocurrency course.
 ## Assessment Structure
 
 The instructor provides:
-- 5 exercise PDFs (one per topic + comprehensive)
-- Final project report template
+- Final project report template (see below)
+- Quizzes are available in the `quiz/` directory (4 parts per lesson, 20 questions each)
 
 ## Final Project
 

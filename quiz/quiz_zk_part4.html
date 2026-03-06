@@ -338,244 +338,244 @@
         const quizData = {
             questions: [
                 {
-                    id: "zk4_q1",
-                    question: "What is the core architectural difference between a ZK-rollup and an Optimistic rollup?",
-                    options: {
-                        A: "ZK-rollups process transactions on-chain while Optimistic rollups batch transactions off-chain",
-                        B: "ZK-rollups post a validity proof (ZK-SNARK/STARK) with each batch so the L1 immediately knows the batch is correct; Optimistic rollups assume batches are valid and rely on a fraud proof window where anyone can challenge incorrect state transitions",
-                        C: "ZK-rollups require a trusted operator; Optimistic rollups are permissionless",
-                        D: "ZK-rollups support only token transfers; Optimistic rollups support arbitrary smart contracts"
+                    "id": "zk4_q1",
+                    "question": "What is the core architectural difference between a ZK-rollup and an Optimistic rollup?",
+                    "options": {
+                        "A": "ZK-rollups process transactions on-chain while Optimistic rollups batch transactions off-chain",
+                        "B": "ZK-rollups post a validity proof (ZK-SNARK/STARK) with each batch so the L1 immediately knows the batch is correct; Optimistic rollups assume batches are valid and rely on a fraud proof window where anyone can challenge incorrect state transitions",
+                        "C": "ZK-rollups require a trusted operator; Optimistic rollups are permissionless",
+                        "D": "ZK-rollups support only token transfers; Optimistic rollups support arbitrary smart contracts"
                     },
-                    correct: "B",
-                    explanation: "ZK-rollups generate a cryptographic validity proof for every batch, enabling instant finality on L1 once the proof is verified. Optimistic rollups post batches without proofs, assuming honesty, but include a 7-day challenge window during which fraud proofs can be submitted. ZK-rollups have better finality and security properties; Optimistic rollups have simpler prover requirements but slow withdrawals."
+                    "correct": "B",
+                    "explanation": "ZK-rollups generate a cryptographic validity proof for every batch, enabling instant finality on L1 once the proof is verified. Optimistic rollups post batches without proofs, assuming honesty, but include a 7-day challenge window during which fraud proofs can be submitted. ZK-rollups have better finality and security properties; Optimistic rollups have simpler prover requirements but slow withdrawals."
                 },
                 {
-                    id: "zk4_q2",
-                    question: "A zkEVM (zero-knowledge Ethereum Virtual Machine) aims to prove EVM execution in ZK. What is the major technical challenge?",
-                    options: {
-                        A: "The EVM uses 256-bit integers, which are too large to encode in ZK proof systems",
-                        B: "EVM opcodes include operations (dynamic memory access, storage, context switching, hash functions) that are highly non-arithmetic and expensive to express as arithmetic constraints in a ZK circuit, requiring thousands of constraints per opcode",
-                        C: "The EVM is not deterministic, so ZK proofs cannot guarantee reproducibility",
-                        D: "The EVM uses a stack-based model that is fundamentally incompatible with the register-based model required by all ZK proof systems"
+                    "id": "zk4_q2",
+                    "question": "A zkEVM (zero-knowledge Ethereum Virtual Machine) aims to prove EVM execution in ZK. What is the major technical challenge?",
+                    "options": {
+                        "A": "The EVM uses 256-bit integers, which are too large to encode in ZK proof systems",
+                        "B": "EVM opcodes include operations (dynamic memory access, storage, context switching, hash functions) that are highly non-arithmetic and expensive to express as arithmetic constraints in a ZK circuit, requiring thousands of constraints per opcode",
+                        "C": "The EVM is not deterministic, so ZK proofs cannot guarantee reproducibility",
+                        "D": "The EVM uses a stack-based model that is fundamentally incompatible with the register-based model required by all ZK proof systems"
                     },
-                    correct: "B",
-                    explanation: "EVM operations like KECCAK256 (the hash), SLOAD/SSTORE (storage access), CALL (context switches), and byte-level operations are arithmetically expensive. Keccak alone requires tens of thousands of constraints per invocation in a PLONK/R1CS circuit. zkEVMs solve this with specialized lookup tables, custom gates, and continuations. The Type 1-4 classification (Vitalik's taxonomy) captures the tradeoff between EVM equivalence and proving efficiency."
+                    "correct": "B",
+                    "explanation": "EVM operations like KECCAK256 (the hash), SLOAD/SSTORE (storage access), CALL (context switches), and byte-level operations are arithmetically expensive. Keccak alone requires tens of thousands of constraints per invocation in a PLONK/R1CS circuit. zkEVMs solve this with specialized lookup tables, custom gates, and continuations. The Type 1-4 classification (Vitalik's taxonomy) captures the tradeoff between EVM equivalence and proving efficiency."
                 },
                 {
-                    id: "zk4_q3",
-                    question: "Vitalik Buterin proposed a Type 1-4 classification for zkEVMs. What does 'Type 1' (fully EVM-equivalent) mean and what is its tradeoff?",
-                    options: {
-                        A: "Type 1 proves only a simplified subset of EVM opcodes to achieve fast proving times; tradeoff is limited opcode support",
-                        B: "Type 1 is fully equivalent to Ethereum's EVM at the bytecode level, compatible with all existing contracts and tooling without modification; tradeoff is very slow proving due to unoptimized circuits for EVM-unfriendly operations",
-                        C: "Type 1 requires all contracts to be rewritten in a ZK-friendly language; tradeoff is a migration burden for developers",
-                        D: "Type 1 uses a native account abstraction model replacing all EOAs; tradeoff is breaking existing wallet compatibility"
+                    "id": "zk4_q3",
+                    "question": "Vitalik Buterin proposed a Type 1-4 classification for zkEVMs. What does 'Type 1' (fully EVM-equivalent) mean and what is its tradeoff?",
+                    "options": {
+                        "A": "Type 1 proves only a simplified subset of EVM opcodes to achieve fast proving times; tradeoff is limited opcode support",
+                        "B": "Type 1 is fully equivalent to Ethereum's EVM at the bytecode level, compatible with all existing contracts and tooling without modification; tradeoff is very slow proving due to unoptimized circuits for EVM-unfriendly operations",
+                        "C": "Type 1 requires all contracts to be rewritten in a ZK-friendly language; tradeoff is a migration burden for developers",
+                        "D": "Type 1 uses a native account abstraction model replacing all EOAs; tradeoff is breaking existing wallet compatibility"
                     },
-                    correct: "B",
-                    explanation: "Type 1 zkEVMs prove exactly Ethereum's state transition including KECCAK256 as the hash and all EVM semantics. Existing contracts deploy unchanged. The tradeoff is extreme prover cost because KECCAK256 is not ZK-friendly (thousands of constraints per call). Type 4 systems (like zkSync's LLVM approach) compile Solidity to a ZK-friendly VM, achieving much faster proving but requiring contract recompilation and breaking some assumptions."
+                    "correct": "B",
+                    "explanation": "Type 1 zkEVMs prove exactly Ethereum's state transition including KECCAK256 as the hash and all EVM semantics. Existing contracts deploy unchanged. The tradeoff is extreme prover cost because KECCAK256 is not ZK-friendly (thousands of constraints per call). Type 4 systems (like zkSync's LLVM approach) compile Solidity to a ZK-friendly VM, achieving much faster proving but requiring contract recompilation and breaking some assumptions."
                 },
                 {
-                    id: "zk4_q4",
-                    question: "In a ZK-rollup, what is the 'state transition proof,' and what does it guarantee?",
-                    options: {
-                        A: "It is a Merkle proof showing that specific state variables exist in the rollup's state trie",
-                        B: "It is a ZK proof that, given a previous state root and a batch of transactions, applying those transactions correctly yields the new state root -- i.e., every transaction in the batch was validly executed",
-                        C: "It is a proof that the rollup operator has been active for at least one epoch without missing any batches",
-                        D: "It is a hash commitment to the difference between old and new state, published on L1 for later audit"
+                    "id": "zk4_q4",
+                    "question": "In a ZK-rollup, what is the 'state transition proof,' and what does it guarantee?",
+                    "options": {
+                        "A": "It is a Merkle proof showing that specific state variables exist in the rollup's state trie",
+                        "B": "It is a ZK proof that, given a previous state root and a batch of transactions, applying those transactions correctly yields the new state root -- i.e., every transaction in the batch was validly executed",
+                        "C": "It is a proof that the rollup operator has been active for at least one epoch without missing any batches",
+                        "D": "It is a hash commitment to the difference between old and new state, published on L1 for later audit"
                     },
-                    correct: "B",
-                    explanation: "The state transition proof takes the old state root S_old, a batch of transactions T, and proves that executing T on S_old produces S_new. The L1 contract verifies this proof before updating the stored state root. This gives ZK-rollups 'validity' semantics: the L1 is cryptographically certain that every state change was produced by correctly executed transactions, eliminating any trust in the operator for correctness."
+                    "correct": "B",
+                    "explanation": "The state transition proof takes the old state root S_old, a batch of transactions T, and proves that executing T on S_old produces S_new. The L1 contract verifies this proof before updating the stored state root. This gives ZK-rollups 'validity' semantics: the L1 is cryptographically certain that every state change was produced by correctly executed transactions, eliminating any trust in the operator for correctness."
                 },
                 {
-                    id: "zk4_q5",
-                    question: "Data availability is a critical requirement for ZK-rollups. Why must transaction data (or at least enough information to reconstruct state) be available even if proofs guarantee correctness?",
-                    options: {
-                        A: "Transaction data must be available so the L1 contract can re-execute transactions to double-check the ZK proof",
-                        B: "Even if proofs guarantee state transitions were correct, users need transaction data to reconstruct their balances and generate withdrawal proofs; without it, funds can be frozen even if no theft has occurred",
-                        C: "Data availability is required only for Optimistic rollups; ZK-rollups do not need it because proofs replace data",
-                        D: "Data availability ensures the ZK prover has enough randomness to generate secure proofs without a trusted setup"
+                    "id": "zk4_q5",
+                    "question": "Data availability is a critical requirement for ZK-rollups. Why must transaction data (or at least enough information to reconstruct state) be available even if proofs guarantee correctness?",
+                    "options": {
+                        "A": "Transaction data must be available so the L1 contract can re-execute transactions to double-check the ZK proof",
+                        "B": "Even if proofs guarantee state transitions were correct, users need transaction data to reconstruct their balances and generate withdrawal proofs; without it, funds can be frozen even if no theft has occurred",
+                        "C": "Data availability is required only for Optimistic rollups; ZK-rollups do not need it because proofs replace data",
+                        "D": "Data availability ensures the ZK prover has enough randomness to generate secure proofs without a trusted setup"
                     },
-                    correct: "B",
-                    explanation: "ZK proofs guarantee correctness of state transitions, but if the rollup operator publishes only the state root (and not transaction data), users cannot prove their balance or generate withdrawal proofs if the operator disappears. Data availability ensures the data needed for self-custody recovery is accessible. This is why rollups post calldata (or blobs post-EIP-4844) to L1, and why validiums (which use off-chain DA) have weaker trust assumptions."
+                    "correct": "B",
+                    "explanation": "ZK proofs guarantee correctness of state transitions, but if the rollup operator publishes only the state root (and not transaction data), users cannot prove their balance or generate withdrawal proofs if the operator disappears. Data availability ensures the data needed for self-custody recovery is accessible. This is why rollups post calldata (or blobs post-EIP-4844) to L1, and why validiums (which use off-chain DA) have weaker trust assumptions."
                 },
                 {
-                    id: "zk4_q6",
-                    question: "ZK identity systems allow users to prove attributes about themselves without revealing full identity. What is self-sovereign identity (SSI) in this context?",
-                    options: {
-                        A: "An identity system where a central authority (like a government) controls all identity credentials and users access them via API",
-                        B: "A model where users hold their own identity credentials (verifiable credentials) and can selectively disclose attributes (e.g., 'I am over 18') to verifiers using ZK proofs without revealing the underlying credential data",
-                        C: "An on-chain identity standard that automatically generates KYC certificates from blockchain transaction history",
-                        D: "A multi-signature scheme where a user's identity requires approval from multiple trusted contacts before it can be used"
+                    "id": "zk4_q6",
+                    "question": "ZK identity systems allow users to prove attributes about themselves without revealing full identity. What is self-sovereign identity (SSI) in this context?",
+                    "options": {
+                        "A": "An identity system where a central authority (like a government) controls all identity credentials and users access them via API",
+                        "B": "A model where users hold their own identity credentials (verifiable credentials) and can selectively disclose attributes (e.g., 'I am over 18') to verifiers using ZK proofs without revealing the underlying credential data",
+                        "C": "An on-chain identity standard that automatically generates KYC certificates from blockchain transaction history",
+                        "D": "A multi-signature scheme where a user's identity requires approval from multiple trusted contacts before it can be used"
                     },
-                    correct: "B",
-                    explanation: "In SSI, users hold digital credentials (like a digital passport) issued by trusted issuers. ZK proofs allow proving derived claims ('I am over 18,' 'I am a citizen of country X,' 'I hold a valid driving license') without revealing the full credential. Systems like Polygon ID, Sismo, and WorldCoin use ZK-based identity to enable access control and regulatory compliance while preserving privacy."
+                    "correct": "B",
+                    "explanation": "In SSI, users hold digital credentials (like a digital passport) issued by trusted issuers. ZK proofs allow proving derived claims ('I am over 18,' 'I am a citizen of country X,' 'I hold a valid driving license') without revealing the full credential. Systems like Polygon ID, Sismo, and WorldCoin use ZK-based identity to enable access control and regulatory compliance while preserving privacy."
                 },
                 {
-                    id: "zk4_q7",
-                    question: "MACI (Minimum Anti-Collusion Infrastructure) uses ZK proofs to enable bribery-resistant on-chain voting. What is the core mechanism that prevents vote buying?",
-                    options: {
-                        A: "MACI uses a time-locked smart contract that prevents voters from receiving payment until after the election results are published",
-                        B: "MACI allows voters to change their votes, with only the final key change known to the coordinator; a voter can truthfully tell a briber they voted a certain way while secretly changing their key, making colluding commitments unveriﬁable",
-                        C: "MACI encrypts all votes with the election authority's key and only reveals results after a predetermined time",
-                        D: "MACI uses ring signatures so no voter can prove which way they voted even to themselves after the election ends"
+                    "id": "zk4_q7",
+                    "question": "MACI (Minimum Anti-Collusion Infrastructure) uses ZK proofs to enable bribery-resistant on-chain voting. What is the core mechanism that prevents vote buying?",
+                    "options": {
+                        "A": "MACI uses a time-locked smart contract that prevents voters from receiving payment until after the election results are published",
+                        "B": "MACI allows voters to change their votes, with only the final key change known to the coordinator; a voter can truthfully tell a briber they voted a certain way while secretly changing their key, making colluding commitments unveriﬁable",
+                        "C": "MACI encrypts all votes with the election authority's key and only reveals results after a predetermined time",
+                        "D": "MACI uses ring signatures so no voter can prove which way they voted even to themselves after the election ends"
                     },
-                    correct: "B",
-                    explanation: "MACI's key insight: voters can re-register (change their key) at any time, with the coordinator seeing only the final valid key. A briber cannot verify how someone voted because the voter could have changed their key after accepting the bribe, making their 'proof' of vote worthless. ZK proofs let the coordinator publish correct aggregate results without revealing individual votes, combining vote secrecy with verifiable correctness."
+                    "correct": "B",
+                    "explanation": "MACI's key insight: voters can re-register (change their key) at any time, with the coordinator seeing only the final valid key. A briber cannot verify how someone voted because the voter could have changed their key after accepting the bribe, making their 'proof' of vote worthless. ZK proofs let the coordinator publish correct aggregate results without revealing individual votes, combining vote secrecy with verifiable correctness."
                 },
                 {
-                    id: "zk4_q8",
-                    question: "What is zkML (zero-knowledge machine learning), and what problem does it solve for blockchain applications?",
-                    options: {
-                        A: "zkML is a new machine learning architecture that uses ZK circuits instead of traditional neural network layers to achieve higher accuracy with fewer parameters",
-                        B: "zkML proves that a claimed ML model inference was computed correctly (e.g., on specific input data with a specific model) without revealing the model weights or input data, enabling verifiable AI computations on-chain",
-                        C: "zkML is a protocol for training machine learning models privately across multiple parties using homomorphic encryption",
-                        D: "zkML uses ML models to predict ZK proof generation times and automatically select the most efficient proof system"
+                    "id": "zk4_q8",
+                    "question": "What is zkML (zero-knowledge machine learning), and what problem does it solve for blockchain applications?",
+                    "options": {
+                        "A": "zkML is a new machine learning architecture that uses ZK circuits instead of traditional neural network layers to achieve higher accuracy with fewer parameters",
+                        "B": "zkML proves that a claimed ML model inference was computed correctly (e.g., on specific input data with a specific model) without revealing the model weights or input data, enabling verifiable AI computations on-chain",
+                        "C": "zkML is a protocol for training machine learning models privately across multiple parties using homomorphic encryption",
+                        "D": "zkML uses ML models to predict ZK proof generation times and automatically select the most efficient proof system"
                     },
-                    correct: "B",
-                    explanation: "zkML generates a ZK proof that a specific neural network (with committed weights) produced a specific output from a specific input. This enables applications like: proving a credit scoring model was applied fairly, proving an AI content moderation decision was correct, or enabling on-chain smart contracts to trust off-chain ML inference results. The challenge is that large models have millions of operations, creating enormous circuits."
+                    "correct": "B",
+                    "explanation": "zkML generates a ZK proof that a specific neural network (with committed weights) produced a specific output from a specific input. This enables applications like: proving a credit scoring model was applied fairly, proving an AI content moderation decision was correct, or enabling on-chain smart contracts to trust off-chain ML inference results. The challenge is that large models have millions of operations, creating enormous circuits."
                 },
                 {
-                    id: "zk4_q9",
-                    question: "A ZK bridge uses ZK proofs to verify cross-chain state. What security property does this provide over a multisig bridge?",
-                    options: {
-                        A: "ZK bridges are faster to finalize because proofs take less time to generate than waiting for multisig signers to respond",
-                        B: "ZK bridges replace trust in a set of bridge validators (a multisig that can be compromised or bribed) with trust in mathematics: the bridge contract verifies a ZK proof that a specific event occurred on the source chain without trusting any intermediary",
-                        C: "ZK bridges encrypt cross-chain messages with quantum-resistant cryptography, while multisig bridges use insecure symmetric keys",
-                        D: "ZK bridges support more token standards than multisig bridges because the proof system is agnostic to token types"
+                    "id": "zk4_q9",
+                    "question": "A ZK bridge uses ZK proofs to verify cross-chain state. What security property does this provide over a multisig bridge?",
+                    "options": {
+                        "A": "ZK bridges are faster to finalize because proofs take less time to generate than waiting for multisig signers to respond",
+                        "B": "ZK bridges replace trust in a set of bridge validators (a multisig that can be compromised or bribed) with trust in mathematics: the bridge contract verifies a ZK proof that a specific event occurred on the source chain without trusting any intermediary",
+                        "C": "ZK bridges encrypt cross-chain messages with quantum-resistant cryptography, while multisig bridges use insecure symmetric keys",
+                        "D": "ZK bridges support more token standards than multisig bridges because the proof system is agnostic to token types"
                     },
-                    correct: "B",
-                    explanation: "Multisig bridges have been the source of billions in hacks (Ronin, Wormhole, Nomad) because compromising a threshold of signers suffices to steal funds. ZK bridges (like Succinct Labs, zkBridge) prove that an event happened on the source chain (e.g., a deposit was included in a finalized block) using a ZK proof of the source chain's consensus mechanism. Security reduces to the soundness of the proof system, not the honesty of any committee."
+                    "correct": "B",
+                    "explanation": "Multisig bridges have been the source of billions in hacks (Ronin, Wormhole, Nomad) because compromising a threshold of signers suffices to steal funds. ZK bridges (like Succinct Labs, zkBridge) prove that an event happened on the source chain (e.g., a deposit was included in a finalized block) using a ZK proof of the source chain's consensus mechanism. Security reduces to the soundness of the proof system, not the honesty of any committee."
                 },
                 {
-                    id: "zk4_q10",
-                    question: "What is a ZK coprocessor, and how does it extend the capabilities of smart contracts?",
-                    options: {
-                        A: "A ZK coprocessor is a hardware unit that accelerates SNARK proof generation, reducing proving time from hours to seconds for zkEVM rollups",
-                        B: "A ZK coprocessor allows smart contracts to trustlessly access and compute over historical on-chain data (e.g., historical prices, past governance votes) that would be too expensive to compute on-chain, by generating a ZK proof of the off-chain computation",
-                        C: "A ZK coprocessor is a second smart contract that handles the ZK proof verification logic, separating it from the main application contract for gas efficiency",
-                        D: "A ZK coprocessor is a multi-party computation network that simulates ZK proofs for computations too complex for current proof systems"
+                    "id": "zk4_q10",
+                    "question": "What is a ZK coprocessor, and how does it extend the capabilities of smart contracts?",
+                    "options": {
+                        "A": "A ZK coprocessor is a hardware unit that accelerates SNARK proof generation, reducing proving time from hours to seconds for zkEVM rollups",
+                        "B": "A ZK coprocessor allows smart contracts to trustlessly access and compute over historical on-chain data (e.g., historical prices, past governance votes) that would be too expensive to compute on-chain, by generating a ZK proof of the off-chain computation",
+                        "C": "A ZK coprocessor is a second smart contract that handles the ZK proof verification logic, separating it from the main application contract for gas efficiency",
+                        "D": "A ZK coprocessor is a multi-party computation network that simulates ZK proofs for computations too complex for current proof systems"
                     },
-                    correct: "B",
-                    explanation: "Smart contracts can only access current state, not historical data, and complex computations (ML inference, VWAP over 1000 blocks, historical voting power) are too gas-expensive on-chain. ZK coprocessors (Axiom, Brevis, RISC Zero's Bonsai) let developers submit a program that processes historical on-chain data off-chain, generate a ZK proof of the computation, and have an on-chain contract verify and use the result trustlessly."
+                    "correct": "B",
+                    "explanation": "Smart contracts can only access current state, not historical data, and complex computations (ML inference, VWAP over 1000 blocks, historical voting power) are too gas-expensive on-chain. ZK coprocessors (Axiom, Brevis, RISC Zero's Bonsai) let developers submit a program that processes historical on-chain data off-chain, generate a ZK proof of the computation, and have an on-chain contract verify and use the result trustlessly."
                 },
                 {
-                    id: "zk4_q11",
-                    question: "Circom is a domain-specific language for writing ZK circuits. What does it compile to, and why is it significant?",
-                    options: {
-                        A: "Circom compiles to Solidity smart contracts that implement the ZK verifier logic directly on Ethereum",
-                        B: "Circom compiles to R1CS constraint systems and associated witness computation code, providing a hardware-description-like language for defining arithmetic circuits that can then be compiled into SNARKs using backends like snarkjs",
-                        C: "Circom compiles to STARK traces, enabling STARK-based proofs for any Circom program without a trusted setup",
-                        D: "Circom compiles to WebAssembly for execution in browsers, enabling client-side ZK proof generation without any compilation step"
+                    "id": "zk4_q11",
+                    "question": "Circom is a domain-specific language for writing ZK circuits. What does it compile to, and why is it significant?",
+                    "options": {
+                        "A": "Circom compiles to Solidity smart contracts that implement the ZK verifier logic directly on Ethereum",
+                        "B": "Circom compiles to R1CS constraint systems and associated witness computation code, providing a hardware-description-like language for defining arithmetic circuits that can then be compiled into SNARKs using backends like snarkjs",
+                        "C": "Circom compiles to STARK traces, enabling STARK-based proofs for any Circom program without a trusted setup",
+                        "D": "Circom compiles to WebAssembly for execution in browsers, enabling client-side ZK proof generation without any compilation step"
                     },
-                    correct: "B",
-                    explanation: "Circom is a circuit description language where developers define arithmetic constraints using signals and templates. The Circom compiler generates an R1CS file (the constraint system) and a WASM/native witness calculator. Tools like snarkjs then take the R1CS and use it with a trusted setup to generate Groth16 or PLONK proving/verification keys. This toolchain democratized ZK circuit development and powers protocols like Tornado Cash, Semaphore, and Dark Forest."
+                    "correct": "B",
+                    "explanation": "Circom is a circuit description language where developers define arithmetic constraints using signals and templates. The Circom compiler generates an R1CS file (the constraint system) and a WASM/native witness calculator. Tools like snarkjs then take the R1CS and use it with a trusted setup to generate Groth16 or PLONK proving/verification keys. This toolchain democratized ZK circuit development and powers protocols like Tornado Cash, Semaphore, and Dark Forest."
                 },
                 {
-                    id: "zk4_q12",
-                    question: "Noir is a Rust-like language developed by Aztec for writing ZK programs. How does it differ from Circom in its development model?",
-                    options: {
-                        A: "Noir is a lower-level language than Circom, requiring developers to manually specify all gate constraints without abstraction",
-                        B: "Noir is a higher-level language with a Rust-like syntax that abstracts away the underlying proof system; developers write programs that look like normal code and the compiler handles circuit generation, making ZK development more accessible",
-                        C: "Noir only targets STARK proof systems while Circom only targets SNARK systems",
-                        D: "Noir requires an on-chain compiler to generate circuits dynamically at runtime, while Circom circuits are pre-compiled"
+                    "id": "zk4_q12",
+                    "question": "Noir is a Rust-like language developed by Aztec for writing ZK programs. How does it differ from Circom in its development model?",
+                    "options": {
+                        "A": "Noir is a lower-level language than Circom, requiring developers to manually specify all gate constraints without abstraction",
+                        "B": "Noir is a higher-level language with a Rust-like syntax that abstracts away the underlying proof system; developers write programs that look like normal code and the compiler handles circuit generation, making ZK development more accessible",
+                        "C": "Noir only targets STARK proof systems while Circom only targets SNARK systems",
+                        "D": "Noir requires an on-chain compiler to generate circuits dynamically at runtime, while Circom circuits are pre-compiled"
                     },
-                    correct: "B",
-                    explanation: "Noir abstracts ZK circuit development behind an expressive type system and Rust-like control flow. Developers write functions with typed inputs and the Noir compiler (nargo) handles translation to an intermediate representation (ACIR) that can target different backends (Barretenberg, UltraPlonk, etc.). This contrasts with Circom where developers think in constraints and templates. Cairo (StarkWare's language) takes a similar approach targeting STARK proofs."
+                    "correct": "B",
+                    "explanation": "Noir abstracts ZK circuit development behind an expressive type system and Rust-like control flow. Developers write functions with typed inputs and the Noir compiler (nargo) handles translation to an intermediate representation (ACIR) that can target different backends (Barretenberg, UltraPlonk, etc.). This contrasts with Circom where developers think in constraints and templates. Cairo (StarkWare's language) takes a similar approach targeting STARK proofs."
                 },
                 {
-                    id: "zk4_q13",
-                    question: "Hardware acceleration (GPUs, FPGAs, ASICs) is being actively developed for ZK proof generation. What computational bottleneck do these accelerators primarily target?",
-                    options: {
-                        A: "Hash function evaluation for Merkle tree construction, which dominates SNARK verification time",
-                        B: "Multi-scalar multiplication (MSM) in elliptic curve groups and number-theoretic transforms (NTT), which are the dominant operations in SNARK prover time and are highly parallelizable",
-                        C: "Trusted setup ceremony computation, which currently takes months and blocks production deployments",
-                        D: "On-chain verifier gas cost, which requires specialized EVM opcodes for pairing computations"
+                    "id": "zk4_q13",
+                    "question": "Hardware acceleration (GPUs, FPGAs, ASICs) is being actively developed for ZK proof generation. What computational bottleneck do these accelerators primarily target?",
+                    "options": {
+                        "A": "Hash function evaluation for Merkle tree construction, which dominates SNARK verification time",
+                        "B": "Multi-scalar multiplication (MSM) in elliptic curve groups and number-theoretic transforms (NTT), which are the dominant operations in SNARK prover time and are highly parallelizable",
+                        "C": "Trusted setup ceremony computation, which currently takes months and blocks production deployments",
+                        "D": "On-chain verifier gas cost, which requires specialized EVM opcodes for pairing computations"
                     },
-                    correct: "B",
-                    explanation: "SNARK prover time is dominated by two operations: Multi-Scalar Multiplication (MSM -- computing sum of k_i * G_i over many elliptic curve points, used in polynomial commitment opening) and Number-Theoretic Transforms (NTT -- the modular arithmetic version of FFT, used in polynomial multiplication). Both are highly parallelizable. GPUs can accelerate MSM by 10-100x; custom ASICs (like those from Cysic and Ingonyama) push further."
+                    "correct": "B",
+                    "explanation": "SNARK prover time is dominated by two operations: Multi-Scalar Multiplication (MSM -- computing sum of k_i * G_i over many elliptic curve points, used in polynomial commitment opening) and Number-Theoretic Transforms (NTT -- the modular arithmetic version of FFT, used in polynomial multiplication). Both are highly parallelizable. GPUs can accelerate MSM by 10-100x; custom ASICs (like those from Cysic and Ingonyama) push further."
                 },
                 {
-                    id: "zk4_q14",
-                    question: "Private DeFi refers to financial protocols that preserve transaction confidentiality. What is a key design challenge unique to private DeFi compared to private payments?",
-                    options: {
-                        A: "Private DeFi requires gas payments that reveal the user's identity, breaking privacy at the network level",
-                        B: "DeFi requires composable computation (pricing, liquidity, collateral ratios) where hidden state must still allow correct protocol logic -- e.g., proving a liquidation is valid or an AMM price is correct without revealing the full order book or positions",
-                        C: "Private DeFi is impossible because all EVM computations are deterministic and therefore not private",
-                        D: "Private DeFi requires all participants to use the same hardware wallet to ensure consistency of private state"
+                    "id": "zk4_q14",
+                    "question": "Private DeFi refers to financial protocols that preserve transaction confidentiality. What is a key design challenge unique to private DeFi compared to private payments?",
+                    "options": {
+                        "A": "Private DeFi requires gas payments that reveal the user's identity, breaking privacy at the network level",
+                        "B": "DeFi requires composable computation (pricing, liquidity, collateral ratios) where hidden state must still allow correct protocol logic -- e.g., proving a liquidation is valid or an AMM price is correct without revealing the full order book or positions",
+                        "C": "Private DeFi is impossible because all EVM computations are deterministic and therefore not private",
+                        "D": "Private DeFi requires all participants to use the same hardware wallet to ensure consistency of private state"
                     },
-                    correct: "B",
-                    explanation: "Private payments (like Zcash or Tornado Cash) hide amounts and parties but each transaction is largely independent. DeFi involves shared state: liquidity pools, collateral ratios, oracle prices, governance votes. Hiding individual positions while still computing correct aggregate protocol state (e.g., pool price, total TVL, solvency) requires ZK proofs over shared private state -- a significantly harder problem than simple private transfers."
+                    "correct": "B",
+                    "explanation": "Private payments (like Zcash or Tornado Cash) hide amounts and parties but each transaction is largely independent. DeFi involves shared state: liquidity pools, collateral ratios, oracle prices, governance votes. Hiding individual positions while still computing correct aggregate protocol state (e.g., pool price, total TVL, solvency) requires ZK proofs over shared private state -- a significantly harder problem than simple private transfers."
                 },
                 {
-                    id: "zk4_q15",
-                    question: "What are the prover economics in a ZK-rollup, and why do they matter for long-term sustainability?",
-                    options: {
-                        A: "Prover economics are irrelevant because proving is done by the L1 validators as part of block production",
-                        B: "Generating ZK proofs requires significant computational resources (CPU/GPU time, memory); provers must be compensated through transaction fees or protocol revenue to remain economically viable, creating a market for proof generation that can centralize or decentralize over time",
-                        C: "Prover economics are fixed by the ZK protocol specification and cannot be altered by the rollup operator",
-                        D: "ZK proof generation is computationally free because it is done in O(1) time regardless of batch size"
+                    "id": "zk4_q15",
+                    "question": "What are the prover economics in a ZK-rollup, and why do they matter for long-term sustainability?",
+                    "options": {
+                        "A": "Prover economics are irrelevant because proving is done by the L1 validators as part of block production",
+                        "B": "Generating ZK proofs requires significant computational resources (CPU/GPU time, memory); provers must be compensated through transaction fees or protocol revenue to remain economically viable, creating a market for proof generation that can centralize or decentralize over time",
+                        "C": "Prover economics are fixed by the ZK protocol specification and cannot be altered by the rollup operator",
+                        "D": "ZK proof generation is computationally free because it is done in O(1) time regardless of batch size"
                     },
-                    correct: "B",
-                    explanation: "Generating Groth16 or PLONK proofs for large batches of transactions requires significant hardware (high-end GPUs or custom hardware) running for minutes. The cost must be recovered through user fees. If fees are too high, users go elsewhere; if too low, provers run at a loss. This creates design questions: should proof generation be centralized (one entity, economies of scale) or decentralized (a proof market)? Projects like Gevulot and Lagrange are building decentralized prover markets."
+                    "correct": "B",
+                    "explanation": "Generating Groth16 or PLONK proofs for large batches of transactions requires significant hardware (high-end GPUs or custom hardware) running for minutes. The cost must be recovered through user fees. If fees are too high, users go elsewhere; if too low, provers run at a loss. This creates design questions: should proof generation be centralized (one entity, economies of scale) or decentralized (a proof market)? Projects like Gevulot and Lagrange are building decentralized prover markets."
                 },
                 {
-                    id: "zk4_q16",
-                    question: "Client-side proving (generating ZK proofs on end-user devices like mobile phones) is a significant research goal. What are the main barriers currently?",
-                    options: {
-                        A: "Client-side proving is prohibited by regulations in most jurisdictions because it enables untraceable transactions",
-                        B: "Current proof systems require too much computation time (minutes to hours) and memory (gigabytes) to run on constrained devices; proving keys for complex circuits can be gigabytes in size, exceeding mobile storage",
-                        C: "Client-side proving is impossible because ZK proofs require network access to the trusted setup server during proof generation",
-                        D: "Client-side proving would require users to install custom operating system kernels incompatible with iOS and Android"
+                    "id": "zk4_q16",
+                    "question": "Client-side proving (generating ZK proofs on end-user devices like mobile phones) is a significant research goal. What are the main barriers currently?",
+                    "options": {
+                        "A": "Client-side proving is prohibited by regulations in most jurisdictions because it enables untraceable transactions",
+                        "B": "Current proof systems require too much computation time (minutes to hours) and memory (gigabytes) to run on constrained devices; proving keys for complex circuits can be gigabytes in size, exceeding mobile storage",
+                        "C": "Client-side proving is impossible because ZK proofs require network access to the trusted setup server during proof generation",
+                        "D": "Client-side proving would require users to install custom operating system kernels incompatible with iOS and Android"
                     },
-                    correct: "B",
-                    explanation: "Groth16 proving for a complex circuit might require a 500 MB proving key, 4+ GB RAM, and 30+ minutes on a mobile CPU -- far beyond current phones. Research directions include: smaller circuits via better constraint optimization, recursive proofs that compress work, new proof systems with faster provers (e.g., Spartan, HyperPlonk), and dedicated mobile hardware. Projects like Anon Aadhaar and ZK Email are pushing client-side proving for specific use cases."
+                    "correct": "B",
+                    "explanation": "Groth16 proving for a complex circuit might require a 500 MB proving key, 4+ GB RAM, and 30+ minutes on a mobile CPU -- far beyond current phones. Research directions include: smaller circuits via better constraint optimization, recursive proofs that compress work, new proof systems with faster provers (e.g., Spartan, HyperPlonk), and dedicated mobile hardware. Projects like Anon Aadhaar and ZK Email are pushing client-side proving for specific use cases."
                 },
                 {
-                    id: "zk4_q17",
-                    question: "Post-quantum ZK proof systems based on lattice cryptography are an active research area. What lattice-based hardness assumption underlies many proposals?",
-                    options: {
-                        A: "The Discrete Logarithm Problem over prime-order elliptic curve groups",
-                        B: "The Learning With Errors (LWE) problem and its ring variant (RLWE), where solving a system of noisy linear equations over a lattice is hard even for quantum computers",
-                        C: "The Integer Factorization problem, which is the basis of RSA and quantum-resistant ring-based SNARKs",
-                        D: "The Shortest Vector Problem (SVP), which is used exclusively for signature schemes and cannot support ZK proofs"
+                    "id": "zk4_q17",
+                    "question": "Post-quantum ZK proof systems based on lattice cryptography are an active research area. What lattice-based hardness assumption underlies many proposals?",
+                    "options": {
+                        "A": "The Discrete Logarithm Problem over prime-order elliptic curve groups",
+                        "B": "The Learning With Errors (LWE) problem and its ring variant (RLWE), where solving a system of noisy linear equations over a lattice is hard even for quantum computers",
+                        "C": "The Integer Factorization problem, which is the basis of RSA and quantum-resistant ring-based SNARKs",
+                        "D": "The Shortest Vector Problem (SVP), which is used exclusively for signature schemes and cannot support ZK proofs"
                     },
-                    correct: "B",
-                    explanation: "LWE (Learning With Errors) asks: given many samples (A_i, b_i = A_i*s + e_i) for secret s and small noise e, find s. This is believed hard for quantum computers. RLWE (Ring-LWE) is the ring-structured variant enabling efficient homomorphic encryption and lattice-based commitments. Lattice-based commitments can replace pairing-based KZG commitments in SNARKs (e.g., Lattice-based FRI, STARK variants) for post-quantum security."
+                    "correct": "B",
+                    "explanation": "LWE (Learning With Errors) asks: given many samples (A_i, b_i = A_i*s + e_i) for secret s and small noise e, find s. This is believed hard for quantum computers. RLWE (Ring-LWE) is the ring-structured variant enabling efficient homomorphic encryption and lattice-based commitments. Lattice-based commitments can replace pairing-based KZG commitments in SNARKs (e.g., Lattice-based FRI, STARK variants) for post-quantum security."
                 },
                 {
-                    id: "zk4_q18",
-                    question: "ZK proofs for regulatory compliance -- proving AML/KYC status without revealing identity -- face a fundamental tension. What is it?",
-                    options: {
-                        A: "ZK proofs are computationally too slow to meet real-time compliance requirements in financial transactions",
-                        B: "True ZK proof compliance requires a trusted issuer of credentials (e.g., a government or regulated entity) whose existence and policies must be trusted; if the issuer is compromised or politically coerced, privacy guarantees collapse despite the ZK proof's mathematical correctness",
-                        C: "ZK proofs cannot prove negative statements (e.g., 'I am not on a sanctions list'), only positive ones",
-                        D: "Regulators refuse to accept ZK proofs as legal evidence because they cannot be examined in court"
+                    "id": "zk4_q18",
+                    "question": "ZK proofs for regulatory compliance -- proving AML/KYC status without revealing identity -- face a fundamental tension. What is it?",
+                    "options": {
+                        "A": "ZK proofs are computationally too slow to meet real-time compliance requirements in financial transactions",
+                        "B": "True ZK proof compliance requires a trusted issuer of credentials (e.g., a government or regulated entity) whose existence and policies must be trusted; if the issuer is compromised or politically coerced, privacy guarantees collapse despite the ZK proof's mathematical correctness",
+                        "C": "ZK proofs cannot prove negative statements (e.g., 'I am not on a sanctions list'), only positive ones",
+                        "D": "Regulators refuse to accept ZK proofs as legal evidence because they cannot be examined in court"
                     },
-                    correct: "B",
-                    explanation: "ZK identity proofs can prove 'I have a valid credential from issuer X satisfying condition Y' without revealing the credential. But the system's privacy properties depend on trusting issuer X (who holds the mapping from credentials to identities). A government issuer under legal compulsion could deanonymize users by correlating credential issuance records with the blockchain. The math is sound; the trust assumptions extend to the real-world issuer ecosystem."
+                    "correct": "B",
+                    "explanation": "ZK identity proofs can prove 'I have a valid credential from issuer X satisfying condition Y' without revealing the credential. But the system's privacy properties depend on trusting issuer X (who holds the mapping from credentials to identities). A government issuer under legal compulsion could deanonymize users by correlating credential issuance records with the blockchain. The math is sound; the trust assumptions extend to the real-world issuer ecosystem."
                 },
                 {
-                    id: "zk4_q19",
-                    question: "What is a ZK proof of solvency, and why is it useful for cryptocurrency exchanges?",
-                    options: {
-                        A: "A ZK proof of solvency proves that an exchange has a valid operating license from financial regulators",
-                        B: "A ZK proof of solvency allows an exchange to prove that total user liabilities are less than or equal to total reserves, without revealing individual account balances, the total reserve amount, or the identities of depositors",
-                        C: "A ZK proof of solvency is a smart contract that automatically liquidates an exchange if its reserves fall below a threshold",
-                        D: "A ZK proof of solvency requires the exchange to publish a full Merkle tree of all accounts, making individual balances visible to anyone who reads the tree"
+                    "id": "zk4_q19",
+                    "question": "What is a ZK proof of solvency, and why is it useful for cryptocurrency exchanges?",
+                    "options": {
+                        "A": "A ZK proof of solvency proves that an exchange has a valid operating license from financial regulators",
+                        "B": "A ZK proof of solvency allows an exchange to prove that total user liabilities are less than or equal to total reserves, without revealing individual account balances, the total reserve amount, or the identities of depositors",
+                        "C": "A ZK proof of solvency is a smart contract that automatically liquidates an exchange if its reserves fall below a threshold",
+                        "D": "A ZK proof of solvency requires the exchange to publish a full Merkle tree of all accounts, making individual balances visible to anyone who reads the tree"
                     },
-                    correct: "B",
-                    explanation: "After FTX's collapse, ZK proof of solvency (also called Proof of Reserves with privacy) gained attention. Using ZK proofs and Merkle trees, an exchange can prove that sum(liabilities) is less than or equal to sum(reserves) -- and each user can verify their account is included in the liability tree -- without revealing any individual balances or the total reserve figure. This provides auditability without competitive disclosure of customer data."
+                    "correct": "B",
+                    "explanation": "After FTX's collapse, ZK proof of solvency (also called Proof of Reserves with privacy) gained attention. Using ZK proofs and Merkle trees, an exchange can prove that sum(liabilities) is less than or equal to sum(reserves) -- and each user can verify their account is included in the liability tree -- without revealing any individual balances or the total reserve figure. This provides auditability without competitive disclosure of customer data."
                 },
                 {
-                    id: "zk4_q20",
-                    question: "Looking at future directions for ZK technology in blockchain, which combination of developments would most significantly expand ZK's practical impact?",
-                    options: {
-                        A: "Increasing the number of trusted setup participants and expanding the ceremony to cover more circuits",
-                        B: "Advances in proof system efficiency (sub-second proving on commodity hardware), standardized ZK programming languages, and regulatory frameworks that accept ZK proofs for compliance, together removing the current barriers of proving cost, developer complexity, and legal uncertainty",
-                        C: "Moving all ZK computation to cloud providers who offer ZK-as-a-Service APIs, centralizing proof generation for efficiency",
-                        D: "Replacing all existing blockchains with ZK-native chains designed from scratch, deprecating current EVM-based ecosystems"
+                    "id": "zk4_q20",
+                    "question": "Looking at future directions for ZK technology in blockchain, which combination of developments would most significantly expand ZK's practical impact?",
+                    "options": {
+                        "A": "Increasing the number of trusted setup participants and expanding the ceremony to cover more circuits",
+                        "B": "Advances in proof system efficiency (sub-second proving on commodity hardware), standardized ZK programming languages, and regulatory frameworks that accept ZK proofs for compliance, together removing the current barriers of proving cost, developer complexity, and legal uncertainty",
+                        "C": "Moving all ZK computation to cloud providers who offer ZK-as-a-Service APIs, centralizing proof generation for efficiency",
+                        "D": "Replacing all existing blockchains with ZK-native chains designed from scratch, deprecating current EVM-based ecosystems"
                     },
-                    correct: "B",
-                    explanation: "The three main barriers to ZK adoption are: (1) prover cost -- circuits are slow and expensive to prove, limiting real-time and mobile applications; (2) developer experience -- writing circuits requires deep expertise, limiting who can build ZK applications; and (3) regulatory uncertainty -- most jurisdictions have not determined how ZK proofs satisfy AML/KYC obligations. Progress on all three fronts (faster provers, better languages like Noir/Cairo, legal frameworks for ZK identity) would unlock a much broader set of applications."
+                    "correct": "B",
+                    "explanation": "The three main barriers to ZK adoption are: (1) prover cost -- circuits are slow and expensive to prove, limiting real-time and mobile applications; (2) developer experience -- writing circuits requires deep expertise, limiting who can build ZK applications; and (3) regulatory uncertainty -- most jurisdictions have not determined how ZK proofs satisfy AML/KYC obligations. Progress on all three fronts (faster provers, better languages like Noir/Cairo, legal frameworks for ZK identity) would unlock a much broader set of applications."
                 }
             ]
         };

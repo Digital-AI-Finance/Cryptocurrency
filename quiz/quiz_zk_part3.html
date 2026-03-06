@@ -338,244 +338,244 @@
         const quizData = {
             questions: [
                 {
-                    id: "zk3_q1",
-                    question: "What is a ring signature, and how does Monero use it to achieve sender privacy?",
-                    options: {
-                        A: "A ring signature is a multi-signature scheme requiring all members to sign; Monero requires a quorum of known validators to authorize each transaction",
-                        B: "A ring signature allows one member of a group to sign on behalf of the group without revealing which member signed; Monero uses it so the real sender is hidden among a set of decoy outputs called 'ring members'",
-                        C: "A ring signature is a circular linked list of transactions that obfuscates the order of signing; Monero chains transactions in a ring to break traceability",
-                        D: "A ring signature uses a ring-shaped elliptic curve for improved security; Monero adopted it purely for its cryptographic efficiency advantages"
+                    "id": "zk3_q1",
+                    "question": "What is a ring signature, and how does Monero use it to achieve sender privacy?",
+                    "options": {
+                        "A": "A ring signature is a multi-signature scheme requiring all members to sign; Monero requires a quorum of known validators to authorize each transaction",
+                        "B": "A ring signature allows one member of a group to sign on behalf of the group without revealing which member signed; Monero uses it so the real sender is hidden among a set of decoy outputs called 'ring members'",
+                        "C": "A ring signature is a circular linked list of transactions that obfuscates the order of signing; Monero chains transactions in a ring to break traceability",
+                        "D": "A ring signature uses a ring-shaped elliptic curve for improved security; Monero adopted it purely for its cryptographic efficiency advantages"
                     },
-                    correct: "B",
-                    explanation: "Ring signatures let a signer produce a signature that could have come from any member of a defined group (the 'ring'), without any member being identifiable as the actual signer. In Monero, each transaction input includes the real unspent output plus several decoy outputs from the blockchain. An observer cannot tell which input is genuinely being spent, hiding the sender."
+                    "correct": "B",
+                    "explanation": "Ring signatures let a signer produce a signature that could have come from any member of a defined group (the 'ring'), without any member being identifiable as the actual signer. In Monero, each transaction input includes the real unspent output plus several decoy outputs from the blockchain. An observer cannot tell which input is genuinely being spent, hiding the sender."
                 },
                 {
-                    id: "zk3_q2",
-                    question: "Stealth addresses in Monero protect recipient privacy. How do they work?",
-                    options: {
-                        A: "The recipient publishes a fixed hidden address that is only revealed to senders via an encrypted channel off-chain",
-                        B: "For each transaction, the sender generates a one-time public key derived from the recipient's public key and a random value; only the recipient can scan the blockchain and recognize outputs destined for them",
-                        C: "Monero routes all transactions through a mixer contract that redistributes funds to stealth addresses registered in a smart contract",
-                        D: "Stealth addresses are IP addresses masked by Tor; transactions are routed through them to prevent network-level tracing"
+                    "id": "zk3_q2",
+                    "question": "Stealth addresses in Monero protect recipient privacy. How do they work?",
+                    "options": {
+                        "A": "The recipient publishes a fixed hidden address that is only revealed to senders via an encrypted channel off-chain",
+                        "B": "For each transaction, the sender generates a one-time public key derived from the recipient's public key and a random value; only the recipient can scan the blockchain and recognize outputs destined for them",
+                        "C": "Monero routes all transactions through a mixer contract that redistributes funds to stealth addresses registered in a smart contract",
+                        "D": "Stealth addresses are IP addresses masked by Tor; transactions are routed through them to prevent network-level tracing"
                     },
-                    correct: "B",
-                    explanation: "Monero stealth addresses use Diffie-Hellman key exchange: the sender picks random r, computes the one-time address P = H(r*B)*G + B' using the recipient's public keys (B, B'). Only the recipient, with private key b', can compute H(r*B)*G + B' = P when scanning the blockchain. This means all outputs look unrelated to external observers even when sent to the same recipient."
+                    "correct": "B",
+                    "explanation": "Monero stealth addresses use Diffie-Hellman key exchange: the sender picks random r, computes the one-time address P = H(r*B)*G + B' using the recipient's public keys (B, B'). Only the recipient, with private key b', can compute H(r*B)*G + B' = P when scanning the blockchain. This means all outputs look unrelated to external observers even when sent to the same recipient."
                 },
                 {
-                    id: "zk3_q3",
-                    question: "RingCT (Ring Confidential Transactions) in Monero hides transaction amounts. What cryptographic technique does it use?",
-                    options: {
-                        A: "AES-256 symmetric encryption of the amount field, with the key shared between sender and recipient using ECDH",
-                        B: "Pedersen commitments to hide amounts combined with range proofs (originally Borromean ring signatures, later Bulletproofs) to prove amounts are positive without revealing them",
-                        C: "Zero-knowledge SNARKs that prove balance conservation without revealing any transaction details",
-                        D: "Homomorphic encryption of amounts using the BLS12-381 curve, allowing validators to verify sums without decryption"
+                    "id": "zk3_q3",
+                    "question": "RingCT (Ring Confidential Transactions) in Monero hides transaction amounts. What cryptographic technique does it use?",
+                    "options": {
+                        "A": "AES-256 symmetric encryption of the amount field, with the key shared between sender and recipient using ECDH",
+                        "B": "Pedersen commitments to hide amounts combined with range proofs (originally Borromean ring signatures, later Bulletproofs) to prove amounts are positive without revealing them",
+                        "C": "Zero-knowledge SNARKs that prove balance conservation without revealing any transaction details",
+                        "D": "Homomorphic encryption of amounts using the BLS12-381 curve, allowing validators to verify sums without decryption"
                     },
-                    correct: "B",
-                    explanation: "RingCT uses Pedersen commitments: C = v*H + r*G where v is the amount and r is blinding randomness. Commitments are additively homomorphic, so verifiers can check that sum(inputs) = sum(outputs) + fee without knowing individual amounts. Bulletproofs (adopted in 2018) prove each committed value is in range [0, 2^64) without revealing the value, replacing the original larger Borromean ring signature proofs."
+                    "correct": "B",
+                    "explanation": "RingCT uses Pedersen commitments: C = v*H + r*G where v is the amount and r is blinding randomness. Commitments are additively homomorphic, so verifiers can check that sum(inputs) = sum(outputs) + fee without knowing individual amounts. Bulletproofs (adopted in 2018) prove each committed value is in range [0, 2^64) without revealing the value, replacing the original larger Borromean ring signature proofs."
                 },
                 {
-                    id: "zk3_q4",
-                    question: "Zcash uses shielded transactions based on zk-SNARKs. What is a 'note commitment' in the Zcash protocol?",
-                    options: {
-                        A: "A cryptographic hash of the transaction metadata published on the public blockchain for audit purposes",
-                        B: "A commitment to a shielded output (note) that contains an amount and recipient address; it is added to the note commitment tree when a shielded output is created, recording its existence without revealing its contents",
-                        C: "A smart contract that holds shielded funds in escrow and releases them upon proof submission",
-                        D: "A digital signature by the Zcash foundation attesting that a transaction complies with protocol rules"
+                    "id": "zk3_q4",
+                    "question": "Zcash uses shielded transactions based on zk-SNARKs. What is a 'note commitment' in the Zcash protocol?",
+                    "options": {
+                        "A": "A cryptographic hash of the transaction metadata published on the public blockchain for audit purposes",
+                        "B": "A commitment to a shielded output (note) that contains an amount and recipient address; it is added to the note commitment tree when a shielded output is created, recording its existence without revealing its contents",
+                        "C": "A smart contract that holds shielded funds in escrow and releases them upon proof submission",
+                        "D": "A digital signature by the Zcash foundation attesting that a transaction complies with protocol rules"
                     },
-                    correct: "B",
-                    explanation: "In Zcash, a shielded note contains (amount, recipient, randomness). The note commitment cm = Commit(note) is published on-chain in an append-only Merkle tree when a note is created. Spending requires proving (in ZK) that you know a note whose commitment is in the tree and that you have not spent it before (via the nullifier). The tree grows but individual note contents remain hidden."
+                    "correct": "B",
+                    "explanation": "In Zcash, a shielded note contains (amount, recipient, randomness). The note commitment cm = Commit(note) is published on-chain in an append-only Merkle tree when a note is created. Spending requires proving (in ZK) that you know a note whose commitment is in the tree and that you have not spent it before (via the nullifier). The tree grows but individual note contents remain hidden."
                 },
                 {
-                    id: "zk3_q5",
-                    question: "What is a nullifier in the context of Zcash shielded transactions, and why is it essential?",
-                    options: {
-                        A: "A nullifier is a penalty mechanism that slashes validators who produce invalid shielded proofs",
-                        B: "A nullifier is a publicly revealed value derived from a spent note; it is added to the nullifier set to prevent double-spending, while revealing nothing about which note was spent",
-                        C: "A nullifier is the blinding factor in a Pedersen commitment that is published when the commitment is opened",
-                        D: "A nullifier is a special transaction type that cancels a pending shielded payment before it is mined"
+                    "id": "zk3_q5",
+                    "question": "What is a nullifier in the context of Zcash shielded transactions, and why is it essential?",
+                    "options": {
+                        "A": "A nullifier is a penalty mechanism that slashes validators who produce invalid shielded proofs",
+                        "B": "A nullifier is a publicly revealed value derived from a spent note; it is added to the nullifier set to prevent double-spending, while revealing nothing about which note was spent",
+                        "C": "A nullifier is the blinding factor in a Pedersen commitment that is published when the commitment is opened",
+                        "D": "A nullifier is a special transaction type that cancels a pending shielded payment before it is mined"
                     },
-                    correct: "B",
-                    explanation: "When spending a shielded note, the prover publishes a nullifier nf = PRF(spending_key, note_rho). The nullifier is deterministic for a given note but computationally unlinkable to the note commitment without the spending key. The protocol rejects any transaction whose nullifier is already in the nullifier set, preventing double-spending without revealing which note was consumed."
+                    "correct": "B",
+                    "explanation": "When spending a shielded note, the prover publishes a nullifier nf = PRF(spending_key, note_rho). The nullifier is deterministic for a given note but computationally unlinkable to the note commitment without the spending key. The protocol rejects any transaction whose nullifier is already in the nullifier set, preventing double-spending without revealing which note was consumed."
                 },
                 {
-                    id: "zk3_q6",
-                    question: "Zcash has gone through multiple protocol upgrades: Sprout, Sapling, and Orchard. What was the main improvement introduced by Sapling?",
-                    options: {
-                        A: "Sapling introduced shielded transactions for the first time, replacing the original transparent-only Sprout chain",
-                        B: "Sapling replaced the original Groth-Maller proof system with Groth16 on the BLS12-381 curve, dramatically reducing shielded transaction proving time from minutes to under one second and cutting proof size",
-                        C: "Sapling added smart contract functionality to Zcash's shielded pool, enabling private DeFi applications",
-                        D: "Sapling eliminated the trusted setup requirement by switching from zk-SNARKs to zk-STARKs for shielded transactions"
+                    "id": "zk3_q6",
+                    "question": "Zcash has gone through multiple protocol upgrades: Sprout, Sapling, and Orchard. What was the main improvement introduced by Sapling?",
+                    "options": {
+                        "A": "Sapling introduced shielded transactions for the first time, replacing the original transparent-only Sprout chain",
+                        "B": "Sapling replaced the original Groth-Maller proof system with Groth16 on the BLS12-381 curve, dramatically reducing shielded transaction proving time from minutes to under one second and cutting proof size",
+                        "C": "Sapling added smart contract functionality to Zcash's shielded pool, enabling private DeFi applications",
+                        "D": "Sapling eliminated the trusted setup requirement by switching from zk-SNARKs to zk-STARKs for shielded transactions"
                     },
-                    correct: "B",
-                    explanation: "Sapling (2018) replaced Sprout's slow zk-SNARK proving (minutes, required full RAM for the circuit) with Groth16 over BLS12-381, reducing proving time to under a second on a mobile device. It also introduced new note and spending key derivation allowing efficient wallets. Orchard (2022) further upgraded to the Pallas/Vesta cycle with the Halo2 proof system, removing the trusted setup requirement."
+                    "correct": "B",
+                    "explanation": "Sapling (2018) replaced Sprout's slow zk-SNARK proving (minutes, required full RAM for the circuit) with Groth16 over BLS12-381, reducing proving time to under a second on a mobile device. It also introduced new note and spending key derivation allowing efficient wallets. Orchard (2022) further upgraded to the Pallas/Vesta cycle with the Halo2 proof system, removing the trusted setup requirement."
                 },
                 {
-                    id: "zk3_q7",
-                    question: "What is the key architectural difference between how Monero and Zcash achieve transaction privacy?",
-                    options: {
-                        A: "Monero uses zero-knowledge proofs for all privacy; Zcash uses ring signatures and stealth addresses",
-                        B: "Monero enforces privacy by default for all transactions using ring signatures, RingCT, and stealth addresses; Zcash has both transparent (t-addr) and shielded (z-addr) transaction types, with shielded being opt-in for most users historically",
-                        C: "Monero is a sidechain to Bitcoin for privacy; Zcash is a standalone chain that inherits Bitcoin's privacy model",
-                        D: "Both use identical techniques; the only difference is Monero uses proof-of-work and Zcash uses proof-of-stake"
+                    "id": "zk3_q7",
+                    "question": "What is the key architectural difference between how Monero and Zcash achieve transaction privacy?",
+                    "options": {
+                        "A": "Monero uses zero-knowledge proofs for all privacy; Zcash uses ring signatures and stealth addresses",
+                        "B": "Monero enforces privacy by default for all transactions using ring signatures, RingCT, and stealth addresses; Zcash has both transparent (t-addr) and shielded (z-addr) transaction types, with shielded being opt-in for most users historically",
+                        "C": "Monero is a sidechain to Bitcoin for privacy; Zcash is a standalone chain that inherits Bitcoin's privacy model",
+                        "D": "Both use identical techniques; the only difference is Monero uses proof-of-work and Zcash uses proof-of-stake"
                     },
-                    correct: "B",
-                    explanation: "Monero's design mandates privacy for every transaction: ring signatures hide the sender, stealth addresses hide the receiver, and RingCT hides amounts. Zcash initially allowed transparent addresses (like Bitcoin's UTXO model) for compatibility, with shielded addresses as optional. This opt-in model means most early Zcash transactions were transparent, weakening the anonymity set. Zcash has since worked to increase shielded adoption."
+                    "correct": "B",
+                    "explanation": "Monero's design mandates privacy for every transaction: ring signatures hide the sender, stealth addresses hide the receiver, and RingCT hides amounts. Zcash initially allowed transparent addresses (like Bitcoin's UTXO model) for compatibility, with shielded addresses as optional. This opt-in model means most early Zcash transactions were transparent, weakening the anonymity set. Zcash has since worked to increase shielded adoption."
                 },
                 {
-                    id: "zk3_q8",
-                    question: "What is 'default versus opt-in privacy,' and why does the default matter for anonymity sets?",
-                    options: {
-                        A: "Default privacy means the blockchain is private only during off-peak hours; opt-in means users must pay extra fees for private transactions",
-                        B: "When privacy is default (all transactions are private), every transaction is indistinguishable from every other, creating a large anonymity set; when privacy is opt-in, only a small fraction of users choose it, making private transactions stand out and reducing the effective anonymity set",
-                        C: "Default privacy means the protocol stores all data on-chain by default; opt-in privacy offloads data to IPFS",
-                        D: "Default privacy applies only to validator nodes; opt-in privacy applies to end users"
+                    "id": "zk3_q8",
+                    "question": "What is 'default versus opt-in privacy,' and why does the default matter for anonymity sets?",
+                    "options": {
+                        "A": "Default privacy means the blockchain is private only during off-peak hours; opt-in means users must pay extra fees for private transactions",
+                        "B": "When privacy is default (all transactions are private), every transaction is indistinguishable from every other, creating a large anonymity set; when privacy is opt-in, only a small fraction of users choose it, making private transactions stand out and reducing the effective anonymity set",
+                        "C": "Default privacy means the protocol stores all data on-chain by default; opt-in privacy offloads data to IPFS",
+                        "D": "Default privacy applies only to validator nodes; opt-in privacy applies to end users"
                     },
-                    correct: "B",
-                    explanation: "Anonymity comes from hiding among a crowd. If 100% of transactions are shielded (Monero's model), an attacker cannot distinguish which transactions carry sensitive value. If only 5% of transactions are shielded (early Zcash), the shielded pool is tiny and temporal analysis (timing attacks, value heuristics) can deanonymize users even within the shielded pool. Default-private systems like Monero have inherently stronger anonymity sets."
+                    "correct": "B",
+                    "explanation": "Anonymity comes from hiding among a crowd. If 100% of transactions are shielded (Monero's model), an attacker cannot distinguish which transactions carry sensitive value. If only 5% of transactions are shielded (early Zcash), the shielded pool is tiny and temporal analysis (timing attacks, value heuristics) can deanonymize users even within the shielded pool. Default-private systems like Monero have inherently stronger anonymity sets."
                 },
                 {
-                    id: "zk3_q9",
-                    question: "Tornado Cash is a mixer protocol on Ethereum. How does it use ZK proofs to break the on-chain link between deposit and withdrawal?",
-                    options: {
-                        A: "Tornado Cash encrypts transaction data with a session key shared only between depositor and withdrawer",
-                        B: "Depositors commit to a secret note; ZK proofs let a (potentially different) address prove knowledge of a valid unused note commitment in the Merkle tree without revealing which commitment corresponds to their deposit",
-                        C: "Tornado Cash routes funds through a multi-hop payment channel network (like Lightning), obscuring the transaction path",
-                        D: "Tornado Cash uses a trusted intermediary (the Tornado DAO) to sign withdrawal authorizations without publishing the deposit-withdrawal link"
+                    "id": "zk3_q9",
+                    "question": "Tornado Cash is a mixer protocol on Ethereum. How does it use ZK proofs to break the on-chain link between deposit and withdrawal?",
+                    "options": {
+                        "A": "Tornado Cash encrypts transaction data with a session key shared only between depositor and withdrawer",
+                        "B": "Depositors commit to a secret note; ZK proofs let a (potentially different) address prove knowledge of a valid unused note commitment in the Merkle tree without revealing which commitment corresponds to their deposit",
+                        "C": "Tornado Cash routes funds through a multi-hop payment channel network (like Lightning), obscuring the transaction path",
+                        "D": "Tornado Cash uses a trusted intermediary (the Tornado DAO) to sign withdrawal authorizations without publishing the deposit-withdrawal link"
                     },
-                    correct: "B",
-                    explanation: "When depositing to Tornado Cash, the user generates a secret (nullifier, randomness), computes a commitment C = hash(nullifier, randomness), and it is inserted into a Merkle tree. To withdraw, the user proves in ZK: 'I know a preimage of some leaf in this tree, and this nullifier has not been used before.' The proof does not reveal which leaf, breaking the link. OFAC sanctioned Tornado Cash in 2022, raising significant regulatory questions."
+                    "correct": "B",
+                    "explanation": "When depositing to Tornado Cash, the user generates a secret (nullifier, randomness), computes a commitment C = hash(nullifier, randomness), and it is inserted into a Merkle tree. To withdraw, the user proves in ZK: 'I know a preimage of some leaf in this tree, and this nullifier has not been used before.' The proof does not reveal which leaf, breaking the link. OFAC sanctioned Tornado Cash in 2022, raising significant regulatory questions."
                 },
                 {
-                    id: "zk3_q10",
-                    question: "What is the difference between pseudonymity and anonymity in the context of blockchain privacy?",
-                    options: {
-                        A: "Pseudonymity means all transactions are hidden; anonymity means only the sender is hidden",
-                        B: "Pseudonymity uses a consistent identifier (like a public address) that is not directly tied to a real identity but can be traced over time; anonymity means transactions cannot be linked to any identifier or real-world entity",
-                        C: "Pseudonymity is the legal standard required by regulators; anonymity is the technical property of ZK proofs",
-                        D: "Both terms mean the same thing in blockchain contexts; the distinction is only philosophical"
+                    "id": "zk3_q10",
+                    "question": "What is the difference between pseudonymity and anonymity in the context of blockchain privacy?",
+                    "options": {
+                        "A": "Pseudonymity means all transactions are hidden; anonymity means only the sender is hidden",
+                        "B": "Pseudonymity uses a consistent identifier (like a public address) that is not directly tied to a real identity but can be traced over time; anonymity means transactions cannot be linked to any identifier or real-world entity",
+                        "C": "Pseudonymity is the legal standard required by regulators; anonymity is the technical property of ZK proofs",
+                        "D": "Both terms mean the same thing in blockchain contexts; the distinction is only philosophical"
                     },
-                    correct: "B",
-                    explanation: "Bitcoin provides pseudonymity: addresses are not names, but all transactions from an address are publicly linked, enabling chain analysis to build behavioral profiles. Once an address is linked to a real identity (exchange KYC, on-chain purchase), the entire history is exposed. True anonymity (Monero's goal) means no persistent identifier is visible, making longitudinal tracking impossible."
+                    "correct": "B",
+                    "explanation": "Bitcoin provides pseudonymity: addresses are not names, but all transactions from an address are publicly linked, enabling chain analysis to build behavioral profiles. Once an address is linked to a real identity (exchange KYC, on-chain purchase), the entire history is exposed. True anonymity (Monero's goal) means no persistent identifier is visible, making longitudinal tracking impossible."
                 },
                 {
-                    id: "zk3_q11",
-                    question: "Chain analysis companies can trace Monero transactions using heuristics despite ring signatures. What is one known weakness they exploit?",
-                    options: {
-                        A: "Monero's ring signatures fail if any ring member has been involved in a prior transaction on Bitcoin",
-                        B: "The 0-decoy vulnerability: early Monero transactions (before RingCT) had zero-decoy inputs or small ring sizes, making the real input identifiable; 'spent output' elimination heuristics can narrow down the true spend over time",
-                        C: "Monero's stealth addresses are reused across transactions, allowing graph analysis to link payments",
-                        D: "Monero's proof of work algorithm leaks transaction data through the mining process"
+                    "id": "zk3_q11",
+                    "question": "Chain analysis companies can trace Monero transactions using heuristics despite ring signatures. What is one known weakness they exploit?",
+                    "options": {
+                        "A": "Monero's ring signatures fail if any ring member has been involved in a prior transaction on Bitcoin",
+                        "B": "The 0-decoy vulnerability: early Monero transactions (before RingCT) had zero-decoy inputs or small ring sizes, making the real input identifiable; 'spent output' elimination heuristics can narrow down the true spend over time",
+                        "C": "Monero's stealth addresses are reused across transactions, allowing graph analysis to link payments",
+                        "D": "Monero's proof of work algorithm leaks transaction data through the mining process"
                     },
-                    correct: "B",
-                    explanation: "Early Monero used ring sizes of 2-4 members, and some transactions had 0 decoys (mixin=0). When a ring member is provably spent in another transaction, it can be eliminated as a decoy, potentially revealing the true spend through process of elimination -- the 'spent output' heuristic. Additionally, the first use of an output as a ring decoy is statistically unlikely to be the real spend, providing timing heuristics. Modern Monero (ring size 16) mitigates but does not fully eliminate such attacks."
+                    "correct": "B",
+                    "explanation": "Early Monero used ring sizes of 2-4 members, and some transactions had 0 decoys (mixin=0). When a ring member is provably spent in another transaction, it can be eliminated as a decoy, potentially revealing the true spend through process of elimination -- the 'spent output' heuristic. Additionally, the first use of an output as a ring decoy is statistically unlikely to be the real spend, providing timing heuristics. Modern Monero (ring size 16) mitigates but does not fully eliminate such attacks."
                 },
                 {
-                    id: "zk3_q12",
-                    question: "Zcash's JoinSplit transaction type (Sprout era) is compared to the Sapling Spend/Output model. What is a JoinSplit?",
-                    options: {
-                        A: "A JoinSplit joins two separate Zcash chains into a single shielded pool and splits fees between them",
-                        B: "A JoinSplit is a Sprout-era transaction component that simultaneously spends up to 2 shielded inputs and creates up to 2 shielded outputs, with a single zk-SNARK proving validity of all inputs and outputs at once",
-                        C: "A JoinSplit is a transparent-to-shielded conversion that joins transparent UTXOs and splits them into shielded notes",
-                        D: "A JoinSplit is a multi-party protocol where two users split a shielded note into equal halves"
+                    "id": "zk3_q12",
+                    "question": "Zcash's JoinSplit transaction type (Sprout era) is compared to the Sapling Spend/Output model. What is a JoinSplit?",
+                    "options": {
+                        "A": "A JoinSplit joins two separate Zcash chains into a single shielded pool and splits fees between them",
+                        "B": "A JoinSplit is a Sprout-era transaction component that simultaneously spends up to 2 shielded inputs and creates up to 2 shielded outputs, with a single zk-SNARK proving validity of all inputs and outputs at once",
+                        "C": "A JoinSplit is a transparent-to-shielded conversion that joins transparent UTXOs and splits them into shielded notes",
+                        "D": "A JoinSplit is a multi-party protocol where two users split a shielded note into equal halves"
                     },
-                    correct: "B",
-                    explanation: "In Sprout, a JoinSplit describes consuming up to 2 shielded notes and creating up to 2 new shielded notes, with the balance enforced by the zk-SNARK. One proof covered all inputs and outputs at once. Sapling replaced this with separate Spend descriptions and Output descriptions, each with its own Groth16 proof, enabling flexible transaction composition and allowing wallets to prove spending without downloading the entire UTXO set."
+                    "correct": "B",
+                    "explanation": "In Sprout, a JoinSplit describes consuming up to 2 shielded notes and creating up to 2 new shielded notes, with the balance enforced by the zk-SNARK. One proof covered all inputs and outputs at once. Sapling replaced this with separate Spend descriptions and Output descriptions, each with its own Groth16 proof, enabling flexible transaction composition and allowing wallets to prove spending without downloading the entire UTXO set."
                 },
                 {
-                    id: "zk3_q13",
-                    question: "Dandelion++ is a network-level privacy protocol adopted by Monero. What problem does it address?",
-                    options: {
-                        A: "It solves the double-spend problem in Monero's mempool by requiring two-phase commit for transaction propagation",
-                        B: "It addresses IP address deanonymization: by first broadcasting transactions to a single random peer (the 'stem' phase) before normal flood propagation (the 'fluff' phase), it hides which node originated the transaction",
-                        C: "It prevents Sybil attacks on Monero's P2P network by requiring nodes to stake XMR before joining the gossip protocol",
-                        D: "It addresses transaction ordering attacks by randomizing the order in which miners see incoming transactions"
+                    "id": "zk3_q13",
+                    "question": "Dandelion++ is a network-level privacy protocol adopted by Monero. What problem does it address?",
+                    "options": {
+                        "A": "It solves the double-spend problem in Monero's mempool by requiring two-phase commit for transaction propagation",
+                        "B": "It addresses IP address deanonymization: by first broadcasting transactions to a single random peer (the 'stem' phase) before normal flood propagation (the 'fluff' phase), it hides which node originated the transaction",
+                        "C": "It prevents Sybil attacks on Monero's P2P network by requiring nodes to stake XMR before joining the gossip protocol",
+                        "D": "It addresses transaction ordering attacks by randomizing the order in which miners see incoming transactions"
                     },
-                    correct: "B",
-                    explanation: "Without Dandelion, when a node broadcasts a transaction, all connected peers immediately see it and can triangulate the originating IP. Dandelion++ routes the transaction through a random path (stem phase) before flooding the network (fluff phase), making it statistically hard for observers to determine which node created the transaction. This is a network privacy layer complementing Monero's on-chain privacy."
+                    "correct": "B",
+                    "explanation": "Without Dandelion, when a node broadcasts a transaction, all connected peers immediately see it and can triangulate the originating IP. Dandelion++ routes the transaction through a random path (stem phase) before flooding the network (fluff phase), making it statistically hard for observers to determine which node created the transaction. This is a network privacy layer complementing Monero's on-chain privacy."
                 },
                 {
-                    id: "zk3_q14",
-                    question: "Privacy Pools (Buterin et al.) is a proposed protocol to allow privacy while enabling regulatory compliance. What is the core innovation?",
-                    options: {
-                        A: "Privacy Pools uses KYC-verified ring members so that all participants in a mixing pool are identified to regulators",
-                        B: "Users can generate ZK proofs showing their funds come from a self-defined 'association set' of clean deposits, allowing them to prove their funds are not from sanctioned sources without revealing exactly which deposit is theirs",
-                        C: "Privacy Pools routes all withdrawals through a government-controlled oracle that approves or rejects based on AML checks",
-                        D: "Privacy Pools replaces on-chain privacy with off-chain attestations from regulated custodians"
+                    "id": "zk3_q14",
+                    "question": "Privacy Pools (Buterin et al.) is a proposed protocol to allow privacy while enabling regulatory compliance. What is the core innovation?",
+                    "options": {
+                        "A": "Privacy Pools uses KYC-verified ring members so that all participants in a mixing pool are identified to regulators",
+                        "B": "Users can generate ZK proofs showing their funds come from a self-defined 'association set' of clean deposits, allowing them to prove their funds are not from sanctioned sources without revealing exactly which deposit is theirs",
+                        "C": "Privacy Pools routes all withdrawals through a government-controlled oracle that approves or rejects based on AML checks",
+                        "D": "Privacy Pools replaces on-chain privacy with off-chain attestations from regulated custodians"
                     },
-                    correct: "B",
-                    explanation: "Privacy Pools (2023 paper by Buterin, Soleimani, et al.) allows users to prove membership in a subset ('association set') of deposits they claim are clean, without revealing their specific deposit. This creates a separation: legitimate users can disassociate their withdrawals from sanctioned funds' subset while maintaining privacy from general observers. Regulators can accept proofs of association with known-clean sets."
+                    "correct": "B",
+                    "explanation": "Privacy Pools (2023 paper by Buterin, Soleimani, et al.) allows users to prove membership in a subset ('association set') of deposits they claim are clean, without revealing their specific deposit. This creates a separation: legitimate users can disassociate their withdrawals from sanctioned funds' subset while maintaining privacy from general observers. Regulators can accept proofs of association with known-clean sets."
                 },
                 {
-                    id: "zk3_q15",
-                    question: "In August 2022, the US Treasury's OFAC sanctioned Tornado Cash. What were the primary regulatory and technical arguments in this action?",
-                    options: {
-                        A: "OFAC sanctioned Tornado Cash because it was an unregistered securities exchange processing illicit token swaps",
-                        B: "OFAC designated Tornado Cash as a sanctions target because it was allegedly used to launder over $7 billion, including funds from North Korea's Lazarus Group; it sanctioned not just individuals but the smart contract addresses themselves, raising debates about whether immutable code can be 'property' subject to sanctions",
-                        C: "OFAC sanctioned Tornado Cash for violating export control laws by providing cryptographic technology to embargoed nations",
-                        D: "OFAC sanctioned Tornado Cash because it violated CFTC registration requirements as an unlicensed derivatives exchange"
+                    "id": "zk3_q15",
+                    "question": "In August 2022, the US Treasury's OFAC sanctioned Tornado Cash. What were the primary regulatory and technical arguments in this action?",
+                    "options": {
+                        "A": "OFAC sanctioned Tornado Cash because it was an unregistered securities exchange processing illicit token swaps",
+                        "B": "OFAC designated Tornado Cash as a sanctions target because it was allegedly used to launder over $7 billion, including funds from North Korea's Lazarus Group; it sanctioned not just individuals but the smart contract addresses themselves, raising debates about whether immutable code can be 'property' subject to sanctions",
+                        "C": "OFAC sanctioned Tornado Cash for violating export control laws by providing cryptographic technology to embargoed nations",
+                        "D": "OFAC sanctioned Tornado Cash because it violated CFTC registration requirements as an unlicensed derivatives exchange"
                     },
-                    correct: "B",
-                    explanation: "The Tornado Cash sanctions were historic: OFAC designated specific Ethereum smart contract addresses, not just individuals, arguing the protocol was used to launder over $7 billion including $455 million from North Korea's Lazarus Group. This raised profound legal questions about whether open-source code deployed on a decentralized network can be sanctioned as 'property,' and whether developers bear liability for how their code is used."
+                    "correct": "B",
+                    "explanation": "The Tornado Cash sanctions were historic: OFAC designated specific Ethereum smart contract addresses, not just individuals, arguing the protocol was used to launder over $7 billion including $455 million from North Korea's Lazarus Group. This raised profound legal questions about whether open-source code deployed on a decentralized network can be sanctioned as 'property,' and whether developers bear liability for how their code is used."
                 },
                 {
-                    id: "zk3_q16",
-                    question: "A shielded transaction in Zcash is significantly larger and more computationally expensive than a transparent transaction. What is the primary reason?",
-                    options: {
-                        A: "Shielded transactions encrypt all fields using AES-256-GCM, tripling data size and requiring decryption at every node",
-                        B: "Shielded transactions include zk-SNARK proofs (hundreds of bytes each) and additional cryptographic components (note commitments, nullifiers, encrypted note ciphertexts) that are absent in transparent transactions",
-                        C: "Shielded transactions require a multi-party signature from the Zcash foundation to certify their validity",
-                        D: "Shielded transactions use a separate VM with higher computational requirements for script execution"
+                    "id": "zk3_q16",
+                    "question": "A shielded transaction in Zcash is significantly larger and more computationally expensive than a transparent transaction. What is the primary reason?",
+                    "options": {
+                        "A": "Shielded transactions encrypt all fields using AES-256-GCM, tripling data size and requiring decryption at every node",
+                        "B": "Shielded transactions include zk-SNARK proofs (hundreds of bytes each) and additional cryptographic components (note commitments, nullifiers, encrypted note ciphertexts) that are absent in transparent transactions",
+                        "C": "Shielded transactions require a multi-party signature from the Zcash foundation to certify their validity",
+                        "D": "Shielded transactions use a separate VM with higher computational requirements for script execution"
                     },
-                    correct: "B",
-                    explanation: "A Sapling shielded spend includes: a Groth16 proof (~192 bytes), a nullifier (32 bytes), a value commitment, and a spend authorization signature. Each output includes: a Groth16 proof, a note commitment, and an encrypted note ciphertext (~580 bytes). A full shielded transaction with two spends and two outputs is roughly 2-3 KB vs. roughly 200 bytes for a simple transparent transaction, and requires the prover to run the full SNARK circuit."
+                    "correct": "B",
+                    "explanation": "A Sapling shielded spend includes: a Groth16 proof (~192 bytes), a nullifier (32 bytes), a value commitment, and a spend authorization signature. Each output includes: a Groth16 proof, a note commitment, and an encrypted note ciphertext (~580 bytes). A full shielded transaction with two spends and two outputs is roughly 2-3 KB vs. roughly 200 bytes for a simple transparent transaction, and requires the prover to run the full SNARK circuit."
                 },
                 {
-                    id: "zk3_q17",
-                    question: "Selective disclosure in privacy coin contexts refers to what capability?",
-                    options: {
-                        A: "The ability of miners to select which private transactions to include in each block",
-                        B: "The ability of a transaction sender or receiver to reveal specific transaction details (amount, counterparty, memo) to chosen third parties (auditors, regulators) while keeping details hidden from everyone else",
-                        C: "The ability to selectively disable privacy features for specific transaction types (e.g., large transactions)",
-                        D: "A regulatory requirement that all privacy coin transactions above a threshold be disclosed to government agencies"
+                    "id": "zk3_q17",
+                    "question": "Selective disclosure in privacy coin contexts refers to what capability?",
+                    "options": {
+                        "A": "The ability of miners to select which private transactions to include in each block",
+                        "B": "The ability of a transaction sender or receiver to reveal specific transaction details (amount, counterparty, memo) to chosen third parties (auditors, regulators) while keeping details hidden from everyone else",
+                        "C": "The ability to selectively disable privacy features for specific transaction types (e.g., large transactions)",
+                        "D": "A regulatory requirement that all privacy coin transactions above a threshold be disclosed to government agencies"
                     },
-                    correct: "B",
-                    explanation: "Selective disclosure lets users share view keys or spend proofs with specific parties (tax authorities, compliance officers, counterparties) to demonstrate a transaction occurred and reveal its details, without publishing this information publicly. Zcash's viewing keys allow a recipient to share all incoming transactions with an auditor. This is presented as a way to reconcile financial privacy with regulatory compliance requirements."
+                    "correct": "B",
+                    "explanation": "Selective disclosure lets users share view keys or spend proofs with specific parties (tax authorities, compliance officers, counterparties) to demonstrate a transaction occurred and reveal its details, without publishing this information publicly. Zcash's viewing keys allow a recipient to share all incoming transactions with an auditor. This is presented as a way to reconcile financial privacy with regulatory compliance requirements."
                 },
                 {
-                    id: "zk3_q18",
-                    question: "Why have several centralized exchanges delisted privacy coins like Monero (XMR)?",
-                    options: {
-                        A: "Privacy coins have excessive transaction fees that make trading uneconomical on centralized platforms",
-                        B: "Regulatory pressure and AML/KYC compliance requirements: exchanges in regulated jurisdictions cannot satisfy 'travel rule' requirements that mandate tracking sender and receiver information for cryptocurrency transactions",
-                        C: "Privacy coins are technically incompatible with the standard ERC-20 interface used by exchange smart contracts",
-                        D: "Privacy coins have slower finality than other cryptocurrencies, making them unsuitable for high-frequency exchange trading"
+                    "id": "zk3_q18",
+                    "question": "Why have several centralized exchanges delisted privacy coins like Monero (XMR)?",
+                    "options": {
+                        "A": "Privacy coins have excessive transaction fees that make trading uneconomical on centralized platforms",
+                        "B": "Regulatory pressure and AML/KYC compliance requirements: exchanges in regulated jurisdictions cannot satisfy 'travel rule' requirements that mandate tracking sender and receiver information for cryptocurrency transactions",
+                        "C": "Privacy coins are technically incompatible with the standard ERC-20 interface used by exchange smart contracts",
+                        "D": "Privacy coins have slower finality than other cryptocurrencies, making them unsuitable for high-frequency exchange trading"
                     },
-                    correct: "B",
-                    explanation: "The FATF Travel Rule requires virtual asset service providers (VASPs) to collect and transmit originator and beneficiary information for transactions above thresholds. For Monero, this is technically impossible because sender, receiver, and amounts are all hidden. Exchanges in Japan, South Korea, the UK, and Australia have delisted XMR and similar coins under regulatory guidance, reflecting the fundamental tension between financial privacy and AML compliance regimes."
+                    "correct": "B",
+                    "explanation": "The FATF Travel Rule requires virtual asset service providers (VASPs) to collect and transmit originator and beneficiary information for transactions above thresholds. For Monero, this is technically impossible because sender, receiver, and amounts are all hidden. Exchanges in Japan, South Korea, the UK, and Australia have delisted XMR and similar coins under regulatory guidance, reflecting the fundamental tension between financial privacy and AML compliance regimes."
                 },
                 {
-                    id: "zk3_q19",
-                    question: "What is transaction graph analysis (chain analysis), and what makes it less effective against Monero than against Bitcoin?",
-                    options: {
-                        A: "Transaction graph analysis traces physical delivery routes of coins; Monero's proof-of-work prevents geographic tracing",
-                        B: "Chain analysis traces value flows through a public transaction graph (sender-to-receiver links, amounts); Bitcoin's graph is fully public, while Monero's ring signatures (hiding sender), stealth addresses (hiding receiver), and RingCT (hiding amounts) eliminate the three key data points that graph analysis needs",
-                        C: "Chain analysis is equally effective against both; the difference is Monero transactions are labeled as private, alerting analysts to investigate them more carefully",
-                        D: "Chain analysis uses smart contract logs that Monero lacks; it is ineffective against Bitcoin for the same reason"
+                    "id": "zk3_q19",
+                    "question": "What is transaction graph analysis (chain analysis), and what makes it less effective against Monero than against Bitcoin?",
+                    "options": {
+                        "A": "Transaction graph analysis traces physical delivery routes of coins; Monero's proof-of-work prevents geographic tracing",
+                        "B": "Chain analysis traces value flows through a public transaction graph (sender-to-receiver links, amounts); Bitcoin's graph is fully public, while Monero's ring signatures (hiding sender), stealth addresses (hiding receiver), and RingCT (hiding amounts) eliminate the three key data points that graph analysis needs",
+                        "C": "Chain analysis is equally effective against both; the difference is Monero transactions are labeled as private, alerting analysts to investigate them more carefully",
+                        "D": "Chain analysis uses smart contract logs that Monero lacks; it is ineffective against Bitcoin for the same reason"
                     },
-                    correct: "B",
-                    explanation: "Chain analysis firms (Chainalysis, Elliptic) build transaction graphs using public inputs, outputs, and amounts to trace fund flows between addresses. Bitcoin's UTXO graph is fully visible -- every satoshi's path is traceable. Monero removes all three pillars: ring signatures create ambiguity about senders, stealth addresses prevent receiver identification, and RingCT hides amounts. Without these data points, graph-based heuristics have limited effectiveness."
+                    "correct": "B",
+                    "explanation": "Chain analysis firms (Chainalysis, Elliptic) build transaction graphs using public inputs, outputs, and amounts to trace fund flows between addresses. Bitcoin's UTXO graph is fully visible -- every satoshi's path is traceable. Monero removes all three pillars: ring signatures create ambiguity about senders, stealth addresses prevent receiver identification, and RingCT hides amounts. Without these data points, graph-based heuristics have limited effectiveness."
                 },
                 {
-                    id: "zk3_q20",
-                    question: "The Orchard shielded protocol in Zcash uses the Pallas and Vesta elliptic curve cycle. What advantage does a two-curve cycle provide for recursive proof composition?",
-                    options: {
-                        A: "A two-curve cycle doubles the security level by requiring an attacker to break both curves simultaneously",
-                        B: "The scalar field of Pallas equals the base field of Vesta and vice versa; this allows a proof about Pallas arithmetic to be efficiently verified inside a Vesta circuit, enabling recursion without expensive field conversions",
-                        C: "A two-curve cycle eliminates the need for a trusted setup by alternating between the two curves on each recursion step",
-                        D: "Using two curves doubles transaction throughput by processing even and odd-numbered transactions on separate curves in parallel"
+                    "id": "zk3_q20",
+                    "question": "The Orchard shielded protocol in Zcash uses the Pallas and Vesta elliptic curve cycle. What advantage does a two-curve cycle provide for recursive proof composition?",
+                    "options": {
+                        "A": "A two-curve cycle doubles the security level by requiring an attacker to break both curves simultaneously",
+                        "B": "The scalar field of Pallas equals the base field of Vesta and vice versa; this allows a proof about Pallas arithmetic to be efficiently verified inside a Vesta circuit, enabling recursion without expensive field conversions",
+                        "C": "A two-curve cycle eliminates the need for a trusted setup by alternating between the two curves on each recursion step",
+                        "D": "Using two curves doubles transaction throughput by processing even and odd-numbered transactions on separate curves in parallel"
                     },
-                    correct: "B",
-                    explanation: "In recursive proof systems, a circuit must perform elliptic curve operations in a field that does not match the circuit's native field -- creating expensive 'non-native' arithmetic. A 2-cycle (like Pallas/Vesta used in Halo2) solves this: the base field of each curve equals the scalar field of the other. So a Pallas SNARK can natively verify a Vesta SNARK and vice versa, enabling efficient recursion. Zcash's Orchard protocol (and the Halo2 proof system) use this cycle."
+                    "correct": "B",
+                    "explanation": "In recursive proof systems, a circuit must perform elliptic curve operations in a field that does not match the circuit's native field -- creating expensive 'non-native' arithmetic. A 2-cycle (like Pallas/Vesta used in Halo2) solves this: the base field of each curve equals the scalar field of the other. So a Pallas SNARK can natively verify a Vesta SNARK and vice versa, enabling efficient recursion. Zcash's Orchard protocol (and the Halo2 proof system) use this cycle."
                 }
             ]
         };
