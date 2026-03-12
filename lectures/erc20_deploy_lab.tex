@@ -536,7 +536,215 @@ contract MyToken is ERC20, Ownable {
 \end{frame}
 
 %% ============================================================
-%% FRAME 9: PART B SECTION DIVIDER
+%% FRAME 9: TOKEN vs CRYPTOCURRENCY (Comic Strip - 3 panels)
+%% ============================================================
+\begin{frame}{Token $\neq$ Cryptocurrency --- What's Missing?}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+
+% --- Panel 1: Just Deployed ---
+\draw[mlblue, thick, rounded corners=4pt] (-8.2,-2.8) rectangle (-2.8,3.2);
+\node[font=\tiny\bfseries, mlblue] at (-5.5,3.0) {Panel 1: Just Deployed!};
+
+% Happy stick figure with raised arms
+\draw[mlblue, thick] (-6.8,1.5) circle (0.35);
+\draw[mlblue, thick] (-6.8,1.15) -- (-6.8,0.2);
+\draw[mlblue, thick] (-6.8,0.85) -- (-7.25,1.3);
+\draw[mlblue, thick] (-6.8,0.85) -- (-6.35,1.3);
+\draw[mlblue, thick] (-6.8,0.2) -- (-7.15,-0.4);
+\draw[mlblue, thick] (-6.8,0.2) -- (-6.45,-0.4);
+\node[font=\scriptsize\bfseries, mlblue] at (-6.8,-0.7) {You};
+
+% Token card
+\draw[mlgreen!80!black, thick, fill=mlgreen!15, rounded corners=3pt] (-5.2,-0.2) rectangle (-3.2,1.0);
+\node[font=\tiny\bfseries, mlgreen!80!black] at (-4.2,0.7) {MTK Token};
+\node[font=\tiny, mlgreen!80!black] at (-4.2,0.3) {500,000 MTK};
+\node[font=\tiny, mlgreen!80!black] at (-4.2,0.0) {$\checkmark$ On chain};
+
+% Speech bubble
+\node[draw=mlblue, fill=mllavender4, rounded corners=5pt, font=\tiny,
+      text width=3.2cm, align=center, inner sep=3pt]
+      at (-5.5,2.3) {I deployed my token! Am I a crypto millionaire now?};
+\draw[mlblue, thick] (-6.45,1.65) -- (-5.8,2.0);
+
+% Sparkles
+\node[font=\scriptsize, mlorange] at (-7.5,2.8) {$\star$};
+\node[font=\scriptsize, mlorange] at (-3.2,2.8) {$\star$};
+
+% --- Panel 2: Reality Check ---
+\draw[mlred, thick, rounded corners=4pt] (-2.4,-2.8) rectangle (3.2,3.2);
+\node[font=\tiny\bfseries, mlred] at (0.4,3.0) {Panel 2: Reality Check};
+
+% Token with zero value
+\draw[mlgray, thick, fill=mlgray!10, rounded corners=3pt] (-1.8,1.3) rectangle (2.6,2.5);
+\node[font=\tiny\bfseries, mlgray] at (0.4,2.2) {Your Token Right Now};
+\node[font=\tiny, mlred] at (0.4,1.7) {Market value: \$0.00};
+
+% Missing checklist
+\node[font=\tiny, mlred] at (0.4,0.6) {$\boldsymbol{\times}$ No exchange listing};
+\node[font=\tiny, mlred] at (0.4,0.1) {$\boldsymbol{\times}$ No liquidity pool};
+\node[font=\tiny, mlred] at (0.4,-0.4) {$\boldsymbol{\times}$ No users or community};
+\node[font=\tiny, mlred] at (0.4,-0.9) {$\boldsymbol{\times}$ No real-world utility};
+\node[font=\tiny, mlred] at (0.4,-1.4) {$\boldsymbol{\times}$ No market demand};
+
+% Bottom warning
+\node[draw=mlred, fill=mlred!8, rounded corners=5pt, font=\tiny,
+      text width=2.8cm, align=center, inner sep=3pt]
+      at (0.4,-2.2) {A token alone is just code on a blockchain!};
+
+% --- Panel 3: The Bridge ---
+\draw[mlgreen!80!black, thick, rounded corners=4pt] (3.6,-2.8) rectangle (8.2,3.2);
+\node[font=\tiny\bfseries, mlgreen!80!black] at (5.9,3.0) {Panel 3: The Bridge};
+
+% Token box at top
+\node[draw=mlgray, fill=mlgray!10, rounded corners=3pt, font=\tiny\bfseries,
+      minimum width=1.8cm, inner sep=3pt] at (5.9,2.3) {Your Token};
+
+% Ingredients to become crypto
+\node[font=\tiny\bfseries, mlgreen!80!black] at (5.9,1.6) {$+$ Utility (real use case)};
+\node[font=\tiny\bfseries, mlgreen!80!black] at (5.9,1.1) {$+$ Liquidity (DEX pool)};
+\node[font=\tiny\bfseries, mlgreen!80!black] at (5.9,0.6) {$+$ Community (users)};
+\node[font=\tiny\bfseries, mlgreen!80!black] at (5.9,0.1) {$+$ Demand (scarcity)};
+
+% Arrow down
+\draw[mlgreen!80!black, very thick, -{Stealth[length=6pt]}] (5.9,-0.3) -- (5.9,-0.9);
+
+% Result
+\node[draw=mlgreen!80!black, fill=mlgreen!15, rounded corners=5pt, font=\scriptsize\bfseries,
+      minimum width=2.5cm, inner sep=4pt] at (5.9,-1.3) {Cryptocurrency};
+
+% Historical note
+\node[font=\tiny\itshape, mlgray, text width=3.5cm, align=center]
+      at (5.9,-2.2) {Bitcoin started as code too --- but it solved a real problem.};
+
+\end{tikzpicture}
+\end{center}
+
+\bottomnote{A token is the technical foundation --- utility, liquidity, and community transform it into a cryptocurrency.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 10: HOW TOKENS GET VALUE (Graphviz-Style Value Cycle)
+%% ============================================================
+\begin{frame}{How Tokens Get Value --- The Value Flywheel}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape},
+    vnode/.style={draw=#1, thick, fill=#1!12, rounded corners=6pt,
+        font=\scriptsize\bfseries, minimum width=2.4cm, minimum height=1.0cm, align=center}]
+
+% Hexagonal cycle nodes
+\node[vnode=mlblue] (utility) at (0,2.8) {Utility\\[-1pt]{\tiny\mdseries Solves a real problem}};
+\node[vnode=mlpurple] (demand) at (3.8,1.4) {Demand\\[-1pt]{\tiny\mdseries People want it}};
+\node[vnode=mlorange] (scarcity) at (3.8,-1.0) {Scarcity\\[-1pt]{\tiny\mdseries Limited supply}};
+\node[vnode=mlred] (price) at (0,-2.4) {Price Discovery\\[-1pt]{\tiny\mdseries DEX / CEX listing}};
+\node[vnode=mlgreen!80!black] (liquidity) at (-3.8,-1.0) {Liquidity\\[-1pt]{\tiny\mdseries Easy to trade}};
+\node[vnode=mlblue!80!black] (adoption) at (-3.8,1.4) {Adoption\\[-1pt]{\tiny\mdseries Network grows}};
+
+% Cycle arrows
+\draw[mlblue, very thick, -{Stealth[length=6pt]}] (utility) -- (demand);
+\draw[mlpurple, very thick, -{Stealth[length=6pt]}] (demand) -- (scarcity);
+\draw[mlorange, very thick, -{Stealth[length=6pt]}] (scarcity) -- (price);
+\draw[mlred, very thick, -{Stealth[length=6pt]}] (price) -- (liquidity);
+\draw[mlgreen!80!black, very thick, -{Stealth[length=6pt]}] (liquidity) -- (adoption);
+\draw[mlblue!80!black, very thick, -{Stealth[length=6pt]}] (adoption) -- (utility);
+
+% Center label
+\node[font=\large\bfseries, mlpurple] at (0,0.2) {Value};
+\node[font=\large\bfseries, mlpurple] at (0,-0.3) {Flywheel};
+
+% Real-world examples
+\node[font=\tiny\itshape, mlgray] at (0,3.7) {e.g., ETH powers smart contracts};
+\node[font=\tiny\itshape, mlgray] at (6.2,1.4) {e.g., DeFi users};
+\node[font=\tiny\itshape, mlgray] at (6.0,-1.0) {e.g., BTC 21M cap};
+\node[font=\tiny\itshape, mlgray] at (0,-3.2) {e.g., listed on Uniswap};
+\node[font=\tiny\itshape, mlgray] at (-5.8,-1.0) {e.g., deep pools};
+\node[font=\tiny\itshape, mlgray] at (-6.0,1.4) {e.g., 1000+ daily users};
+
+\end{tikzpicture}
+\end{center}
+
+\bottomnote{Value is not created by deploying a token --- it emerges when the flywheel of utility, demand, and liquidity starts spinning.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 11: MAKING MONEY WITH TOKENS (Revenue Models Visual)
+%% ============================================================
+\begin{frame}{Making Money with Tokens --- Five Revenue Models}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+
+% --- Model 1: DEX Listing ---
+\draw[mlblue, thick, fill=mlblue!8, rounded corners=6pt] (-7.6,0.0) rectangle (-4.8,3.0);
+\node[font=\scriptsize\bfseries, mlblue] at (-6.2,2.7) {1. DEX Listing};
+\draw[mlblue, thick] (-6.2,1.85) circle (0.4);
+\draw[mlblue, thick, -{Stealth[length=6pt]}] (-6.45,2.05) -- (-5.95,1.65);
+\draw[mlblue, thick, -{Stealth[length=6pt]}] (-5.95,2.05) -- (-6.45,1.65);
+\node[font=\tiny, mlblue, text width=2.4cm, align=center] at (-6.2,0.7)
+     {List token on Uniswap. Anyone can trade. You set initial price.};
+\node[font=\tiny\bfseries, mlgreen!80!black] at (-6.2,0.15) {Earn: trading fees};
+
+% --- Model 2: Liquidity Pool ---
+\draw[mlpurple, thick, fill=mlpurple!8, rounded corners=6pt] (-4.4,0.0) rectangle (-1.6,3.0);
+\node[font=\scriptsize\bfseries, mlpurple] at (-3.0,2.7) {2. Liquidity Pool};
+\draw[mlpurple, thick, fill=mlpurple!15, rounded corners=3pt] (-3.8,1.65) rectangle (-2.2,2.2);
+\node[font=\tiny, mlpurple] at (-3.0,2.0) {MTK + ETH};
+\node[font=\tiny, mlpurple] at (-3.0,1.78) {50/50};
+\node[font=\tiny, mlpurple, text width=2.4cm, align=center] at (-3.0,0.7)
+     {Pair token with ETH. Earn 0.3\% fee on every trade through your pool.};
+\node[font=\tiny\bfseries, mlgreen!80!black] at (-3.0,0.15) {Earn: LP fees};
+
+% --- Model 3: Token Sale ---
+\draw[mlorange, thick, fill=mlorange!8, rounded corners=6pt] (-1.2,0.0) rectangle (1.6,3.0);
+\node[font=\scriptsize\bfseries, mlorange] at (0.2,2.7) {3. Token Sale};
+\node[draw=mlorange, fill=mlorange!15, rounded corners=2pt, font=\tiny, inner sep=2pt]
+      at (0.2,2.15) {Presale: \$0.01};
+\node[draw=mlorange, fill=mlorange!15, rounded corners=2pt, font=\tiny, inner sep=2pt]
+      at (0.2,1.7) {Public: \$0.05};
+\node[draw=mlorange, fill=mlorange!20, rounded corners=2pt, font=\tiny, inner sep=2pt]
+      at (0.2,1.25) {Launch: \$0.10};
+\node[font=\tiny, mlorange, text width=2.4cm, align=center] at (0.2,0.55)
+     {Sell tokens at rising prices across rounds.};
+\node[font=\tiny\bfseries, mlgreen!80!black] at (0.2,0.15) {Earn: direct revenue};
+
+% --- Model 4: Built-in Fees ---
+\draw[mlred, thick, fill=mlred!8, rounded corners=6pt] (2.0,0.0) rectangle (4.8,3.0);
+\node[font=\scriptsize\bfseries, mlred] at (3.4,2.7) {4. Transaction Fees};
+\node[draw=mlred, fill=mlred!10, rounded corners=2pt, font=\tiny, inner sep=2pt]
+      (snd) at (2.7,2.05) {Sender};
+\node[draw=mlred, fill=mlred!10, rounded corners=2pt, font=\tiny, inner sep=2pt]
+      (rcv) at (4.1,2.05) {Receiver};
+\draw[mlred, thick, -{Stealth[length=6pt]}] (snd) -- (rcv);
+\node[font=\tiny\bfseries, mlred] at (3.4,1.4) {2\% fee $\rightarrow$ you};
+\node[font=\tiny, mlred, text width=2.4cm, align=center] at (3.4,0.7)
+     {Code a fee into every transfer. Auto-collected.};
+\node[font=\tiny\bfseries, mlgreen!80!black] at (3.4,0.15) {Earn: per-transfer};
+
+% --- Model 5: Staking ---
+\draw[mlgreen!80!black, thick, fill=mlgreen!8, rounded corners=6pt] (5.2,0.0) rectangle (7.8,3.0);
+\node[font=\scriptsize\bfseries, mlgreen!80!black] at (6.5,2.7) {5. Staking};
+\draw[mlgreen!80!black, thick] (6.2,1.85) rectangle (6.8,2.3);
+\draw[mlgreen!80!black, thick] (6.3,2.3) arc (180:0:0.2) -- (6.7,2.3);
+\node[font=\tiny, mlgreen!80!black, text width=2.2cm, align=center] at (6.5,0.9)
+     {Users lock tokens for rewards. Reduces supply, boosts scarcity.};
+\node[font=\tiny\bfseries, mlgreen!80!black] at (6.5,0.15) {Earn: protocol fees};
+
+% Bottom summary
+\draw[mlgray, thin, dashed] (-7.6,-0.2) -- (7.8,-0.2);
+\node[draw=mlblue, fill=mllavender4, rounded corners=5pt, font=\tiny,
+      text width=14cm, align=center, inner sep=4pt]
+      at (0,-1.2) {Most successful tokens combine multiple models --- e.g., DEX listing $+$ built-in fees $+$ staking rewards. Your MTK token could start with Model~1 (list on Uniswap) and add Models~4--5 in a V2 contract upgrade.};
+
+\end{tikzpicture}
+\end{center}
+
+\bottomnote{Deploying a token costs nothing on a testnet --- generating real value requires a strategy combining these revenue models.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 12: PART B SECTION DIVIDER
 %% ============================================================
 \begin{frame}{}
 \vfill
@@ -548,7 +756,7 @@ contract MyToken is ERC20, Ownable {
 \end{frame}
 
 %% ============================================================
-%% FRAME 10: HOW TOKENS WORK - THE BALANCE MAPPING [fragile]
+%% FRAME 13: HOW TOKENS WORK - THE BALANCE MAPPING [fragile]
 %% ============================================================
 \begin{frame}[fragile]{How Tokens Actually Work --- The Balance Mapping}
 \vspace{-3mm}
@@ -640,7 +848,7 @@ function transfer(address to, uint256 amount) public returns (bool) {
 \end{frame}
 
 %% ============================================================
-%% FRAME 11: THE ERC-20 INTERFACE (Graphviz Dependency Graph)
+%% FRAME 14: THE ERC-20 INTERFACE (Graphviz Dependency Graph)
 %% ============================================================
 \begin{frame}{The ERC-20 Interface --- All 6 Functions}
 \vspace{-2mm}
@@ -719,7 +927,7 @@ function transfer(address to, uint256 amount) public returns (bool) {
 \end{frame}
 
 %% ============================================================
-%% FRAME 12: TRANSFER VS APPROVE - THE FULL MECHANISM [fragile]
+%% FRAME 15: TRANSFER VS APPROVE - THE FULL MECHANISM [fragile]
 %% ============================================================
 \begin{frame}[fragile]{Transfer vs Approve --- The Full Mechanism}
 \vspace{-3mm}
@@ -836,7 +1044,7 @@ function approve(address spender, uint256 amount)
 \end{frame}
 
 %% ============================================================
-%% FRAME 13: TOKEN SUPPLY MODELS - THE MATHEMATICS [fragile]
+%% FRAME 16: TOKEN SUPPLY MODELS - THE MATHEMATICS [fragile]
 %% ============================================================
 \begin{frame}[fragile]{Token Supply Models --- The Mathematics}
 \vspace{-3mm}
@@ -929,7 +1137,7 @@ function burn(uint256 amt) public {
 \end{frame}
 
 %% ============================================================
-%% FRAME 14: SECURITY - WHY OPENZEPPELIN? (Attack/Defense Tree)
+%% FRAME 17: SECURITY - WHY OPENZEPPELIN? (Attack/Defense Tree)
 %% ============================================================
 \begin{frame}{Security --- Why OpenZeppelin?}
 \vspace{-2mm}
@@ -999,7 +1207,7 @@ function burn(uint256 amt) public {
 \end{frame}
 
 %% ============================================================
-%% FRAME 15: KEY TERMS FOR BEGINNERS
+%% FRAME 18: KEY TERMS FOR BEGINNERS
 %% ============================================================
 \begin{frame}{Key Terms for Beginners}
 \vspace{-2mm}
@@ -1052,7 +1260,7 @@ function burn(uint256 amt) public {
 \end{frame}
 
 %% ============================================================
-%% FRAME 16: KEY TAKEAWAYS
+%% FRAME 19: KEY TAKEAWAYS
 %% ============================================================
 \begin{frame}{Key Takeaways}
 \vspace{-2mm}
