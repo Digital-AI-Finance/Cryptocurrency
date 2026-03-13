@@ -1330,4 +1330,413 @@ function burn(uint256 amt) public {
 \bottomnote{You now have the knowledge to create, deploy, and explain your own ERC-20 token.}
 \end{frame}
 
+%% ============================================================
+%% FRAME 20: PART C SECTION DIVIDER
+%% ============================================================
+\begin{frame}{}
+\vfill
+\begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
+{\Large\bfseries Part 3: From Token to Cryptocurrency}\\[6pt]
+{\normalsize Understanding the difference and the path to building real digital currencies}
+\end{beamercolorbox}
+\vfill
+\end{frame}
+
+%% ============================================================
+%% FRAME 21: TOKEN VS COIN - THE FUNDAMENTAL DIFFERENCE
+%% ============================================================
+\begin{frame}{Token vs Coin --- The Fundamental Difference}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+
+% --- Left box: Token ---
+\draw[mlblue, thick, fill=mlblue!5, rounded corners=6pt] (-7.2,-3.0) rectangle (-1.0,3.2);
+\node[draw=mlblue, fill=mlblue, text=white, rounded corners=4pt,
+      font=\normalsize\bfseries, inner sep=5pt, minimum width=2.5cm]
+      at (-4.1,2.8) {Token};
+
+% Token properties
+\node[font=\scriptsize, text width=5.0cm, align=left] at (-4.1,1.8)
+     {\textbf{\color{mlblue}Lives on someone else's blockchain}};
+\node[font=\tiny, text width=5.0cm, align=left] at (-4.1,1.3)
+     {Created by a smart contract (our MyToken.sol)};
+\node[font=\tiny, text width=5.0cm, align=left] at (-4.1,0.8)
+     {Uses host chain's consensus \& security};
+
+% Token examples
+\node[draw=mlblue!60, fill=mlblue!8, rounded corners=3pt, font=\tiny,
+      inner sep=3pt, text width=4.8cm, align=center]
+      at (-4.1,0.0) {Examples: USDT, UNI, LINK, SHIB, \textbf{MTK}};
+
+% Analogy
+\node[draw=mlblue, fill=mllavender4, rounded corners=5pt, font=\tiny\bfseries,
+      inner sep=4pt, text width=4.5cm, align=center]
+      at (-4.1,-1.0) {Analogy: Renting an apartment\\in someone else's building};
+
+% Ethereum host visual
+\draw[mlgray, thick, fill=mlgray!10, rounded corners=3pt] (-6.2,-2.6) rectangle (-2.0,-1.6);
+\node[font=\tiny\bfseries, mlgray] at (-4.1,-1.85) {Host: Ethereum};
+\node[font=\tiny, mlgray] at (-4.1,-2.2) {Consensus, security, validators};
+
+% --- Center VS divider ---
+\node[draw=mlpurple, fill=mlpurple, text=white, circle, font=\large\bfseries,
+      inner sep=4pt, minimum size=1.0cm]
+      at (0,0.5) {vs};
+\draw[mlpurple, thick, dashed] (0,3.2) -- (0,1.2);
+\draw[mlpurple, thick, dashed] (0,-0.2) -- (0,-3.0);
+
+% --- Right box: Cryptocurrency / Coin ---
+\draw[mlorange, thick, fill=mlorange!5, rounded corners=6pt] (1.0,-3.0) rectangle (7.2,3.2);
+\node[draw=mlorange, fill=mlorange, text=white, rounded corners=4pt,
+      font=\normalsize\bfseries, inner sep=5pt, minimum width=2.5cm]
+      at (4.1,2.8) {Coin};
+
+% Coin properties
+\node[font=\scriptsize, text width=5.0cm, align=left] at (4.1,1.8)
+     {\textbf{\color{mlorange}Has its OWN blockchain}};
+\node[font=\tiny, text width=5.0cm, align=left] at (4.1,1.3)
+     {Own consensus mechanism (PoW, PoS)};
+\node[font=\tiny, text width=5.0cm, align=left] at (4.1,0.8)
+     {Runs own network of validators/miners};
+
+% Coin examples
+\node[draw=mlorange!60, fill=mlorange!8, rounded corners=3pt, font=\tiny,
+      inner sep=3pt, text width=4.8cm, align=center]
+      at (4.1,0.0) {Examples: BTC, ETH, SOL, ADA, DOT};
+
+% Analogy
+\node[draw=mlorange, fill=mlorange!8, rounded corners=5pt, font=\tiny\bfseries,
+      inner sep=4pt, text width=4.5cm, align=center]
+      at (4.1,-1.0) {Analogy: Owning the entire building};
+
+% Own chain visual
+\draw[mlorange!80!black, thick, fill=mlorange!10, rounded corners=3pt] (1.8,-2.6) rectangle (6.4,-1.6);
+\node[font=\tiny\bfseries, mlorange!80!black] at (4.1,-1.85) {Own: Blockchain};
+\node[font=\tiny, mlorange!80!black] at (4.1,-2.2) {Own consensus, own validators};
+
+% --- Bottom insight box ---
+\node[draw=mlpurple, fill=mllavender4, rounded corners=6pt, font=\tiny,
+      inner sep=5pt, text width=13.5cm, align=center]
+      at (0,-3.7) {\textbf{Your MTK is a token} (lives on Ethereum). To become a cryptocurrency, it would need its own blockchain --- but that's rarely necessary.};
+
+\end{tikzpicture}
+\end{center}
+
+\bottomnote{Most successful crypto projects start as tokens on Ethereum and only build their own chain if they outgrow it.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 22: WHAT MAKES A REAL CRYPTOCURRENCY - THE SEVEN PILLARS
+%% ============================================================
+\begin{frame}{What Makes a Real Cryptocurrency? --- The Seven Pillars}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape}]
+
+% --- Roof bar ---
+\draw[mlpurple, very thick, fill=mlpurple, rounded corners=4pt] (-7.5,4.0) rectangle (7.5,5.0);
+\node[font=\normalsize\bfseries, white] at (0,4.5) {Cryptocurrency};
+
+% --- Seven pillars ---
+% Pillar 1
+\draw[mlblue, thick, fill=mlblue!15, rounded corners=2pt] (-7.0,0.2) rectangle (-5.2,3.8);
+\node[font=\tiny\bfseries, mlblue, text width=1.6cm, align=center] at (-6.1,3.2) {Own Chain / Host};
+\node[font=\tiny, mlgray, text width=1.6cm, align=center] at (-6.1,2.2) {Independent blockchain or deep integration};
+\draw[mlblue, thick] (-7.0,3.8) -- (-7.0,4.0);
+\draw[mlblue, thick] (-5.2,3.8) -- (-5.2,4.0);
+
+% Pillar 2
+\draw[mlgreen!80!black, thick, fill=mlgreen!15, rounded corners=2pt] (-4.8,0.2) rectangle (-3.0,3.8);
+\node[font=\tiny\bfseries, mlgreen!80!black, text width=1.6cm, align=center] at (-3.9,3.2) {Consensus};
+\node[font=\tiny, mlgray, text width=1.6cm, align=center] at (-3.9,2.2) {PoW, PoS, DPoS validation};
+\draw[mlgreen!80!black, thick] (-4.8,3.8) -- (-4.8,4.0);
+\draw[mlgreen!80!black, thick] (-3.0,3.8) -- (-3.0,4.0);
+
+% Pillar 3
+\draw[mlorange, thick, fill=mlorange!15, rounded corners=2pt] (-2.6,0.2) rectangle (-0.8,3.8);
+\node[font=\tiny\bfseries, mlorange, text width=1.6cm, align=center] at (-1.7,3.2) {Utility};
+\node[font=\tiny, mlgray, text width=1.6cm, align=center] at (-1.7,2.2) {Real use case driving demand};
+\draw[mlorange, thick] (-2.6,3.8) -- (-2.6,4.0);
+\draw[mlorange, thick] (-0.8,3.8) -- (-0.8,4.0);
+
+% Pillar 4
+\draw[mlred, thick, fill=mlred!15, rounded corners=2pt] (-0.4,0.2) rectangle (1.4,3.8);
+\node[font=\tiny\bfseries, mlred, text width=1.6cm, align=center] at (0.5,3.2) {Liquidity};
+\node[font=\tiny, mlgray, text width=1.6cm, align=center] at (0.5,2.2) {DEX + CEX tradeable 24/7};
+\draw[mlred, thick] (-0.4,3.8) -- (-0.4,4.0);
+\draw[mlred, thick] (1.4,3.8) -- (1.4,4.0);
+
+% Pillar 5
+\draw[mlpurple, thick, fill=mllavender3, rounded corners=2pt] (1.8,0.2) rectangle (3.6,3.8);
+\node[font=\tiny\bfseries, mlpurple, text width=1.6cm, align=center] at (2.7,3.2) {Community};
+\node[font=\tiny, mlgray, text width=1.6cm, align=center] at (2.7,2.2) {Active devs, users, holders};
+\draw[mlpurple, thick] (1.8,3.8) -- (1.8,4.0);
+\draw[mlpurple, thick] (3.6,3.8) -- (3.6,4.0);
+
+% Pillar 6
+\draw[mlblue, thick, fill=mlblue!15, rounded corners=2pt] (4.0,0.2) rectangle (5.8,3.8);
+\node[font=\tiny\bfseries, mlblue, text width=1.6cm, align=center] at (4.9,3.2) {Security};
+\node[font=\tiny, mlgray, text width=1.6cm, align=center] at (4.9,2.2) {Audited code, bug bounties};
+\draw[mlblue, thick] (4.0,3.8) -- (4.0,4.0);
+\draw[mlblue, thick] (5.8,3.8) -- (5.8,4.0);
+
+% Pillar 7
+\draw[mlgreen!80!black, thick, fill=mlgreen!15, rounded corners=2pt] (6.2,0.2) rectangle (7.0,3.8);
+\node[font=\tiny\bfseries, mlgreen!80!black, text width=0.6cm, align=center] at (6.6,3.2) {Gov.};
+\node[font=\tiny, mlgray, text width=0.6cm, align=center] at (6.6,2.2) {DAO voting};
+\draw[mlgreen!80!black, thick] (6.2,3.8) -- (6.2,4.0);
+\draw[mlgreen!80!black, thick] (7.0,3.8) -- (7.0,4.0);
+
+% --- Foundation bar ---
+\draw[mlgray, thick, fill=mlgray!15, rounded corners=2pt] (-7.5,-0.2) rectangle (7.5,0.2);
+
+% --- Bottom comparison ---
+\node[font=\scriptsize\bfseries, mlpurple] at (-4.0,-0.9) {MTK (your token)};
+\node[font=\tiny, mlgray] at (-4.0,-1.4) {1--2 pillars filled};
+
+% MTK checkmarks
+\node[font=\tiny, mlgreen!80!black] at (-6.1,-1.9) {$\checkmark$};
+\node[font=\tiny, mlred] at (-3.9,-1.9) {$\times$};
+\node[font=\tiny, mlred] at (-1.7,-1.9) {$\times$};
+\node[font=\tiny, mlred] at (0.5,-1.9) {$\times$};
+\node[font=\tiny, mlred] at (2.7,-1.9) {$\times$};
+\node[font=\tiny, mlred] at (4.9,-1.9) {$\times$};
+\node[font=\tiny, mlred] at (6.6,-1.9) {$\times$};
+
+\node[font=\scriptsize\bfseries, mlpurple] at (4.0,-0.9) {ETH (cryptocurrency)};
+\node[font=\tiny, mlgray] at (4.0,-1.4) {All 7 pillars filled};
+
+% ETH checkmarks
+\node[font=\tiny, mlgreen!80!black] at (-6.1,-2.5) {$\checkmark$};
+\node[font=\tiny, mlgreen!80!black] at (-3.9,-2.5) {$\checkmark$};
+\node[font=\tiny, mlgreen!80!black] at (-1.7,-2.5) {$\checkmark$};
+\node[font=\tiny, mlgreen!80!black] at (0.5,-2.5) {$\checkmark$};
+\node[font=\tiny, mlgreen!80!black] at (2.7,-2.5) {$\checkmark$};
+\node[font=\tiny, mlgreen!80!black] at (4.9,-2.5) {$\checkmark$};
+\node[font=\tiny, mlgreen!80!black] at (6.6,-2.5) {$\checkmark$};
+
+% Row labels
+\node[font=\tiny\bfseries, mlblue] at (-7.8,-1.9) {MTK};
+\node[font=\tiny\bfseries, mlorange] at (-7.8,-2.5) {ETH};
+
+\end{tikzpicture}
+}%
+\end{center}
+
+\bottomnote{A token becomes a cryptocurrency not by technical means alone --- it requires utility, community, and trust built over time.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 23: THE CRYPTOCURRENCY CREATION ROADMAP - TWO PATHS
+%% ============================================================
+\begin{frame}{The Cryptocurrency Creation Roadmap --- Two Paths}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape}]
+
+% --- Path A header ---
+\node[draw=mlblue, fill=mlblue, text=white, rounded corners=4pt,
+      font=\scriptsize\bfseries, inner sep=4pt, minimum width=5.5cm]
+      (ha) at (-4.0,4.5) {Path A: Token Route (90\% of projects)};
+
+% Path A steps
+\node[draw=mlblue, fill=mlblue!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (a1) at (-4.0,3.6) {1. Write ERC-20 contract};
+\node[draw=mlblue, fill=mlblue!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (a2) at (-4.0,2.8) {2. Audit contract};
+\node[draw=mlblue, fill=mlblue!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (a3) at (-4.0,2.0) {3. Write whitepaper};
+\node[draw=mlblue, fill=mlblue!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (a4) at (-4.0,1.2) {4. Build community};
+\node[draw=mlblue, fill=mlblue!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (a5) at (-4.0,0.4) {5. Create DEX liquidity pool};
+\node[draw=mlblue, fill=mlblue!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (a6) at (-4.0,-0.4) {6. Token sale / airdrop};
+\node[draw=mlblue, fill=mlblue!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (a7) at (-4.0,-1.2) {7. Build dApp with utility};
+\node[draw=mlblue, fill=mlblue!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (a8) at (-4.0,-2.0) {8. Apply for CEX listing};
+
+% Path A arrows
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (a1) -- (a2);
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (a2) -- (a3);
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (a3) -- (a4);
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (a4) -- (a5);
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (a5) -- (a6);
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (a6) -- (a7);
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (a7) -- (a8);
+
+% "You are here!" callout
+\node[draw=mlgreen!80!black, fill=mlgreen!15, rounded corners=4pt, font=\tiny\bfseries,
+      inner sep=3pt, text=mlgreen!80!black]
+      (yah) at (-7.8,3.6) {You are here!};
+\draw[-{Stealth[length=6pt]}, mlgreen!80!black, very thick] (yah.east) -- (a1.west);
+
+% --- Center divider ---
+\draw[mlgray, thick, dashed] (0,4.8) -- (0,-2.4);
+
+% --- Path B header ---
+\node[draw=mlorange, fill=mlorange, text=white, rounded corners=4pt,
+      font=\scriptsize\bfseries, inner sep=4pt, minimum width=5.5cm]
+      (hb) at (4.0,4.5) {Path B: Own Blockchain (10\%)};
+
+% Path B steps
+\node[draw=mlorange, fill=mlorange!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (b1) at (4.0,3.6) {1. Fork existing chain};
+\node[draw=mlorange, fill=mlorange!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (b2) at (4.0,2.8) {2. Design consensus};
+\node[draw=mlorange, fill=mlorange!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (b3) at (4.0,2.0) {3. Build validator network};
+\node[draw=mlorange, fill=mlorange!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (b4) at (4.0,1.2) {4. Create wallet \& explorer};
+\node[draw=mlorange, fill=mlorange!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (b5) at (4.0,0.4) {5. Bootstrap validators};
+\node[draw=mlorange, fill=mlorange!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (b6) at (4.0,-0.4) {6. Launch mainnet};
+\node[draw=mlorange, fill=mlorange!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (b7) at (4.0,-1.2) {7. Bridge tokens};
+\node[draw=mlorange, fill=mlorange!12, rounded corners=3pt, font=\tiny,
+      inner sep=2pt, minimum width=5.2cm, minimum height=0.4cm, align=center]
+      (b8) at (4.0,-2.0) {8. Exchange listings};
+
+% Path B arrows
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (b1) -- (b2);
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (b2) -- (b3);
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (b3) -- (b4);
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (b4) -- (b5);
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (b5) -- (b6);
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (b6) -- (b7);
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (b7) -- (b8);
+
+% --- Bottom difficulty comparison ---
+\node[draw=mlgray, fill=mlgray!8, rounded corners=4pt, font=\tiny,
+      inner sep=4pt, text width=13.5cm, align=center]
+      at (0,-3.0) {%
+\textbf{Difficulty:}\quad
+Path A: \textcolor{mlgreen}{$\bullet$} Weeks / Months \quad\quad
+Path B: \textcolor{mlred}{$\bullet$} Months / Years};
+
+\end{tikzpicture}
+}%
+\end{center}
+
+\bottomnote{Most successful projects (UNI, LINK, AAVE) took Path A --- starting as tokens on Ethereum and never needing their own chain.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 24: REAL SUCCESS STORIES - TOKENS THAT MADE IT
+%% ============================================================
+\begin{frame}{Real Success Stories --- Tokens That Made It}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+
+% --- Card 1: Uniswap (UNI) ---
+\draw[mlgreen!80!black, thick, fill=mlgreen!5, rounded corners=6pt] (-7.2,-2.8) rectangle (-3.6,3.0);
+\node[draw=mlgreen!80!black, fill=mlgreen!80!black, text=white, rounded corners=4pt,
+      font=\scriptsize\bfseries, inner sep=3pt, minimum width=3.0cm]
+      at (-5.4,2.6) {Uniswap (UNI)};
+\node[font=\tiny, text width=3.0cm, align=left] at (-5.4,1.7)
+     {\textbf{\color{mlgreen!80!black}Started:} ERC-20 (2020)};
+\node[font=\tiny, text width=3.0cm, align=left] at (-5.4,1.1)
+     {\textbf{\color{mlgreen!80!black}Utility:} Governance of the \#1 DEX};
+\node[font=\tiny, text width=3.0cm, align=left] at (-5.4,0.5)
+     {\textbf{\color{mlgreen!80!black}Rank:} Top 25 market cap};
+\draw[mlgray, thin] (-6.8,-0.1) -- (-4.0,-0.1);
+\node[font=\tiny\bfseries, mlgreen!80!black, text width=3.0cm, align=center] at (-5.4,-0.6)
+     {Token};
+\draw[-{Stealth[length=6pt]}, mlgreen!80!black, thick] (-5.4,-0.95) -- (-5.4,-1.25);
+\node[font=\tiny\bfseries, mlgreen!80!black, text width=3.0cm, align=center] at (-5.4,-1.55)
+     {Governance};
+\draw[-{Stealth[length=6pt]}, mlgreen!80!black, thick] (-5.4,-1.85) -- (-5.4,-2.15);
+\node[font=\tiny\bfseries, mlgreen!80!black, text width=3.0cm, align=center] at (-5.4,-2.45)
+     {Protocol revenue};
+
+% --- Card 2: Chainlink (LINK) ---
+\draw[mlblue, thick, fill=mlblue!5, rounded corners=6pt] (-3.2,-2.8) rectangle (0.4,3.0);
+\node[draw=mlblue, fill=mlblue, text=white, rounded corners=4pt,
+      font=\scriptsize\bfseries, inner sep=3pt, minimum width=3.0cm]
+      at (-1.4,2.6) {Chainlink (LINK)};
+\node[font=\tiny, text width=3.0cm, align=left] at (-1.4,1.7)
+     {\textbf{\color{mlblue}Started:} ERC-20 (2017)};
+\node[font=\tiny, text width=3.0cm, align=left] at (-1.4,1.1)
+     {\textbf{\color{mlblue}Utility:} Pays oracle nodes};
+\node[font=\tiny, text width=3.0cm, align=left] at (-1.4,0.5)
+     {\textbf{\color{mlblue}Rank:} Top 15 market cap};
+\draw[mlgray, thin] (-2.8,-0.1) -- (0.0,-0.1);
+\node[font=\tiny\bfseries, mlblue, text width=3.0cm, align=center] at (-1.4,-0.6)
+     {Token};
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (-1.4,-0.95) -- (-1.4,-1.25);
+\node[font=\tiny\bfseries, mlblue, text width=3.0cm, align=center] at (-1.4,-1.55)
+     {Infrastructure};
+\draw[-{Stealth[length=6pt]}, mlblue, thick] (-1.4,-1.85) -- (-1.4,-2.15);
+\node[font=\tiny\bfseries, mlblue, text width=3.0cm, align=center] at (-1.4,-2.45)
+     {Industry standard};
+
+% --- Card 3: Polygon (MATIC -> POL) ---
+\draw[mlorange, thick, fill=mlorange!5, rounded corners=6pt] (0.8,-2.8) rectangle (4.4,3.0);
+\node[draw=mlorange, fill=mlorange, text=white, rounded corners=4pt,
+      font=\scriptsize\bfseries, inner sep=3pt, minimum width=3.0cm]
+      at (2.6,2.6) {Polygon (POL)};
+\node[font=\tiny, text width=3.0cm, align=left] at (2.6,1.7)
+     {\textbf{\color{mlorange}Started:} ERC-20 (2019)};
+\node[font=\tiny, text width=3.0cm, align=left] at (2.6,1.1)
+     {\textbf{\color{mlorange}Then:} Built own L2 chain};
+\node[font=\tiny, text width=3.0cm, align=left] at (2.6,0.5)
+     {\textbf{\color{mlorange}Rank:} Top 30 market cap};
+\draw[mlgray, thin] (1.2,-0.1) -- (4.0,-0.1);
+\node[font=\tiny\bfseries, mlorange, text width=3.0cm, align=center] at (2.6,-0.6)
+     {Token};
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (2.6,-0.95) -- (2.6,-1.25);
+\node[font=\tiny\bfseries, mlorange, text width=3.0cm, align=center] at (2.6,-1.55)
+     {Own chain};
+\draw[-{Stealth[length=6pt]}, mlorange, thick] (2.6,-1.85) -- (2.6,-2.15);
+\node[font=\tiny\bfseries, mlorange, text width=3.0cm, align=center] at (2.6,-2.45)
+     {L2 scaling};
+
+% --- Card 4: Your MTK (dashed border) ---
+\draw[mlpurple, thick, dashed, fill=mllavender4] (4.8,-2.8) rectangle (8.4,3.0);
+\node[draw=mlpurple, fill=mlpurple, text=white, rounded corners=4pt,
+      font=\scriptsize\bfseries, inner sep=3pt, minimum width=3.0cm]
+      at (6.6,2.6) {Your MTK};
+\node[font=\tiny, text width=3.0cm, align=left] at (6.6,1.7)
+     {\textbf{\color{mlpurple}Status:} Just deployed on Sepolia};
+\node[font=\tiny, text width=3.0cm, align=left] at (6.6,1.1)
+     {\textbf{\color{mlpurple}Next:} Add utility + liquidity};
+\node[font=\tiny, text width=3.0cm, align=left] at (6.6,0.5)
+     {\textbf{\color{mlpurple}Potential:} Follow playbook};
+\draw[mlgray, thin, dashed] (5.2,-0.1) -- (8.0,-0.1);
+\node[font=\tiny\bfseries, mlpurple, text width=3.0cm, align=center] at (6.6,-0.6)
+     {Token};
+\draw[-{Stealth[length=6pt]}, mlpurple, thick] (6.6,-0.95) -- (6.6,-1.25);
+\node[font=\tiny\bfseries, mlpurple, text width=3.0cm, align=center] at (6.6,-1.55)
+     {???};
+\draw[-{Stealth[length=6pt]}, mlpurple, thick] (6.6,-1.85) -- (6.6,-2.15);
+\node[font=\tiny\bfseries, mlpurple, text width=3.0cm, align=center] at (6.6,-2.45)
+     {Your journey};
+
+\end{tikzpicture}
+\end{center}
+
+\bottomnote{Every major cryptocurrency project started exactly where you are now --- with a smart contract and an idea.}
+\end{frame}
+
 \end{document}
