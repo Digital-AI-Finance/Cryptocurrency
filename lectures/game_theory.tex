@@ -159,7 +159,48 @@
 \end{frame}
 
 %% ============================================================
-%% FRAME 3: WHAT IS GAME THEORY?
+%% FRAME 3: JOHN VON NEUMANN — THE FATHER OF GAME THEORY
+%% ============================================================
+\begin{frame}{John von Neumann --- The Father of Game Theory}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+% Timeline bar
+\fill[mllavender4, rounded corners=3pt] (-6.5,-0.15) rectangle (6.5,0.15);
+% Timeline events
+\foreach \x/\yr/\lbl in {
+  -5.5/1903/Born in Budapest,
+  -2.5/1928/Minimax Theorem,
+  0.5/1944/\parbox{2.2cm}{\centering Theory of Games\\(with Morgenstern)},
+  4.0/1945/\parbox{2.2cm}{\centering Computer\\Architecture},
+  6.0/1957/Died}{
+  \fill[mlpurple] (\x,0) circle (3pt);
+  \node[above, font=\tiny\bfseries, text=mlpurple] at (\x,0.25) {\yr};
+  \node[below, font=\tiny, text width=2.2cm, align=center] at (\x,-0.3) {\lbl};
+}
+% Portrait placeholder — stylized initial
+\node[draw=mlpurple, fill=mllavender4, rounded corners=8pt, minimum width=2.2cm, minimum height=2.5cm] at (-5.5, 2.4) {};
+\node[font=\Huge\bfseries, text=mlpurple] at (-5.5, 2.6) {JvN};
+\node[font=\tiny, text=mlgray] at (-5.5, 1.7) {1903--1957};
+% Key contributions panel
+\node[draw=mlblue, fill=mlblue!8, rounded corners=6pt, text width=9.5cm, inner sep=5pt, font=\scriptsize, anchor=north west] at (-2.0, 3.5) {%
+\textbf{\color{mlblue}Why does he matter for crypto?}\\[3pt]
+\textbullet~\textbf{Minimax Theorem (1928):} Proved that in zero-sum games, there is always an optimal strategy --- the mathematical foundation behind every blockchain security proof.\\[2pt]
+\textbullet~\textbf{Theory of Games (1944):} Co-authored with Oskar Morgenstern, this book created the entire field. Every mechanism design in DeFi traces back to it.\\[2pt]
+\textbullet~\textbf{Computer Architecture:} Designed the von Neumann architecture that runs every node in every blockchain network today.\\[2pt]
+\textbullet~\textbf{Also contributed to:} Quantum mechanics, nuclear physics, set theory, economics --- one of the greatest minds of the 20th century.
+};
+% Connection to Alice & Bob
+\node[draw=mlorange, fill=mlorange!10, rounded corners=5pt, font=\scriptsize, inner sep=4pt, text width=13cm] at (0, -1.8) {%
+\textbf{\color{mlorange}Alice \& Bob's takeaway:} ``Before we can build our DEX, we need the tools von Neumann gave us --- how to think about strategies, payoffs, and optimal decisions.''
+};
+\end{tikzpicture}
+\end{center}
+\bottomnote{John von Neumann proved the Minimax Theorem in 1928 --- the idea that rational players can always find an optimal strategy. This single insight underpins all of blockchain mechanism design.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 4: WHAT IS GAME THEORY?
 %% ============================================================
 \begin{frame}{What Is Game Theory?}
 \vspace{-2mm}
@@ -250,7 +291,98 @@
 \end{frame}
 
 %% ============================================================
-%% FRAME 5: NASH EQUILIBRIUM
+%% FRAME 5: JOHN NASH — A BEAUTIFUL MIND
+%% ============================================================
+\begin{frame}{John Nash --- A Beautiful Mind}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+% Timeline bar
+\fill[mllavender4, rounded corners=3pt] (-6.5,-0.15) rectangle (6.5,0.15);
+% Timeline events
+\foreach \x/\yr/\lbl in {
+  -5.5/1928/Born in West Virginia,
+  -2.5/1950/\parbox{2.2cm}{\centering PhD at age 22\\(27-page thesis)},
+  0.0/1959/\parbox{2.2cm}{\centering Onset of\\schizophrenia},
+  3.0/1994/\parbox{2.2cm}{\centering Nobel Prize\\in Economics},
+  5.5/2015/\parbox{2.2cm}{\centering Abel Prize\\(died same year)}}{
+  \fill[mlpurple] (\x,0) circle (3pt);
+  \node[above, font=\tiny\bfseries, text=mlpurple] at (\x,0.25) {\yr};
+  \node[below, font=\tiny, text width=2.2cm, align=center] at (\x,-0.3) {\lbl};
+}
+% Portrait placeholder
+\node[draw=mlblue, fill=mlblue!8, rounded corners=8pt, minimum width=2.2cm, minimum height=2.5cm] at (-5.5, 2.4) {};
+\node[font=\Huge\bfseries, text=mlblue] at (-5.5, 2.6) {JN};
+\node[font=\tiny, text=mlgray] at (-5.5, 1.7) {1928--2015};
+% Key contributions panel
+\node[draw=mlblue, fill=mlblue!8, rounded corners=6pt, text width=9.5cm, inner sep=5pt, font=\scriptsize, anchor=north west] at (-2.0, 3.5) {%
+\textbf{\color{mlblue}Why does he matter for crypto?}\\[3pt]
+\textbullet~\textbf{Nash Equilibrium (1950):} His 27-page PhD thesis proved that every finite game has at least one equilibrium --- the concept that makes blockchain protocol design possible.\\[2pt]
+\textbullet~\textbf{Non-cooperative games:} Extended game theory beyond zero-sum to ANY strategic interaction --- exactly what happens between miners, validators, and traders.\\[2pt]
+\textbullet~\textbf{Bargaining theory:} Showed how rational agents negotiate --- the basis for automated market makers and governance voting.\\[2pt]
+\textbullet~\textbf{A Beautiful Mind:} Struggled with schizophrenia for 30 years, recovered, won Nobel Prize (1994) and Abel Prize (2015).
+};
+% Connection to Alice & Bob
+\node[draw=mlorange, fill=mlorange!10, rounded corners=5pt, font=\scriptsize, inner sep=4pt, text width=13cm] at (0, -1.8) {%
+\textbf{\color{mlorange}Alice \& Bob's takeaway:} ``Nash proved that in ANY game, there is a predictable outcome. If we can find it, we can DESIGN our DEX so the equilibrium IS cooperation.''
+};
+\end{tikzpicture}
+\end{center}
+\bottomnote{John Nash's 27-page PhD thesis changed the world --- he proved that every finite game has at least one equilibrium, earning him the Nobel Prize 44 years later.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 6: NASH'S PROOF — EVERY GAME HAS AN EQUILIBRIUM
+%% ============================================================
+\begin{frame}{Nash's Key Insight --- Every Game Has an Equilibrium}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+% Left: The theorem box
+\node[draw=mlpurple, fill=mlpurple!8, rounded corners=8pt, text width=5.8cm, inner sep=6pt, font=\scriptsize, anchor=north west] (theorem) at (-7, 3.2) {%
+\textbf{\color{mlpurple}\normalsize Nash's Theorem (1950)}\\[4pt]
+``Every finite game with a finite number of players and a finite number of strategies has at least one Nash Equilibrium.''\\[6pt]
+\textbf{In plain English:}\\
+No matter how complex the game, there is always a stable outcome where no player wants to change their strategy --- \textbf{if} they know what everyone else is doing.
+};
+% Right: Visual example — 3 games, each with equilibrium marked
+\node[font=\scriptsize\bfseries, text=mlblue] at (3.5, 3.2) {Three games, three equilibria:};
+% Game 1: Prisoner's Dilemma
+\node[draw=mlgray, fill=mllavender4, rounded corners=4pt, text width=4.5cm, inner sep=4pt, font=\tiny, anchor=north west] (g1) at (0.8, 2.6) {%
+\textbf{Prisoner's Dilemma}\\
+Both defect $\rightarrow$ (1,1)\\
+\textcolor{mlred}{Equilibrium: both cheat}\\
+\textcolor{mlgray}{(even though (3,3) is better for both)}
+};
+% Game 2: Coordination Game
+\node[draw=mlgray, fill=mllavender4, rounded corners=4pt, text width=4.5cm, inner sep=4pt, font=\tiny, anchor=north west] (g2) at (0.8, 0.9) {%
+\textbf{Coordination Game}\\
+Both pick ETH/USDC $\rightarrow$ (4,4)\\
+\textcolor{mlgreen}{Equilibrium: coordinate on same pair}\\
+\textcolor{mlgray}{(TWO equilibria --- Schelling Point picks one)}
+};
+% Game 3: Staking Game
+\node[draw=mlgray, fill=mllavender4, rounded corners=4pt, text width=4.5cm, inner sep=4pt, font=\tiny, anchor=north west] (g3) at (0.8, -0.8) {%
+\textbf{Validator Staking}\\
+All validate honestly $\rightarrow$ (3,3)\\
+\textcolor{mlgreen}{Equilibrium: honest validation}\\
+\textcolor{mlgray}{(cheating destroys your own stake)}
+};
+% Arrow labels
+\draw[-{Stealth[length=6pt]}, thick, mlred] (-0.8, 2.2) -- (0.7, 2.2) node[midway, above, font=\tiny\bfseries] {bad equilibrium};
+\draw[-{Stealth[length=6pt]}, thick, mlgreen] (-0.8, 0.5) -- (0.7, 0.5) node[midway, above, font=\tiny\bfseries] {good equilibrium};
+\draw[-{Stealth[length=6pt]}, thick, mlgreen] (-0.8, -1.2) -- (0.7, -1.2) node[midway, above, font=\tiny\bfseries] {designed equilibrium};
+% Bottom insight
+\node[draw=mlorange, fill=mlorange!10, rounded corners=5pt, font=\scriptsize, inner sep=4pt, text width=13cm] at (0, -2.5) {%
+\textbf{\color{mlorange}The crypto insight:} Nash guarantees an equilibrium EXISTS. Mechanism design is the art of making that equilibrium the COOPERATIVE one --- that is exactly what Proof of Stake, AMMs, and governance tokens do.
+};
+\end{tikzpicture}
+\end{center}
+\bottomnote{Nash's theorem guarantees every game has a stable outcome --- the challenge for crypto protocol designers is engineering the rules so that the stable outcome is also the DESIRABLE one.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 7: NASH EQUILIBRIUM — THE PREDICTABLE OUTCOME
 %% ============================================================
 \begin{frame}{Nash Equilibrium --- The Predictable Outcome}
 \vspace{-2mm}
