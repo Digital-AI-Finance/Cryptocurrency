@@ -482,6 +482,67 @@ All validate honestly $\rightarrow$ (3,3)\\
 \end{frame}
 
 %% ============================================================
+%% FRAME 6b: COORDINATION GAME — DEEP DIVE
+%% ============================================================
+\begin{frame}{Coordination Games --- Why They Matter in Crypto}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape}]
+% Left column: Real crypto coordination examples
+\node[font=\scriptsize\bfseries, text=mlpurple] at (-5, 4.2) {Real Coordination Problems in Crypto};
+
+\node[draw=mlblue, fill=mlblue!8, rounded corners=5pt, text width=5.5cm, inner sep=4pt, font=\tiny, anchor=north west] (ex1) at (-7.5, 3.8) {%
+\textbf{1. Which blockchain to build on?}\\
+Everyone benefits if DApps concentrate on one chain (shared liquidity, composability). But which one? Ethereum won because it was first with smart contracts --- the Schelling Point.
+};
+
+\node[draw=mlblue, fill=mlblue!8, rounded corners=5pt, text width=5.5cm, inner sep=4pt, font=\tiny, anchor=north west] (ex2) at (-7.5, 2.0) {%
+\textbf{2. Which token standard to use?}\\
+ERC-20 became the standard not because it was technically best, but because everyone adopted it. Once wallets, DEXs, and tools support ERC-20, using anything else means isolation.
+};
+
+\node[draw=mlblue, fill=mlblue!8, rounded corners=5pt, text width=5.5cm, inner sep=4pt, font=\tiny, anchor=north west] (ex3) at (-7.5, 0.2) {%
+\textbf{3. Which oracle to trust?}\\
+Chainlink dominates because protocols coordinate on the same price feed. If half use Chainlink and half use Band, arbitrage exploits appear at the boundary.
+};
+
+% Right column: Key differences from Prisoner's Dilemma
+\node[font=\scriptsize\bfseries, text=mlpurple] at (4, 4.2) {Coordination vs.\ Prisoner's Dilemma};
+
+% Comparison table
+\node[draw=mlpurple, fill=mllavender4, rounded corners=5pt, text width=6.5cm, inner sep=5pt, font=\tiny, anchor=north west] at (0.5, 3.8) {%
+\begin{tabular}{@{}p{2.8cm}p{3.0cm}@{}}
+\textbf{Prisoner's Dilemma} & \textbf{Coordination Game} \\[2pt]
+Players want to cheat & Players want to agree \\
+Incentive to defect & Incentive to match \\
+One equilibrium (bad) & Multiple equilibria (both good) \\
+Problem: trust & Problem: which option? \\
+Solution: mechanism design & Solution: Schelling Points \\
+\end{tabular}
+};
+
+% How Schelling Points form
+\node[draw=mlgreen!80!black, fill=mlgreen!8, rounded corners=5pt, text width=6.5cm, inner sep=5pt, font=\tiny, anchor=north west] at (0.5, 1.5) {%
+\textbf{\color{mlgreen!80!black}How Schelling Points form in crypto:}\\[3pt]
+\textbullet~\textbf{First-mover advantage:} Ethereum was first with smart contracts\\
+\textbullet~\textbf{Liquidity begets liquidity:} Traders go where the volume is\\
+\textbullet~\textbf{Developer tools:} More tools $\rightarrow$ more devs $\rightarrow$ more tools\\
+\textbullet~\textbf{Cultural consensus:} ``ETH is money'' becomes self-fulfilling\\[3pt]
+Once a Schelling Point forms, it is very hard to displace --- this is why ``Ethereum killers'' struggle despite better technology.
+};
+
+% Bottom insight
+\node[draw=mlorange, fill=mlorange!10, rounded corners=5pt, font=\scriptsize, inner sep=4pt, text width=14.5cm] at (0, -1.8) {%
+\textbf{\color{mlorange}Key insight:} In coordination games, being RIGHT matters less than being on the SAME SIDE as everyone else. A technically inferior standard that everyone uses beats a superior one that nobody adopts.
+};
+\end{tikzpicture}%
+}%
+\end{center}
+\bottomnote{Coordination games explain why crypto has ``winner-take-most'' dynamics --- once a standard or platform becomes the Schelling Point, network effects make it nearly impossible to displace.}
+\end{frame}
+
+%% ============================================================
 %% FRAME 7: FREE RIDER PROBLEM
 %% ============================================================
 \begin{frame}{Who Provides Liquidity? --- The Free Rider Problem}
@@ -676,6 +737,71 @@ All validate honestly $\rightarrow$ (3,3)\\
 \end{frame}
 
 %% ============================================================
+%% FRAME 9b: AMM DEEP DIVE — THE GAME THEORY BEHIND PRICE DISCOVERY
+%% ============================================================
+\begin{frame}{How AMMs Really Work --- The Game Behind the Formula}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape}]
+% Column 1: The constant product formula explained
+\node[font=\scriptsize\bfseries, text=mlpurple] at (-5, 4.2) {The Constant Product Formula};
+
+\node[draw=mlpurple, fill=mlpurple!8, rounded corners=6pt, text width=5.5cm, inner sep=5pt, font=\tiny, anchor=north west] at (-7.5, 3.8) {%
+\textbf{$x \cdot y = k$} (Uniswap V2)\\[3pt]
+\textbullet~$x$ = amount of Token A in pool (e.g., ETH)\\
+\textbullet~$y$ = amount of Token B in pool (e.g., USDC)\\
+\textbullet~$k$ = constant (never changes during a swap)\\[3pt]
+\textbf{Example:} Pool has 10 ETH and 20{,}000 USDC\\
+$k = 10 \times 20{,}000 = 200{,}000$\\[3pt]
+If you add 1 ETH, the pool now has 11 ETH.\\
+New USDC = $200{,}000 / 11 = 18{,}181$\\
+You receive $20{,}000 - 18{,}181 = \textbf{1{,}819}$ USDC\\
+Effective price: 1{,}819 USDC per ETH\\
+(less than the 2{,}000 ``spot price'' --- this is \textbf{slippage})
+};
+
+% Column 2: The three-player game
+\node[font=\scriptsize\bfseries, text=mlpurple] at (4, 4.2) {Three Players, Three Strategies};
+
+% Player 1: Liquidity Provider
+\node[draw=mlblue, fill=mlblue!8, rounded corners=5pt, text width=6.5cm, inner sep=4pt, font=\tiny, anchor=north west] at (0.5, 3.8) {%
+\textbf{\color{mlblue}Liquidity Provider (LP)}\\
+\textbf{Strategy:} Deposit equal value of both tokens into the pool\\
+\textbf{Payoff:} Earn 0.3\% fee on every trade\\
+\textbf{Risk:} Impermanent loss --- if prices move, LPs lose value vs.\ holding\\
+\textbf{Game theory:} LPs accept short-term loss for long-term fee income
+};
+
+% Player 2: Trader
+\node[draw=mlgreen!80!black, fill=mlgreen!8, rounded corners=5pt, text width=6.5cm, inner sep=4pt, font=\tiny, anchor=north west] at (0.5, 2.0) {%
+\textbf{\color{mlgreen!80!black}Trader}\\
+\textbf{Strategy:} Swap tokens when price is favorable\\
+\textbf{Payoff:} Get tokens at the pool's current price\\
+\textbf{Risk:} Slippage on large orders; sandwich attacks by MEV bots\\
+\textbf{Game theory:} Traders accept slippage because pools offer instant liquidity
+};
+
+% Player 3: Arbitrageur
+\node[draw=mlred, fill=mlred!8, rounded corners=5pt, text width=6.5cm, inner sep=4pt, font=\tiny, anchor=north west] at (0.5, 0.2) {%
+\textbf{\color{mlred}Arbitrageur}\\
+\textbf{Strategy:} Buy low on one exchange, sell high on another\\
+\textbf{Payoff:} Risk-free profit from price differences\\
+\textbf{Risk:} Gas costs may exceed arbitrage profit; competition from bots\\
+\textbf{Game theory:} Arbitrageurs serve a PUBLIC GOOD --- they keep prices accurate
+};
+
+% Bottom: Why this works
+\node[draw=mlorange, fill=mlorange!10, rounded corners=5pt, font=\scriptsize, inner sep=4pt, text width=14.5cm] at (0, -1.8) {%
+\textbf{\color{mlorange}The Nash Equilibrium:} LPs provide liquidity (earn fees) $\rightarrow$ traders use the pool (pay fees) $\rightarrow$ arbitrageurs correct prices (earn profits). Each player's selfish strategy creates a functioning market --- no coordinator needed.
+};
+\end{tikzpicture}%
+}%
+\end{center}
+\bottomnote{AMMs are a triumph of mechanism design --- three types of selfish players (LPs, traders, arbitrageurs) each pursuing profit, yet together they create a fair, efficient, 24/7 market.}
+\end{frame}
+
+%% ============================================================
 %% FRAME 10: VALIDATOR'S DILEMMA
 %% ============================================================
 \begin{frame}{The Validator's Dilemma}
@@ -724,6 +850,75 @@ All validate honestly $\rightarrow$ (3,3)\\
 \end{tikzpicture}
 \end{center}
 \bottomnote{This is why validators must `stake' tokens --- it makes honest behavior the dominant strategy because cheating destroys your own wealth.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 10b: VALIDATOR'S DILEMMA — DEEP DIVE
+%% ============================================================
+\begin{frame}{The Validator's Dilemma --- Why Proof of Stake Works}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape}]
+% Left: The economics of honest validation
+\node[font=\scriptsize\bfseries, text=mlpurple] at (-5, 4.2) {The Economics of Honest Validation};
+
+\node[draw=mlgreen!80!black, fill=mlgreen!8, rounded corners=5pt, text width=5.5cm, inner sep=5pt, font=\tiny, anchor=north west] at (-7.5, 3.8) {%
+\textbf{\color{mlgreen!80!black}Path A: Validate Honestly}\\[3pt]
+\textbullet~Stake 32 ETH ($\sim$\$60{,}000 at \$1{,}875/ETH)\\
+\textbullet~Earn $\sim$4--5\% annual yield = $\sim$\$2{,}400--\$3{,}000/yr\\
+\textbullet~ETH value grows as network is trusted\\
+\textbullet~Compound rewards over years\\[3pt]
+\textbf{Total payoff over 5 years:}\\
+\$12{,}000--\$15{,}000 in rewards + potential ETH appreciation\\
+\textbf{Risk: near zero} (hardware costs, minor downtime penalties)
+};
+
+\node[draw=mlred, fill=mlred!8, rounded corners=5pt, text width=5.5cm, inner sep=5pt, font=\tiny, anchor=north west] at (-7.5, 0.8) {%
+\textbf{\color{mlred}Path B: Cheat (Approve Bad Transactions)}\\[3pt]
+\textbullet~Accept bribes to include malicious transactions\\
+\textbullet~Short-term gain: maybe \$500--\$5{,}000 per attack\\
+\textbullet~\textbf{Slashing:} Lose part or ALL of 32 ETH stake\\
+\textbullet~Network detects cheating $\rightarrow$ validator is ejected\\
+\textbullet~If many cheat: ETH crashes $\rightarrow$ stake worthless\\[3pt]
+\textbf{Total payoff:} \$5{,}000 bribe minus \$60{,}000 slashed stake\\
+= \textbf{net loss of \$55{,}000}
+};
+
+% Right: Why this is a solved game
+\node[font=\scriptsize\bfseries, text=mlpurple] at (4, 4.2) {Why This Game Is ``Solved''};
+
+\node[draw=mlpurple, fill=mlpurple!8, rounded corners=6pt, text width=6.5cm, inner sep=5pt, font=\tiny, anchor=north west] at (0.5, 3.8) {%
+\textbf{Three mechanisms that force honest behavior:}\\[3pt]
+\textbf{1. Slashing (punishment):}\\
+Validators who sign conflicting blocks lose 1/32 to ALL of their stake. The penalty is proportional to how many validators cheat simultaneously --- if 1/3 cheat, they lose everything.\\[3pt]
+\textbf{2. Inactivity leak (participation):}\\
+Validators who go offline slowly lose stake. You must actively participate to keep your deposit.\\[3pt]
+\textbf{3. Social consensus (nuclear option):}\\
+If a majority attack succeeds, the community can hard fork and slash the attackers' stake on the new chain --- making the attack retroactively worthless.
+};
+
+% Comparison: PoW vs PoS incentives
+\node[draw=mlblue, fill=mlblue!8, rounded corners=5pt, text width=6.5cm, inner sep=4pt, font=\tiny, anchor=north west] at (0.5, 0.5) {%
+\textbf{\color{mlblue}PoW vs PoS --- Different games, same goal}\\[3pt]
+\begin{tabular}{@{}p{2.8cm}p{2.8cm}@{}}
+\textbf{Proof of Work} & \textbf{Proof of Stake} \\[2pt]
+Cost to attack: buy hardware & Cost to attack: buy \& stake ETH \\
+Punishment: wasted electricity & Punishment: slashed stake \\
+Attacker keeps hardware & Attacker loses deposit \\
+External cost (energy) & Internal cost (own tokens) \\
+\end{tabular}\\[3pt]
+PoS makes attacks \textbf{self-destructive} --- you must burn your own wealth to attack, then your attack devalues that wealth further.
+};
+
+% Bottom insight
+\node[draw=mlorange, fill=mlorange!10, rounded corners=5pt, font=\scriptsize, inner sep=4pt, text width=14.5cm] at (0, -2.2) {%
+\textbf{\color{mlorange}The key insight:} Honest validation is the \textbf{dominant strategy} --- it pays more (\$15K over 5 years) with less risk than cheating (net loss of \$55K). Proof of Stake is game theory in action.
+};
+\end{tikzpicture}%
+}%
+\end{center}
+\bottomnote{Proof of Stake turns blockchain security into a game theory problem with a clear solution: staking makes honesty profitable and cheating financially suicidal.}
 \end{frame}
 
 %% ============================================================
@@ -911,6 +1106,76 @@ All validate honestly $\rightarrow$ (3,3)\\
 \end{tikzpicture}
 \end{center}
 \bottomnote{Network effects create powerful Schelling Points --- the more people use a platform, the more valuable it becomes, making it the rational default choice.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 13b: SCHELLING POINTS & NETWORK EFFECTS — DEEP DIVE
+%% ============================================================
+\begin{frame}{Network Effects --- The Flywheel That Cannot Be Stopped}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape}]
+% Left: The network effect flywheel
+\node[font=\scriptsize\bfseries, text=mlpurple] at (-5, 4.2) {The Ethereum Flywheel};
+
+% Circular flywheel
+\node[draw=mlpurple, fill=mlpurple!15, rounded corners=6pt, font=\tiny\bfseries, text width=1.8cm, align=center] (devs) at (-6.5, 2.5) {More\\Developers};
+\node[draw=mlblue, fill=mlblue!15, rounded corners=6pt, font=\tiny\bfseries, text width=1.8cm, align=center] (apps) at (-3.5, 3.5) {More\\DApps};
+\node[draw=mlgreen!80!black, fill=mlgreen!15, rounded corners=6pt, font=\tiny\bfseries, text width=1.8cm, align=center] (users) at (-3.5, 1.5) {More\\Users};
+\node[draw=mlorange, fill=mlorange!15, rounded corners=6pt, font=\tiny\bfseries, text width=1.8cm, align=center] (liq) at (-6.5, 0.5) {More\\Liquidity};
+
+\draw[-{Stealth[length=6pt]}, thick, mlpurple] (devs) -- (apps);
+\draw[-{Stealth[length=6pt]}, thick, mlblue] (apps) -- (users);
+\draw[-{Stealth[length=6pt]}, thick, mlgreen!80!black] (users) -- (liq);
+\draw[-{Stealth[length=6pt]}, thick, mlorange] (liq) -- (devs);
+
+\node[font=\tiny\bfseries, text=mlred] at (-5, 2) {FLYWHEEL};
+
+% Why competitors fail
+\node[draw=mlred, fill=mlred!8, rounded corners=5pt, text width=5.5cm, inner sep=4pt, font=\tiny, anchor=north west] at (-7.5, -0.5) {%
+\textbf{\color{mlred}Why ``Ethereum Killers'' struggle:}\\[3pt]
+\textbullet~\textbf{Solana:} Faster, cheaper, but 10x fewer DApps\\
+\textbullet~\textbf{Cardano:} Formally verified, but minimal DeFi TVL\\
+\textbullet~\textbf{Avalanche:} EVM-compatible, but fraction of liquidity\\[3pt]
+They can match Ethereum's \textit{technology} but not its \textit{network effects}. The flywheel gives the incumbent an exponentially growing advantage.
+};
+
+% Right: Real numbers
+\node[font=\scriptsize\bfseries, text=mlpurple] at (4, 4.2) {The Numbers Tell the Story (2025)};
+
+\node[draw=mlblue, fill=mlblue!8, rounded corners=5pt, text width=6.5cm, inner sep=5pt, font=\tiny, anchor=north west] at (0.5, 3.8) {%
+\begin{tabular}{@{}p{3.2cm}r@{}}
+\textbf{Metric} & \textbf{Ethereum} \\[2pt]
+DeFi TVL & $\sim$\$50B+ (60\% of all chains) \\
+Active developers & $\sim$5{,}800/month \\
+ERC-20 tokens deployed & $>$500{,}000 \\
+Daily active addresses & $\sim$400{,}000+ \\
+Smart contracts deployed & $>$50 million \\
+DEX daily volume & $\sim$\$1--3B \\
+Validator count & $\sim$900{,}000 \\
+\end{tabular}\\[4pt]
+Every metric reinforces every other metric. This is the Schelling Point made manifest.
+};
+
+% Metcalfe's Law
+\node[draw=mlgreen!80!black, fill=mlgreen!8, rounded corners=5pt, text width=6.5cm, inner sep=4pt, font=\tiny, anchor=north west] at (0.5, 0.8) {%
+\textbf{\color{mlgreen!80!black}Metcalfe's Law in action:}\\[3pt]
+The value of a network is proportional to $n^2$ (where $n$ = users).\\[2pt]
+\textbullet~A network with 10 users: $10^2 = 100$ potential connections\\
+\textbullet~A network with 100 users: $100^2 = 10{,}000$ connections\\
+\textbullet~A network with 1{,}000 users: $1{,}000^2 = 1{,}000{,}000$ connections\\[3pt]
+Ethereum has \textbf{millions of users} --- any competitor starts with a $10{,}000\times$ disadvantage in network value, even with identical technology.
+};
+
+% Bottom insight
+\node[draw=mlorange, fill=mlorange!10, rounded corners=5pt, font=\scriptsize, inner sep=4pt, text width=14.5cm] at (0, -2.2) {%
+\textbf{\color{mlorange}The game theory lesson:} Once a Schelling Point is established, switching costs make it a self-reinforcing equilibrium. The rational choice for any new project is to build where the users already are --- even if alternatives are technically superior.
+};
+\end{tikzpicture}%
+}%
+\end{center}
+\bottomnote{Metcalfe's Law means network effects grow quadratically --- Ethereum's dominance is not about better technology, it is about having a flywheel that competitors cannot replicate without matching its entire ecosystem.}
 \end{frame}
 
 %% ============================================================
