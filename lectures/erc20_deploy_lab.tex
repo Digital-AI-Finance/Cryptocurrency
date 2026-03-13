@@ -1739,4 +1739,436 @@ Path B: \textcolor{mlred}{$\bullet$} Months / Years};
 \bottomnote{Every major cryptocurrency project started exactly where you are now --- with a smart contract and an idea.}
 \end{frame}
 
+%% ============================================================
+%% FRAME 25: PART D SECTION DIVIDER
+%% ============================================================
+\begin{frame}{}
+\vfill
+\begin{beamercolorbox}[sep=12pt,center,rounded=true,shadow=true]{palette quaternary}
+{\Large\bfseries Part 4: The Analysis Framework}\\[6pt]
+{\normalsize A reproducible methodology for evaluating any token or cryptocurrency project}
+\end{beamercolorbox}
+\vfill
+\end{frame}
+
+%% ============================================================
+%% FRAME 26: THE TOKEN ANALYSIS SCORECARD
+%% ============================================================
+\begin{frame}{The Token Analysis Scorecard --- Six Dimensions}
+\vspace{-2mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+
+% Radar chart: 6 axes at 60-degree intervals
+% Axis angles (from top, clockwise): Technology=90, Tokenomics=30,
+% Utility=330, Liquidity=270, Community=210, Security=150
+
+% --- Concentric hexagonal grid (levels 1-5, unrolled) ---
+\draw[mlgray!40, thin] ({90}:1)--({30}:1)--({330}:1)--({270}:1)--({210}:1)--({150}:1)--cycle;
+\draw[mlgray!40, thin] ({90}:2)--({30}:2)--({330}:2)--({270}:2)--({210}:2)--({150}:2)--cycle;
+\draw[mlgray!40, thin] ({90}:3)--({30}:3)--({330}:3)--({270}:3)--({210}:3)--({150}:3)--cycle;
+\draw[mlgray!40, thin] ({90}:4)--({30}:4)--({330}:4)--({270}:4)--({210}:4)--({150}:4)--cycle;
+\draw[mlgray!40, thin] ({90}:5)--({30}:5)--({330}:5)--({270}:5)--({210}:5)--({150}:5)--cycle;
+
+% --- Axis lines from center to level 5 (unrolled) ---
+\draw[mlgray, thin] (0,0) -- ({90}:5);
+\draw[mlgray, thin] (0,0) -- ({30}:5);
+\draw[mlgray, thin] (0,0) -- ({330}:5);
+\draw[mlgray, thin] (0,0) -- ({270}:5);
+\draw[mlgray, thin] (0,0) -- ({210}:5);
+\draw[mlgray, thin] (0,0) -- ({150}:5);
+
+% --- Axis labels ---
+\node[font=\scriptsize\bfseries, mlpurple, above] at ({90}:5.35) {Technology};
+\node[font=\scriptsize\bfseries, mlpurple, right] at ({30}:5.35) {Tokenomics};
+\node[font=\scriptsize\bfseries, mlpurple, right] at ({330}:5.35) {Utility};
+\node[font=\scriptsize\bfseries, mlpurple, below] at ({270}:5.35) {Liquidity};
+\node[font=\scriptsize\bfseries, mlpurple, left] at ({210}:5.35) {Community};
+\node[font=\scriptsize\bfseries, mlpurple, left] at ({150}:5.35) {Security};
+
+% --- Axis sub-labels (tiny) ---
+\node[font=\tiny, mlgray, above] at ({90}:5.75) {Contract quality, audit, open source};
+\node[font=\tiny, mlgray, right] at ({30}:5.75) {Supply model, distribution, vesting};
+\node[font=\tiny, mlgray, right] at ({330}:5.75) {Use case, demand driver, revenue};
+\node[font=\tiny, mlgray, below] at ({270}:5.75) {DEX/CEX listings, volume, depth};
+\node[font=\tiny, mlgray, left] at ({210}:5.75) {Developers, holders, governance};
+\node[font=\tiny, mlgray, left] at ({150}:5.75) {Audits, bug bounties, incidents};
+
+% --- Level numbers on Technology axis (unrolled) ---
+\node[font=\tiny, mlgray, left, inner sep=1pt] at ({95}:1) {1};
+\node[font=\tiny, mlgray, left, inner sep=1pt] at ({95}:2) {2};
+\node[font=\tiny, mlgray, left, inner sep=1pt] at ({95}:3) {3};
+\node[font=\tiny, mlgray, left, inner sep=1pt] at ({95}:4) {4};
+\node[font=\tiny, mlgray, left, inner sep=1pt] at ({95}:5) {5};
+
+% --- ETH polygon (mlgreen, fill opacity=0.3) ---
+% Technology=5, Tokenomics=4, Utility=5, Liquidity=5, Community=5, Security=4
+\fill[mlgreen, fill opacity=0.3]
+  ({90}:5) -- ({30}:4) -- ({330}:5) --
+  ({270}:5) -- ({210}:5) -- ({150}:4) -- cycle;
+\draw[mlgreen, thick]
+  ({90}:5) -- ({30}:4) -- ({330}:5) --
+  ({270}:5) -- ({210}:5) -- ({150}:4) -- cycle;
+\fill[mlgreen] ({90}:5) circle (2pt);
+\fill[mlgreen] ({30}:4) circle (2pt);
+\fill[mlgreen] ({330}:5) circle (2pt);
+\fill[mlgreen] ({270}:5) circle (2pt);
+\fill[mlgreen] ({210}:5) circle (2pt);
+\fill[mlgreen] ({150}:4) circle (2pt);
+
+% --- MTK polygon (mlblue, fill opacity=0.3) ---
+% Technology=2, Tokenomics=2, Utility=0, Liquidity=0, Community=0, Security=1
+\fill[mlblue, fill opacity=0.3]
+  ({90}:2) -- ({30}:2) -- ({330}:0) --
+  ({270}:0) -- ({210}:0) -- ({150}:1) -- cycle;
+\draw[mlblue, thick]
+  ({90}:2) -- ({30}:2) -- ({330}:0) --
+  ({270}:0) -- ({210}:0) -- ({150}:1) -- cycle;
+\fill[mlblue] ({90}:2) circle (2pt);
+\fill[mlblue] ({30}:2) circle (2pt);
+\fill[mlblue] ({150}:1) circle (2pt);
+
+% --- Legend ---
+\fill[mlgreen, fill opacity=0.5] (2.0,-4.5) rectangle (2.5,-4.2);
+\node[font=\tiny\bfseries, right] at (2.6,-4.35) {ETH (28/30)};
+\fill[mlblue, fill opacity=0.5] (-2.5,-4.5) rectangle (-2.0,-4.2);
+\node[font=\tiny\bfseries, right] at (-1.9,-4.35) {MTK (5/30)};
+
+% --- Scoring guide ---
+\node[font=\tiny, mlgray] at (0,-5.1)
+     {0\,=\,absent \enspace 1\,=\,minimal \enspace 2\,=\,basic \enspace 3\,=\,adequate \enspace 4\,=\,strong \enspace 5\,=\,excellent};
+
+\end{tikzpicture}%
+}%
+\end{center}
+
+\bottomnote{Score any project on these six dimensions --- a total below 15/30 is a red flag, above 24/30 suggests a mature project.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 27: STEP-BY-STEP ANALYSIS METHODOLOGY
+%% ============================================================
+\tikzset{
+  stepbox/.style={draw=#1, thick, fill=#1!8, rounded corners=4pt,
+    font=\tiny, text width=4.8cm, align=left, inner sep=3pt, minimum height=0.95cm},
+  stepnum/.style={draw=#1, fill=#1, text=white, circle, font=\tiny\bfseries,
+    inner sep=1.5pt, minimum size=0.4cm},
+  tooltxt/.style={font=\tiny\itshape, text=#1},
+}
+\begin{frame}{Step-by-Step Analysis Methodology}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape}]
+
+% --- Left column: Steps 1-4 ---
+\node[stepnum=mlblue] (n1) at (-5.5,5.0) {1};
+\node[stepbox=mlblue, right=2pt of n1] (s1)
+     {\textbf{Read the Smart Contract}\\Verified on Etherscan? Open source? Check owner privileges.};
+\node[tooltxt=mlgray, right=2pt of s1] {Etherscan};
+
+\node[stepnum=mlgreen] (n2) at (-5.5,3.6) {2};
+\node[stepbox=mlgreen, right=2pt of n2] (s2)
+     {\textbf{Analyze Tokenomics}\\Total/circulating/max supply, vesting, team allocation.};
+\node[tooltxt=mlgray, right=2pt of s2] {CoinGecko};
+
+\node[stepnum=mlorange] (n3) at (-5.5,2.2) {3};
+\node[stepbox=mlorange, right=2pt of n3] (s3)
+     {\textbf{Check Liquidity}\\DEX/CEX listings, TVL, daily volume.};
+\node[tooltxt=mlgray, right=2pt of s3] {DeFiLlama};
+
+\node[stepnum=mlred] (n4) at (-5.5,0.8) {4};
+\node[stepbox=mlred, right=2pt of n4] (s4)
+     {\textbf{Evaluate Utility}\\What problem? Working product? Revenue model?};
+
+% --- Right column: Steps 5-7 ---
+\node[stepnum=mlpurple] (n5) at (3.5,5.0) {5};
+\node[stepbox=mlpurple, right=2pt of n5] (s5)
+     {\textbf{Assess Community}\\GitHub activity, holder distribution, governance.};
+\node[tooltxt=mlgray, right=2pt of s5] {GitHub};
+
+\node[stepnum=mlblue] (n6) at (3.5,3.6) {6};
+\node[stepbox=mlblue, right=2pt of n6] (s6)
+     {\textbf{Review Security}\\Audit reports, incidents, bug bounty program.};
+\node[tooltxt=mlgray, right=2pt of s6] {DeFi Safety};
+
+\node[stepnum=mlgreen] (n7) at (3.5,2.2) {7};
+\node[stepbox=mlgreen, right=2pt of n7] (s7)
+     {\textbf{Score \& Decide}\\Fill scorecard, compare to ETH baseline.};
+
+% --- Arrows between steps ---
+\draw[-{Stealth[length=6pt]}, mlgray, thick] (n1.south) -- (n2.north);
+\draw[-{Stealth[length=6pt]}, mlgray, thick] (n2.south) -- (n3.north);
+\draw[-{Stealth[length=6pt]}, mlgray, thick] (n3.south) -- (n4.north);
+\draw[-{Stealth[length=6pt]}, mlgray, thick] (n5.south) -- (n6.north);
+\draw[-{Stealth[length=6pt]}, mlgray, thick] (n6.south) -- (n7.north);
+
+% --- Cross arrow from step 4 to step 5 ---
+\draw[-{Stealth[length=6pt]}, mlgray, thick, dashed]
+  (s4.east) -- ++(0.6,0) |- (n5.west);
+
+% --- Decision thresholds below step 7 ---
+\node[draw=mlred, fill=mlred!10, rounded corners=3pt, font=\tiny\bfseries,
+      inner sep=2pt] at (5.8,0.8) {$<$15: Red flag};
+\node[draw=mlorange, fill=mlorange!10, rounded corners=3pt, font=\tiny\bfseries,
+      inner sep=2pt] at (8.0,0.8) {15--24: Investigate};
+\node[draw=mlgreen, fill=mlgreen!10, rounded corners=3pt, font=\tiny\bfseries,
+      inner sep=2pt] at (10.4,0.8) {$>$24: Mature};
+\draw[-{Stealth[length=6pt]}, mlgray] (s7.east) -- ++(0.4,0);
+
+\end{tikzpicture}%
+}%
+\end{center}
+
+\bottomnote{Follow these seven steps for every project you evaluate --- this is your reproducible due-diligence checklist.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 28: CASE STUDY --- SCORING MTK VS UNI
+%% ============================================================
+\begin{frame}{Case Study --- Scoring MTK vs.\ UNI}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape}]
+
+% === LEFT TABLE: MTK Token ===
+% Header
+\fill[mlblue, rounded corners=3pt] (-8.2,5.2) rectangle (-2.0,5.8);
+\node[font=\scriptsize\bfseries, white] at (-5.1,5.5) {MTK Token (Our Project)};
+
+% Column headers
+\fill[mlblue!20] (-8.2,4.6) rectangle (-5.4,5.1);
+\node[font=\tiny\bfseries] at (-6.8,4.85) {Dimension};
+\fill[mlblue!20] (-5.4,4.6) rectangle (-4.2,5.1);
+\node[font=\tiny\bfseries] at (-4.8,4.85) {Score};
+\fill[mlblue!20] (-4.2,4.6) rectangle (-2.0,5.1);
+\node[font=\tiny\bfseries] at (-3.1,4.85) {Reason};
+
+% Row 1: Technology 2/5
+\fill[white] (-8.2,4.0) rectangle (-2.0,4.5);
+\node[font=\tiny, anchor=west] at (-8.1,4.25) {Technology};
+\node[font=\tiny\bfseries, mlorange] at (-4.8,4.25) {2/5};
+\node[font=\tiny, anchor=west] at (-4.1,4.25) {OZ base, unaudited};
+
+% Row 2: Tokenomics 2/5
+\fill[mlblue!5] (-8.2,3.4) rectangle (-2.0,3.9);
+\node[font=\tiny, anchor=west] at (-8.1,3.65) {Tokenomics};
+\node[font=\tiny\bfseries, mlorange] at (-4.8,3.65) {2/5};
+\node[font=\tiny, anchor=west] at (-4.1,3.65) {Capped, no vesting};
+
+% Row 3: Utility 0/5
+\fill[white] (-8.2,2.8) rectangle (-2.0,3.3);
+\node[font=\tiny, anchor=west] at (-8.1,3.05) {Utility};
+\node[font=\tiny\bfseries, mlred] at (-4.8,3.05) {0/5};
+\node[font=\tiny, anchor=west] at (-4.1,3.05) {No use case yet};
+
+% Row 4: Liquidity 0/5
+\fill[mlblue!5] (-8.2,2.2) rectangle (-2.0,2.7);
+\node[font=\tiny, anchor=west] at (-8.1,2.45) {Liquidity};
+\node[font=\tiny\bfseries, mlred] at (-4.8,2.45) {0/5};
+\node[font=\tiny, anchor=west] at (-4.1,2.45) {Not listed};
+
+% Row 5: Community 0/5
+\fill[white] (-8.2,1.6) rectangle (-2.0,2.1);
+\node[font=\tiny, anchor=west] at (-8.1,1.85) {Community};
+\node[font=\tiny\bfseries, mlred] at (-4.8,1.85) {0/5};
+\node[font=\tiny, anchor=west] at (-4.1,1.85) {Classroom only};
+
+% Row 6: Security 1/5
+\fill[mlblue!5] (-8.2,1.0) rectangle (-2.0,1.5);
+\node[font=\tiny, anchor=west] at (-8.1,1.25) {Security};
+\node[font=\tiny\bfseries, mlred] at (-4.8,1.25) {1/5};
+\node[font=\tiny, anchor=west] at (-4.1,1.25) {OZ base, no audit};
+
+% Total row
+\fill[mlblue!15] (-8.2,0.3) rectangle (-2.0,0.9);
+\node[font=\tiny\bfseries, anchor=west] at (-8.1,0.6) {Total};
+\node[font=\tiny\bfseries, mlred] at (-4.8,0.6) {5/30};
+\node[font=\tiny\bfseries, anchor=west] at (-4.1,0.6) {Early stage};
+
+% Table border
+\draw[mlblue, thick, rounded corners=3pt] (-8.2,0.3) rectangle (-2.0,5.8);
+
+% === RIGHT TABLE: Uniswap UNI ===
+% Header
+\fill[mlgreen, rounded corners=3pt] (0.0,5.2) rectangle (6.2,5.8);
+\node[font=\scriptsize\bfseries, white] at (3.1,5.5) {Uniswap (UNI)};
+
+% Column headers
+\fill[mlgreen!20] (0.0,4.6) rectangle (2.8,5.1);
+\node[font=\tiny\bfseries] at (1.4,4.85) {Dimension};
+\fill[mlgreen!20] (2.8,4.6) rectangle (4.0,5.1);
+\node[font=\tiny\bfseries] at (3.4,4.85) {Score};
+\fill[mlgreen!20] (4.0,4.6) rectangle (6.2,5.1);
+\node[font=\tiny\bfseries] at (5.1,4.85) {Reason};
+
+% Row 1: Technology 5/5
+\fill[white] (0.0,4.0) rectangle (6.2,4.5);
+\node[font=\tiny, anchor=west] at (0.1,4.25) {Technology};
+\node[font=\tiny\bfseries, mlgreen] at (3.4,4.25) {5/5};
+\node[font=\tiny, anchor=west] at (4.1,4.25) {Battle-tested, open};
+
+% Row 2: Tokenomics 4/5
+\fill[mlgreen!5] (0.0,3.4) rectangle (6.2,3.9);
+\node[font=\tiny, anchor=west] at (0.1,3.65) {Tokenomics};
+\node[font=\tiny\bfseries, mlgreen] at (3.4,3.65) {4/5};
+\node[font=\tiny, anchor=west] at (4.1,3.65) {Clear distribution};
+
+% Row 3: Utility 5/5
+\fill[white] (0.0,2.8) rectangle (6.2,3.3);
+\node[font=\tiny, anchor=west] at (0.1,3.05) {Utility};
+\node[font=\tiny\bfseries, mlgreen] at (3.4,3.05) {5/5};
+\node[font=\tiny, anchor=west] at (4.1,3.05) {Governs \#1 DEX};
+
+% Row 4: Liquidity 5/5
+\fill[mlgreen!5] (0.0,2.2) rectangle (6.2,2.7);
+\node[font=\tiny, anchor=west] at (0.1,2.45) {Liquidity};
+\node[font=\tiny\bfseries, mlgreen] at (3.4,2.45) {5/5};
+\node[font=\tiny, anchor=west] at (4.1,2.45) {All major exchanges};
+
+% Row 5: Community 5/5
+\fill[white] (0.0,1.6) rectangle (6.2,2.1);
+\node[font=\tiny, anchor=west] at (0.1,1.85) {Community};
+\node[font=\tiny\bfseries, mlgreen] at (3.4,1.85) {5/5};
+\node[font=\tiny, anchor=west] at (4.1,1.85) {Millions, active DAO};
+
+% Row 6: Security 4/5
+\fill[mlgreen!5] (0.0,1.0) rectangle (6.2,1.5);
+\node[font=\tiny, anchor=west] at (0.1,1.25) {Security};
+\node[font=\tiny\bfseries, mlgreen] at (3.4,1.25) {4/5};
+\node[font=\tiny, anchor=west] at (4.1,1.25) {Multiple audits};
+
+% Total row
+\fill[mlgreen!15] (0.0,0.3) rectangle (6.2,0.9);
+\node[font=\tiny\bfseries, anchor=west] at (0.1,0.6) {Total};
+\node[font=\tiny\bfseries, mlgreen] at (3.4,0.6) {28/30};
+\node[font=\tiny\bfseries, anchor=west] at (4.1,0.6) {Mature crypto};
+
+% Table border
+\draw[mlgreen, thick, rounded corners=3pt] (0.0,0.3) rectangle (6.2,5.8);
+
+% --- Bottom arrow ---
+\draw[-{Stealth[length=6pt]}, mlpurple, thick]
+  (-5.1,-0.2) -- node[font=\tiny, above, mlpurple]
+  {Your MTK can grow from 5/30 to 28/30 --- follow the roadmap in Frame 23} (3.1,-0.2);
+
+\end{tikzpicture}%
+}%
+\end{center}
+
+\bottomnote{This is how you turn a subjective ``is this token good?'' into an objective, reproducible analysis.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 29: RED FLAGS AND GREEN FLAGS
+%% ============================================================
+\begin{frame}{Red Flags and Green Flags}
+\vspace{-3mm}
+\begin{center}
+\adjustbox{max width=\textwidth,max totalheight=6.5cm}{%
+\begin{tikzpicture}[scale=0.72, every node/.style={transform shape},
+  rflag/.style={font=\tiny, text width=5.5cm, align=left},
+  gflag/.style={font=\tiny, text width=5.5cm, align=left}]
+
+% === LEFT COLUMN: Red Flags ===
+\fill[mlred!8, rounded corners=4pt] (-8.5,-0.2) rectangle (-1.5,6.6);
+\node[draw=mlred, fill=mlred, text=white, rounded corners=3pt,
+      font=\scriptsize\bfseries, inner sep=3pt] at (-5.0,6.2) {Red Flags --- Warning Signs};
+
+\node[rflag] at (-4.7,5.5) {$\boldsymbol{\times}$\enspace Unverified contract (not open source)};
+\node[rflag] at (-4.7,5.0) {$\boldsymbol{\times}$\enspace No audit report available};
+\node[rflag] at (-4.7,4.5) {$\boldsymbol{\times}$\enspace Anonymous team, no track record};
+\node[rflag] at (-4.7,4.0) {$\boldsymbol{\times}$\enspace Top 10 wallets hold $>$80\% of supply};
+\node[rflag] at (-4.7,3.5) {$\boldsymbol{\times}$\enspace No working product (vaporware)};
+\node[rflag] at (-4.7,3.0) {$\boldsymbol{\times}$\enspace Promises of guaranteed returns};
+\node[rflag] at (-4.7,2.5) {$\boldsymbol{\times}$\enspace Liquidity pool $<$ \$10K TVL};
+\node[rflag] at (-4.7,2.0) {$\boldsymbol{\times}$\enspace No GitHub repository or activity};
+\node[rflag] at (-4.7,1.5) {$\boldsymbol{\times}$\enspace Hidden \texttt{pause()} or \texttt{mint()} functions};
+\node[rflag] at (-4.7,1.0) {$\boldsymbol{\times}$\enspace Whitepaper is just marketing};
+
+% === RIGHT COLUMN: Green Flags ===
+\fill[mlgreen!8, rounded corners=4pt] (0.0,-0.2) rectangle (7.0,6.6);
+\node[draw=mlgreen, fill=mlgreen, text=white, rounded corners=3pt,
+      font=\scriptsize\bfseries, inner sep=3pt] at (3.5,6.2) {Green Flags --- Positive Signs};
+
+\node[gflag] at (3.8,5.5) {$\checkmark$\enspace Verified, open-source contract};
+\node[gflag] at (3.8,5.0) {$\checkmark$\enspace Multiple independent audits};
+\node[gflag] at (3.8,4.5) {$\checkmark$\enspace Known team with track record};
+\node[gflag] at (3.8,4.0) {$\checkmark$\enspace Wide holder distribution ($<$20\% top 10)};
+\node[gflag] at (3.8,3.5) {$\checkmark$\enspace Working product with real users};
+\node[gflag] at (3.8,3.0) {$\checkmark$\enspace Realistic roadmap, milestones met};
+\node[gflag] at (3.8,2.5) {$\checkmark$\enspace Deep liquidity on multiple DEXs};
+\node[gflag] at (3.8,2.0) {$\checkmark$\enspace Active GitHub, recent commits};
+\node[gflag] at (3.8,1.5) {$\checkmark$\enspace Time-locked admin (multisig)};
+\node[gflag] at (3.8,1.0) {$\checkmark$\enspace Clear tokenomics with vesting};
+
+\end{tikzpicture}%
+}%
+\end{center}
+
+\bottomnote{Use this checklist as a quick pre-screen before diving into the full six-dimension analysis.}
+\end{frame}
+
+%% ============================================================
+%% FRAME 30: YOUR ANALYSIS TOOLKIT
+%% ============================================================
+\tikzset{
+  card/.style={draw=#1, thick, fill=#1!5, rounded corners=5pt,
+    minimum width=4.2cm, minimum height=2.6cm, inner sep=0pt},
+  cheader/.style={draw=#1, fill=#1, text=white, rounded corners=3pt,
+    font=\scriptsize\bfseries, inner sep=3pt, minimum width=3.8cm},
+  cdesc/.style={font=\tiny, text width=3.6cm, align=center},
+  ckey/.style={font=\tiny\itshape, text width=3.6cm, align=center, #1},
+}
+\begin{frame}{Your Analysis Toolkit --- Essential Resources}
+\vspace{-2mm}
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+
+% --- Row 1 ---
+% Card 1: Etherscan (mlblue)
+\node[card=mlblue] (c1) at (-5.0,2.0) {};
+\node[cheader=mlblue] at (-5.0,3.0) {Etherscan};
+\node[cdesc] at (-5.0,2.1) {Read contracts, check holders,\\verify transactions};
+\node[ckey=mlblue] at (-5.0,1.3) {Key: ``Read Contract'' tab};
+
+% Card 2: DeFiLlama (mlgreen)
+\node[card=mlgreen] (c2) at (0.0,2.0) {};
+\node[cheader=mlgreen] at (0.0,3.0) {DeFiLlama};
+\node[cdesc] at (0.0,2.1) {TVL, protocol revenue,\\chain comparison};
+\node[ckey=mlgreen] at (0.0,1.3) {Key: Dashboard};
+
+% Card 3: CoinGecko (mlorange)
+\node[card=mlorange] (c3) at (5.0,2.0) {};
+\node[cheader=mlorange] at (5.0,3.0) {CoinGecko};
+\node[cdesc] at (5.0,2.1) {Price, market cap, supply,\\exchange listings};
+\node[ckey=mlorange] at (5.0,1.3) {Key: Supply info};
+
+% --- Row 2 ---
+% Card 4: DEX Screener (mlpurple)
+\node[card=mlpurple] (c4) at (-5.0,-1.6) {};
+\node[cheader=mlpurple] at (-5.0,-0.6) {DEX Screener};
+\node[cdesc] at (-5.0,-1.5) {Real-time DEX data,\\liquidity pools};
+\node[ckey=mlpurple] at (-5.0,-2.3) {Key: Pair explorer};
+
+% Card 5: GitHub (mlgray)
+\node[card=mlgray] (c5) at (0.0,-1.6) {};
+\node[cheader=mlgray] at (0.0,-0.6) {GitHub};
+\node[cdesc] at (0.0,-1.5) {Code activity, contributors,\\issue tracking};
+\node[ckey=mlgray] at (0.0,-2.3) {Key: Commits/month};
+
+% Card 6: Snapshot.org (mlred)
+\node[card=mlred] (c6) at (5.0,-1.6) {};
+\node[cheader=mlred] at (5.0,-0.6) {Snapshot.org};
+\node[cdesc] at (5.0,-1.5) {Governance proposals,\\voting history};
+\node[ckey=mlred] at (5.0,-2.3) {Key: Voter turnout \%};
+
+\end{tikzpicture}
+\end{center}
+
+\bottomnote{Bookmark these six tools --- they are all you need to perform a thorough due-diligence analysis on any crypto project.}
+\end{frame}
+
 \end{document}
